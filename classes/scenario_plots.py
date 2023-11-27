@@ -8,6 +8,7 @@ class sc_plot():
         pass
 
     def predefined_plot(self, data: pd.DataFrame):
+        data[['RegionCode', 'domain']] = data[['RegionCode', 'domain']].astype('str') # must be changed to perform groupby()
         grouped_data = data.groupby(['Period', 'Scenario']).sum().reset_index()
         plt.figure(figsize=(12, 8))
 
