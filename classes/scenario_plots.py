@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+import seaborn as sns
 import matplotlib.pyplot as plt
 from ipywidgets import interactive, widgets
 from IPython.display import display, clear_output
@@ -32,13 +34,13 @@ class PlotDropDown:
         self.domain_dropdown = self.choose_dropdown("domain")
         self.commodity_code_dropdown = self.choose_dropdown("CommodityCode")
 
-        self.interactive_plot_update = interactive(self.update_plot_data,
+        self.interactive_heatmap = interactive(self.update_heatmap_data,
                                                    region = self.regioncode_dropdown,
                                                    model = self.model_dropdown,
                                                    id = self.id_dropdown,
                                                    domain= self.domain_dropdown,
                                                    commodity = self.commodity_code_dropdown)     
-        display(self.interactive_plot_update)
+        display(self.interactive_heatmap)
 
 
     def choose_dropdown(self, column):
@@ -50,7 +52,7 @@ class PlotDropDown:
             disabled=False
         )
 
-    def update_plot_data(self, region, model, id, domain, commodity):
+    def update_heatmap_data(self, region, model, id, domain, commodity):
         region_filter = [region] if region != 'Alle' else self.data['RegionCode'].unique()
         model_filter = [model] if model != 'Alle' else self.data['Model'].unique()
         id_filter = [id] if id != 'Alle' else self.data['ID'].unique()
@@ -79,4 +81,91 @@ class PlotDropDown:
         plt.ylabel('quantity')
         plt.legend()
         plt.grid(True)
-        plt.show() 
+        plt.show()
+
+class HeatmapDropDown:
+    def __init__(self, data): 
+        self.data = data
+        self.reference_data_dropdown = self.choose_dropdown("Scenario")
+        self.validation_data_dropdown = self.choose_dropdown("Scenario")
+        self.comparator_dropdown = self.choose_dropdown("Comparator")
+        self.regioncode_dropdown = self.choose_dropdown("RegionCode")
+        self.domain_dropdown = self.choose_dropdown("domain")
+        self.commodity_code_dropdown = self.choose_dropdown("CommodityCode")
+
+        self.interactive_plot_update = interactive(self.update_heatmap_data,
+                                                   reference_data = self.reference_data_dropdown,
+                                                   validation_data = self.validation_data_dropdown,
+                                                   comparator = self.comparator_dropdown,
+                                                   region = self.regioncode_dropdown,
+                                                   domain= self.domain_dropdown,
+                                                   commodity = self.commodity_code_dropdown)     
+        display(self.interactive_plot_update)
+
+
+    def choose_dropdown(self, column):
+        if (column == "Scenario"):
+            options = list(self.data[column].unique())
+            value = options[0]
+        elif (column == "Comparator"):
+            options = ['abs_quantity_diff', 'rel_quantity_diff', 'abs_price_diff', 'rel_price_diff']
+            value = 'rel_quantity_diff'
+        else:
+            options = ['All'] + list(self.data[column].unique())
+            value = 'All'
+
+        return widgets.Dropdown(
+            options=options,
+            value=value,
+            description=f'Select {column}:',
+            disabled=False
+        )    
+    def update_heatmap_data(self, reference_data, validation_data, comparator, region, domain, commodity):
+        region_filter = [region] if region != 'All' else self.data['RegionCode'].unique()
+        domain_filter = [domain] if domain != 'All' else self.data['domain'].unique()
+        commodity_filter = [commodity] if commodity != 'All' else self.data['CommodityCode'].unique()
+        reference_filter = reference_data
+        validation_filter = validation_data
+        comparator_filter = comparator
+
+        max_period = max(set(self.data[(self.data['Model'] == 'GFPMpt') &
+                                       (self.data['Scenario'] == validation_filter)]['Period']))
+
+        reference_data_filtered = self.data[self.data['Scenario'] == reference_filter]
+        validation_data_filtered = self.data[self.data['Scenario'] == validation_filter]
+
+        # Filter domain and commodities of interest
+        reference_data_filtered = reference_data_filtered[(reference_data_filtered['domain'].isin(domain_filter)) &
+                                                          (reference_data_filtered['RegionCode'].isin(region_filter)) &
+                                                          (reference_data_filtered['CommodityCode'].isin(commodity_filter)) &
+                                                          (reference_data_filtered['Period'] <= max_period)].reset_index(drop=True)
+        
+        reference_data_grouped = reference_data_filtered.groupby(['Period', 'CommodityCode']).sum().reset_index() 
+        
+        validation_data_filtered = validation_data_filtered[(validation_data_filtered['domain'].isin(domain_filter)) &
+                                                            (validation_data_filtered['RegionCode'].isin(region_filter)) &
+                                                            (validation_data_filtered['CommodityCode'].isin(commodity_filter))].reset_index(drop=True)
+        
+        validation_data_grouped = validation_data_filtered.groupby(['Period', 'CommodityCode']).sum().reset_index() 
+
+        data_info = validation_data_grouped[['CommodityCode', 'Period']]
+
+        abs_price_diff = pd.DataFrame(validation_data_grouped['price'] - reference_data_grouped['price']).rename(columns={'price': 'abs_price_diff'})
+        abs_quantity_diff = pd.DataFrame(validation_data_grouped['quantity'] - reference_data_grouped['quantity']).rename(columns={'quantity': 'abs_quantity_diff'})
+        rel_price_diff = pd.DataFrame((abs_price_diff['abs_price_diff'] / reference_data_grouped['price']) * 100).rename(columns={0: 'rel_price_diff'})
+        rel_quantity_diff = pd.DataFrame((abs_quantity_diff['abs_quantity_diff'] / reference_data_grouped['quantity']) * 100).rename(columns={0: 'rel_quantity_diff'})
+
+        data_heatmap = pd.concat([data_info,
+                                  abs_price_diff['abs_price_diff'],
+                                  abs_quantity_diff['abs_quantity_diff'],
+                                  rel_price_diff['rel_price_diff'],
+                                  rel_quantity_diff['rel_quantity_diff']], axis=1)
+
+        data_heatmap.fillna(0, inplace=True)
+        data_heatmap.replace(np.inf, 0, inplace=True)
+
+        fig = data_heatmap.pivot('CommodityCode', 'Period', f'{comparator_filter}')  # TODO dynamize f'{rel_quantity_diff}' with drop down options
+        f, ax = plt.subplots(figsize=(13, 9))
+        plt.title(f'{comparator_filter} for {domain_filter}-quantities in {region_filter}')
+        sns.heatmap(fig, annot=True, linewidths=.5, ax=ax, cbar_kws={'label': 'Deviation of GFPMpt from GFPM'})
+        
