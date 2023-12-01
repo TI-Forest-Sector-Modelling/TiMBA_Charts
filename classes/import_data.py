@@ -33,16 +33,15 @@ class import_pkl_data():
             obj = pickle.load(pkl_file)
         return obj
 
-    def read_pkl(self, data):
-        """read data container from pkl file and store it within dictionary
-        :return: dictionary of data container
+    def read_country_data(self):
+        """read data additional information for country data
+        :return: country data
         """
-        data_container = {"Forest": data["Forest"], 
-                        "ManufactureCost": data["ManufactureCost"], 
-                        "results_agg": data["data_aggregated"],
-                        "results": data["data_periods"],
-                        "WorldPrices": data["WorldPrices"]}
-        return data_container
+        country_data = pd.read_csv(str(PACKAGEDIR) + parameters.input_folder.value + "\\Additional_Information\\country_info.csv", encoding = "ISO-8859-1")
+        country_data = country_data[["Country-Code", "ContinentNew"]]
+        country_data.columns = ["RegionCode","Continent"]
+        country_data.Continent = country_data.Continent.astype("category")
+        return country_data
     
     def downcasting(self, data: pd.DataFrame):
         data.RegionCode = data.RegionCode.astype("category")
@@ -63,7 +62,7 @@ class import_pkl_data():
         data.ID = data.ID.astype("category")
         return data
 
-    def concat_scenarios(self, data, sc_name:str, data_prev, ID):
+    def concat_scenarios(self, data: pd.DataFrame, sc_name:str, data_prev: pd.DataFrame, ID: int):
         """concat_scenarios, add scenario name from pkl file to data frames
         :param data: dictionary of the data container
         :param sc_name: scenario name from file name in dictionary
@@ -79,6 +78,7 @@ class import_pkl_data():
         """loop trough all input files in input directory
         """
         file_list = os.listdir(str(PACKAGEDIR) + parameters.input_folder.value)
+        data = []
         data_prev = []
         ID = 1
         for scenario_files in file_list:
@@ -87,10 +87,10 @@ class import_pkl_data():
                                         :-4]
             try:
                 data = self.open_pickle(src_filepath)
-                print(data)
-                #data = self.read_pkl(data=data_container)
                 self.concat_scenarios(data=data, sc_name=scenario_name, data_prev=data_prev, ID=ID)
             except pickle.UnpicklingError:
+                pass
+            except PermissionError:
                 pass
             data_prev = data
             ID += 1
@@ -100,6 +100,8 @@ class import_pkl_data():
         data = self.downcasting(data)
         data_results = pd.concat([data_prev["data_periods"], data], axis=0)
         data_prev["data_periods"] = data_results
+        country_data = self.read_country_data()
+        data_prev["data_periods"] = pd.merge(data_prev["data_periods"], country_data, on="RegionCode", how="left")
 
         return data_prev
     

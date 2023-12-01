@@ -29,6 +29,7 @@ class PlotDropDown:
     def __init__(self,data): 
         self.data =data
         self.regioncode_dropdown = self.choose_dropdown("RegionCode")
+        self.continentcode_dropdown = self.choose_dropdown("Continent")
         self.model_dropdown = self.choose_dropdown("Model")
         self.id_dropdown = self.choose_dropdown("ID")
         self.domain_dropdown = self.choose_dropdown("domain")
@@ -36,6 +37,7 @@ class PlotDropDown:
 
         self.interactive_heatmap = interactive(self.update_heatmap_data,
                                                    region = self.regioncode_dropdown,
+                                                   continent = self.continentcode_dropdown,
                                                    model = self.model_dropdown,
                                                    id = self.id_dropdown,
                                                    domain= self.domain_dropdown,
@@ -52,8 +54,9 @@ class PlotDropDown:
             disabled=False
         )
 
-    def update_heatmap_data(self, region, model, id, domain, commodity):
+    def update_heatmap_data(self, region, continent, model, id, domain, commodity):
         region_filter = [region] if region != 'Alle' else self.data['RegionCode'].unique()
+        continent_filter = [continent] if continent != 'Alle' else self.data['Continent'].unique()
         model_filter = [model] if model != 'Alle' else self.data['Model'].unique()
         id_filter = [id] if id != 'Alle' else self.data['ID'].unique()
         domain_filter = [domain] if domain != 'Alle' else self.data['domain'].unique()
@@ -62,6 +65,7 @@ class PlotDropDown:
 
         filtered_data = self.data[
             (self.data['RegionCode'].isin(region_filter)) &
+            (self.data['Continent'].isin(continent_filter)) &
             (self.data['Model'].isin(model_filter)) &
             (self.data['ID'].isin(id_filter)) &
             (self.data['domain'].isin(domain_filter)) &
@@ -76,7 +80,7 @@ class PlotDropDown:
             subset = grouped_data[grouped_data['Scenario'] == price_value]
             plt.plot(subset['Period'], subset['quantity'], label=f'M: {price_value}')
 
-        plt.title(f'quantity for each Period - RegionCode: {region}, Model: {model}, ID: {id}, Domain: {domain}, CommodityCode: {commodity}')
+        #plt.title(f'quantity for each Period - RegionCode: {region},Continent: {continent}, Model: {model}, ID: {id}, Domain: {domain}, CommodityCode: {commodity}')
         plt.xlabel('period')
         plt.ylabel('quantity')
         plt.legend()
@@ -85,8 +89,7 @@ class PlotDropDown:
 
 class HeatmapDropDown:
     def __init__(self, data): 
-        self.data_full = data["data_periods"]
-        self.data_aggregated = data["data_aggregated"]
+        self.data = data["data_periods"]
         self.selected_data_dropdown = self.choose_dropdown("SelectedData")
         self.reference_data_dropdown = self.choose_dropdown("Scenario")
         self.validation_data_dropdown = self.choose_dropdown("Scenario")
@@ -111,21 +114,18 @@ class HeatmapDropDown:
             options = ["Regions", "Continents"]
             value = options[1]
         elif (column == "Scenario"):
-            options = list(self.data_full[column].unique())
+            options = list(self.data[column].unique())
             value = options[0]
         elif (column == "Comparator"):
             options = ['abs_quantity_diff', 'rel_quantity_diff', 'abs_price_diff', 'rel_price_diff']
             value = 'rel_quantity_diff'
 
         elif (column == "SpatialAggregation"):
-            if self.selected_data_dropdown.value == "Regions":
-                options = ['All'] + list(self.data_full["RegionCode"].unique())
-                value = 'All'
-            elif self.selected_data_dropdown.value == "Continents":
-                options = ['All'] + list(self.data_aggregated["ContinentNew"].unique())
-                value = 'All'
+            
+            options = ['All'] + list(self.data["Continent"].unique()) + list(self.data["RegionCode"].unique())
+            value = 'All'
         else:
-            options = ['All'] + list(self.data_full[column].unique())
+            options = ['All'] + list(self.data[column].unique())
             value = 'All'
 
         return widgets.Dropdown(
@@ -137,29 +137,25 @@ class HeatmapDropDown:
     def update_heatmap_data(self, selected_data, reference_data, validation_data, comparator, spatial_aggregation, domain, commodity):
 
         if selected_data == "Regions":
-            data = self.data_full
             column_filter = "RegionCode"
-            price_column_filter = "price"
-            aoi_filter = [spatial_aggregation] if spatial_aggregation != 'All' else self.data_full[column_filter].unique()
+            aoi_filter = [spatial_aggregation] if spatial_aggregation != 'All' else self.data[column_filter].unique()
             
         elif selected_data == "Continents":
-            data = self.data_aggregated
-            column_filter = "ContinentNew"
-            price_column_filter = "weighted_price"
-            aoi_filter = [spatial_aggregation] if spatial_aggregation != 'All' else self.data_aggregated[column_filter].unique()
+            column_filter = "Continent"
+            aoi_filter = [spatial_aggregation] if spatial_aggregation != 'All' else self.data[column_filter].unique()
 
 
-        domain_filter = [domain] if domain != 'All' else data['domain'].unique()
-        commodity_filter = [commodity] if commodity != 'All' else data['CommodityCode'].unique()
+        domain_filter = [domain] if domain != 'All' else self.data['domain'].unique()
+        commodity_filter = [commodity] if commodity != 'All' else self.data['CommodityCode'].unique()
         reference_filter = reference_data
         validation_filter = validation_data
         comparator_filter = comparator
 
-        max_period = max(set(data[(data['Model'] == 'GFPMpt') &
-                                  (data['Scenario'] == validation_filter)]['Period']))
+        max_period = max(set(self.data[(self.data['Model'] == 'GFPMpt') &
+                                       (self.data['Scenario'] == validation_filter)]['Period']))
 
-        reference_data_filtered = data[data['Scenario'] == reference_filter]
-        validation_data_filtered = data[data['Scenario'] == validation_filter]
+        reference_data_filtered = self.data[self.data['Scenario'] == reference_filter]
+        validation_data_filtered = self.data[self.data['Scenario'] == validation_filter]
 
         # Filter domain and commodities of interest
         reference_data_filtered = reference_data_filtered[(reference_data_filtered['domain'].isin(domain_filter)) &
@@ -177,9 +173,9 @@ class HeatmapDropDown:
 
         data_info = validation_data_grouped[['CommodityCode', 'Period']]
 
-        abs_price_diff = pd.DataFrame(validation_data_grouped[price_column_filter] - reference_data_grouped[price_column_filter]).rename(columns={f'{price_column_filter}': 'abs_price_diff'})
+        abs_price_diff = pd.DataFrame(validation_data_grouped['price'] - reference_data_grouped['price']).rename(columns={'price': 'abs_price_diff'})
         abs_quantity_diff = pd.DataFrame(validation_data_grouped['quantity'] - reference_data_grouped['quantity']).rename(columns={'quantity': 'abs_quantity_diff'})
-        rel_price_diff = pd.DataFrame((abs_price_diff['abs_price_diff'] / reference_data_grouped[price_column_filter]) * 100).rename(columns={0: 'rel_price_diff'})
+        rel_price_diff = pd.DataFrame((abs_price_diff['abs_price_diff'] / reference_data_grouped['price']) * 100).rename(columns={0: 'rel_price_diff'})
         rel_quantity_diff = pd.DataFrame((abs_quantity_diff['abs_quantity_diff'] / reference_data_grouped['quantity']) * 100).rename(columns={0: 'rel_quantity_diff'})
 
         data_heatmap = pd.concat([data_info,
