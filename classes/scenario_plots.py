@@ -237,8 +237,7 @@ class InteractivePrice:
                 x_positions = subset['Period'] + i * bar_width
                 plt.bar(x_positions, subset['price'], width=bar_width, label=f'Scenario {scenario_value}')
 
-            plt.title(f'Price for each scenario grouped by Period - RegionCode: {region_code}, Model: {model}, 
-                      ID: {id_value}, Domain: {domain}, CommodityCode: {commodity_code}')
+            plt.title(f'Price for each scenario grouped by Period - RegionCode: {region_code}, Model: {model}, ID: {id_value}, Domain: {domain}, CommodityCode: {commodity_code}')
             plt.xlabel('Period')
             plt.ylabel('Price')
             plt.legend()
