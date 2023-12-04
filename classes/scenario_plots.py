@@ -4,6 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from ipywidgets import interactive, widgets
 from IPython.display import display, clear_output
+import ipywidgets as widgets
 
 class sc_plot():
     def init(self):
@@ -82,6 +83,7 @@ class PlotDropDown:
         plt.legend()
         plt.grid(True)
         plt.show()
+
 
 class HeatmapDropDown:
     def __init__(self, data): 
@@ -169,3 +171,86 @@ class HeatmapDropDown:
         plt.title(f'{comparator_filter} for {domain_filter}-quantities in {region_filter}')
         sns.heatmap(fig, annot=True, linewidths=.5, ax=ax, cbar_kws={'label': 'Deviation of GFPMpt from GFPM'})
         
+class InteractivePrice:
+    def __init__(self, data):
+        self.data = data
+        self.region_dropdown = self.create_dropdown('RegionCode', 'Select RegionCode:')
+        self.model_dropdown = self.create_dropdown('Model', 'Select Model:')
+        self.id_dropdown = self.create_dropdown('ID', 'Select ID:')
+        self.domain_dropdown = self.create_dropdown('domain', 'Select Domain:')
+        self.commodity_code_dropdown = self.create_dropdown('CommodityCode', 'Select CommodityCode:')
+
+        self.interactive_plot_update = widgets.interactive(
+            self.update_plot_data,
+            region_code=self.region_dropdown,
+            model=self.model_dropdown,
+            id_value=self.id_dropdown,
+            domain=self.domain_dropdown,
+            commodity_code=self.commodity_code_dropdown
+        )
+
+        self.region_dropdown.observe(self.update_outputs, 'value')
+        self.model_dropdown.observe(self.update_outputs, 'value')
+        self.id_dropdown.observe(self.update_outputs, 'value')
+        self.domain_dropdown.observe(self.update_outputs, 'value')
+        self.commodity_code_dropdown.observe(self.update_outputs, 'value')
+
+        self.output_plot = widgets.Output()
+        self.output_table = widgets.Output()
+
+        display(self.region_dropdown, self.model_dropdown, self.id_dropdown, self.domain_dropdown, self.commodity_code_dropdown)
+        display(self.output_plot)
+        display(self.output_table)
+
+    def create_dropdown(self, column, description):
+        dropdown = widgets.Dropdown(
+            options=['Alle'] + list(self.data[column].unique()),
+            value='Alle',
+            description=description,
+            disabled=False,
+        )
+        return dropdown
+
+    def update_plot_data(self, region_code, model, id_value, domain, commodity_code):
+        region_code_filter = [region_code] if region_code != 'Alle' else self.data['RegionCode'].unique()
+        model_filter = [model] if model != 'Alle' else self.data['Model'].unique()
+        id_filter = [id_value] if id_value != 'Alle' else self.data['ID'].unique()
+        domain_filter = [domain] if domain != 'Alle' else self.data['domain'].unique()
+        commodity_code_filter = [commodity_code] if commodity_code != 'Alle' else self.data['CommodityCode'].unique()
+
+        filtered_data = self.data[
+            (self.data['RegionCode'].isin(region_code_filter)) &
+            (self.data['Model'].isin(model_filter)) &
+            (self.data['ID'].isin(id_filter)) &
+            (self.data['domain'].isin(domain_filter)) &
+            (self.data['CommodityCode'].isin(commodity_code_filter))
+        ]
+
+        grouped_data = filtered_data.groupby(['Period', 'Scenario']).sum().reset_index()
+
+        with self.output_plot:
+            clear_output(wait=True)
+            plt.figure(figsize=(12, 8))
+            bar_width = 0.2
+            for i, scenario_value in enumerate(grouped_data['Scenario'].unique()):
+                subset = grouped_data[grouped_data['Scenario'] == scenario_value]
+                x_positions = subset['Period'] + i * bar_width
+                plt.bar(x_positions, subset['price'], width=bar_width, label=f'Scenario {scenario_value}')
+
+            plt.title(f'Price for each scenario grouped by Period - RegionCode: {region_code}, Model: {model}, 
+                      ID: {id_value}, Domain: {domain}, CommodityCode: {commodity_code}')
+            plt.xlabel('Period')
+            plt.ylabel('Price')
+            plt.legend()
+            plt.grid(True)
+            plt.show()
+
+        with self.output_table:
+            clear_output(wait=True)
+            display_table = filtered_data[['Period', 'RegionCode', 'Model', 'ID', 'domain', 'CommodityCode', 
+                                           'Scenario', 'quantity', 'price']]
+            display(display_table)
+
+    def update_outputs(self, *args):
+        self.update_plot_data(self.region_dropdown.value, self.model_dropdown.value, self.id_dropdown.value, 
+                              self.domain_dropdown.value, self.commodity_code_dropdown.value)
