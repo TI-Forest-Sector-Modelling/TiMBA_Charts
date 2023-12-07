@@ -18,6 +18,7 @@ class parameters(Enum):
     column_name_id = "ID"
     model_name = "GFPMpt"
     csv_input = "GFPM_results_World500.csv"
+    #csv_input_forest = ''
 
 class import_pkl_data():
     def init(self):
@@ -98,6 +99,7 @@ class import_pkl_data():
         data_prev["data_periods"] = self.downcasting(data_prev["data_periods"])
         data = pd.read_csv(str(PACKAGEDIR) + parameters.input_folder.value + "\\" + parameters.csv_input.value)
         data = self.downcasting(data)
+        data = pd.read_csv(str(PACKAGEDIR) + parameters.input_folder.value + "\\" + parameters.csv_input.value)
         data_results = pd.concat([data_prev["data_periods"], data], axis=0)
         data_prev["data_periods"] = data_results
 
