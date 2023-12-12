@@ -18,7 +18,7 @@ class parameters(Enum):
     column_name_id = "ID"
     model_name = "GFPMpt"
     csv_input = "GFPM_results_World500.csv"
-    #csv_input_forest = ''
+    csv_input_forest = 'Forest_Area_world500.csv'
 
 class import_pkl_data():
     def init(self):
@@ -105,8 +105,15 @@ class import_pkl_data():
 
         return data_prev
     
-    def julias_data():
-        file_path = "data.xlsx"
-        data = pd.read_excel(file_path)
-        data.head()
+    def forest_data():
+        try:
+            data = pd.read_csv(file_path)
+            print(data)
+        except FileNotFoundError:
+            print('Forest data not applicable.')
         return data
+
+if __name__ == "__main__":
+    file_path = parameters.csv_input_forest
+    data_forest = import_pkl_data.forest_data
+    print(data_forest)
