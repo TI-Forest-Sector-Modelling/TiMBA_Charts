@@ -6,6 +6,7 @@ from ipywidgets import interactive, widgets
 from IPython.display import display, clear_output
 import ipywidgets as widgets
 
+
 class sc_plot():
     def init(self):
         pass

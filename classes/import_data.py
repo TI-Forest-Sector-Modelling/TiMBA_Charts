@@ -104,7 +104,7 @@ class import_pkl_data():
         data_prev["data_periods"] = data_results
 
         return data_prev
-    
+"""    
     def forest_data():
         try:
             data = pd.read_csv(file_path)
@@ -117,3 +117,4 @@ if __name__ == "__main__":
     file_path = parameters.csv_input_forest
     data_forest = import_pkl_data.forest_data
     print(data_forest)
+"""
