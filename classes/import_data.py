@@ -70,11 +70,14 @@ class import_pkl_data():
         :param sc_name: scenario name from file name in dictionary
         """    
         for key in data: #loop through all data from datacontainer
-            data[key][parameters.column_name_scenario.value] = sc_name
-            data[key][parameters.column_name_model.value] = parameters.model_name.value
-            data[key][parameters.column_name_id.value] = ID
-            if data_prev != []:
-                data[key] = pd.concat([data_prev[key], data[key]], axis=0)
+            if key == 'data_aggregated':
+                pass
+            else:
+                data[key][parameters.column_name_scenario.value] = sc_name
+                data[key][parameters.column_name_model.value] = parameters.model_name.value
+                data[key][parameters.column_name_id.value] = ID
+                if data_prev != []:
+                    data[key] = pd.concat([data_prev[key], data[key]], axis=0)
                 
     def combined_data(self):
         """loop trough all input files in input directory
@@ -104,17 +107,3 @@ class import_pkl_data():
         data_prev["data_periods"] = data_results
 
         return data_prev
-"""    
-    def forest_data():
-        try:
-            data = pd.read_csv(file_path)
-            print(data)
-        except FileNotFoundError:
-            print('Forest data not applicable.')
-        return data
-
-if __name__ == "__main__":
-    file_path = parameters.csv_input_forest
-    data_forest = import_pkl_data.forest_data
-    print(data_forest)
-"""
