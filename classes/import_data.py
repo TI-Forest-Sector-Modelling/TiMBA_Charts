@@ -63,6 +63,17 @@ class import_pkl_data():
         data.Model = data.Model.astype("category")
         data.ID = data.ID.astype("category")
         return data
+    
+    def downcasting_forest(self, data: pd.DataFrame):
+        data.RegionCode = data.RegionCode.astype("category")
+        data.ForStock = data.ForStock.astype("float32")
+        data.ForArea = data.ForArea.astype("float32")
+        data.Period = data.Period.astype("int16")
+        data.year = data.year.astype("int16")
+        data.Scenario = data.Scenario.astype("category")
+        data.Model = data.Model.astype("category")
+        data.ID = data.ID.astype("category")
+        return data
 
     def concat_scenarios(self, data, sc_name:str, data_prev, ID):
         """concat_scenarios, add scenario name from pkl file to data frames
@@ -105,5 +116,4 @@ class import_pkl_data():
         data = pd.read_csv(str(PACKAGEDIR) + parameters.input_folder.value + "\\" + parameters.csv_input.value)
         data_results = pd.concat([data_prev["data_periods"], data], axis=0)
         data_prev["data_periods"] = data_results
-
         return data_prev
