@@ -66,59 +66,7 @@ if __name__ == '__main__':
     if forest_data_world500 is not None:
         print(forest_data_world500) #shift to import data
 
-#new code window
-# import_pkl = import_pkl_data() #remove
-# data = import_pkl.combined_data() #remove
-# #data = import_pkl.concat_scenarios() #remove
-# print(data.keys())#remove
-
-# #new code window
-# class Plot_forest: #not working remove
-#     def __init__(self, data):
-#         self.data = data
-#         self.drop_duplicates()
-  
-#     def drop_duplicates(self):
-#         self.data['Forest'] = self.data['Forest'].drop_duplicates().reset_index(drop=True)
-#         return self.data
-    
-#     def plot_sum(self):
-#         fig, axs = plt.subplots(1, 2, figsize=(12, 6))
-
-#         sum_stock = {}
-#         sum_area = {}
-#         width = 0.2
-#         value = self.data['Forest']
-#         value.ForStock = value.ForStock.astype("float32")
-#         value.ForArea = value.ForArea.astype("float32")
-#         value.Scenario = value.Scenario.astype("category")
-#         for key, group in value.groupby('Scenario'):
-#             sum_stock[key] = group.groupby('Period')['ForStock'].sum().reset_index()
-#             x_values = np.arange(len(sum_stock[key])) + width * np.arange(len(sum_stock[key]))
-#             axs[0].bar(x_values, sum_stock[key]['ForStock'].values, width=width, label=key)
-#             sum_area = value.groupby(['Scenario', 'Period'])['ForArea'].sum().reset_index()
-#         print(sum_stock)
-#         print(sum_area)
-        
-#         axs[0].bar(sum_stock.Period, sum_stock.ForStock)
-
-#         axs[0].set_xlabel('Period')
-#         axs[0].set_ylabel('Sum of ForStock')
-#         axs[0].legend(loc='upper right')
-
-#         axs[1].bar(sum_area.Period, sum_area.ForArea)
-
-#         axs[1].set_xlabel('Period')
-#         axs[1].set_ylabel('Sum of ForArea')
-#         axs[1].legend(loc='lower center')
-
-#         plt.show()
-
-# if __name__ == "__main__": #not working remove
-#     plot = Plot_forest(data)
-#     plot.plot_sum()
-
-#new code window
+#
 import pandas as pd #shift to sc plot
 import matplotlib.pyplot as plt
 import numpy as np
@@ -145,7 +93,7 @@ class ForestData:
                 scenario_data = self.data[(self.data['Scenario'] == scenario) & (self.data['Period'] == period)]
                 total_stock = scenario_data['ForStock']
 
-                # Berücksichtigen Sie nur die vorhandenen Perioden
+                
                 plt.bar(i * len(unique_scenarios) + j * (bar_width + bar_gap), total_stock.iloc[0], label=f'{scenario} (Period {period})', width=bar_width)
 
         plt.xlabel('Scenarios')
@@ -160,7 +108,7 @@ class ForestData:
             scenario_data = self.data[self.data['Scenario'] == scenario]
             total_area = scenario_data.groupby('Period')['ForArea'].sum()
 
-            # Berücksichtigen Sie nur die vorhandenen Perioden
+            
             existing_periods = total_area.index.intersection(all_periods)
             plt.bar(existing_periods + i * (bar_width + bar_gap), total_area[existing_periods], label=scenario, width=bar_width)
 
