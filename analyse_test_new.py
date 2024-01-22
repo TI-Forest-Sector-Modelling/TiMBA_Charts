@@ -19,10 +19,10 @@ print(np.__file__)#not in old #remove
 #Import data
 import_pkl = import_pkl_data()
 data = import_pkl.combined_data()
-#data = data["data_periods"]#print(data['Forest']) #in new
+data = data["data_periods"]#print(data['Forest']) #in new
 
 #Plot predefined scenario results
-#data = data["data_periods"] #in new 
+data = data["data_periods"] #in new 
 sc_plot = sc_plot()
 sc_plot.predefined_plot(data["data_periods"])
 
@@ -75,9 +75,10 @@ class ForestData:
 
             
             periods_runner = total_stock.index.intersection(total_periods)
-            bar_positions = np.arange(len(periods_runner)) + i * (len(periods_runner) * (bar_width))
+            bar_positions = np.arange(len(periods_runner)) + i * (len(periods_runner) * bar_width + bar_gap)
             plt.bar(bar_positions, total_stock[periods_runner], label=f'{scenario} (ForStock)', width=bar_width, align='edge')
 
+        plt.ylim(ymin=7.5e6)
         plt.xlabel('Period')
         plt.ylabel('Sum of ForStock')
         plt.legend()
@@ -91,9 +92,10 @@ class ForestData:
 
          
             periods_runner = total_area.index.intersection(total_periods)
-            bar_positions = np.arange(len(periods_runner)) + i * (len(periods_runner) * (bar_width))
+            bar_positions = np.arange(len(periods_runner)) + i * (len(periods_runner) * bar_width + bar_gap)
             plt.bar(bar_positions, total_area[periods_runner], label=f'{scenario} (ForArea)', width=bar_width)
 
+        plt.ylim(ymin=5e7)
         plt.xlabel('Period')
         plt.ylabel('Sum of ForArea')
         plt.legend()
