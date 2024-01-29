@@ -19,8 +19,15 @@ print(np.__file__)#not in old #remove
 #Import data
 import_pkl = import_pkl_data()
 data = import_pkl.combined_data()
-data = data["data_periods"]#print(data['Forest']) #in new
-
+forest_data = data['Forest']
+country_data = import_pkl.read_country_data()
+forest_data_world = import_pkl.read_forest_data_gfpm(country_data=country_data)
+forest_data = forest_data[forest_data_world.columns]
+forest_data = pd.concat([forest_data, forest_data_world], axis= 0)
+print(forest_data)
+forest_data.to_csv('complete_forest_data.csv')
+#data = data["data_periods"]#print(data['Forest']) #in new
+"""
 #Plot predefined scenario results
 data = data["data_periods"] #in new 
 sc_plot = sc_plot()
@@ -49,12 +56,14 @@ heatmap_dropdown_instance.update_heatmap_data(reference_data=heatmap_dropdown_in
                                               domain=heatmap_dropdown_instance.domain_dropdown.value
                                               )
 
+
+"""
 #Forestplot
 
 import matplotlib.pyplot as plt
 class ForestData:
     def __init__(self, data):
-        self.data = data['Forest']
+        self.data = forest_data
 
     def print_forest(self):
         print(self.data)
@@ -78,7 +87,7 @@ class ForestData:
             bar_positions = np.arange(len(periods_runner)) + i * (len(periods_runner) * bar_width + bar_gap)
             plt.bar(bar_positions, total_stock[periods_runner], label=f'{scenario} (ForStock)', width=bar_width, align='edge')
 
-        plt.ylim(ymin=7.5e6)
+        #plt.ylim(ymin=3e6)
         plt.xlabel('Period')
         plt.ylabel('Sum of ForStock')
         plt.legend()
@@ -95,19 +104,18 @@ class ForestData:
             bar_positions = np.arange(len(periods_runner)) + i * (len(periods_runner) * bar_width + bar_gap)
             plt.bar(bar_positions, total_area[periods_runner], label=f'{scenario} (ForArea)', width=bar_width)
 
-        plt.ylim(ymin=5e7)
+        #plt.ylim(ymin=3e7)
         plt.xlabel('Period')
         plt.ylabel('Sum of ForArea')
         plt.legend()
         plt.title('ForArea')
         plt.show()
 
-if __name__ == "__main__": 
-    data_container = data
-    forest_plot = ForestData(data_container)
-    forest_plot.print_forest()
-    forest_plot.plot_stock_area_diagrams()
 
+data_container = data
+forest_plot = ForestData(data_container)
+forest_plot.print_forest()
+forest_plot.plot_stock_area_diagrams()
 
 
 

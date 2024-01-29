@@ -19,6 +19,7 @@ class parameters(Enum):
     column_name_id = "ID"
     model_name = "GFPMpt"
     csv_input = "GFPM_results_World500.csv"
+    csv_input_forest = 'C:/Users/tandetzki/Pythonskripte/analyses_toolbox_gfpmpt_3/analyses_toolbox_gfpmpt/Input/Forest_world500.csv'
 
 class import_pkl_data():
     def init(self):
@@ -39,9 +40,10 @@ class import_pkl_data():
         :return: country data
         """
         country_data = pd.read_csv(str(PACKAGEDIR) + parameters.input_folder.value + "\\Additional_Information\\country_info.csv", encoding = "ISO-8859-1")
-        country_data = country_data[["Country-Code", "ContinentNew"]]
-        country_data.columns = ["RegionCode","Continent"]
+        country_data = country_data[["Country-Code", "ContinentNew", "Country"]]
+        country_data.columns = ["RegionCode","Continent", "Country"]
         country_data.Continent = country_data.Continent.astype("category")
+        country_data.Country = country_data.Country.astype("category")
         return country_data
     
     def downcasting(self, data: pd.DataFrame):
@@ -93,6 +95,8 @@ class import_pkl_data():
                 pass
             except PermissionError:
                 pass
+            except ValueError:
+                pass
             data_prev = data
             ID += 1
         
@@ -103,14 +107,40 @@ class import_pkl_data():
         except FileNotFoundError:
             data = pd.DataFrame()
         country_data = self.read_country_data()
+        self.read_forest_data_gfpm(country_data)
         data_prev["data_periods"] = pd.merge(data_prev["data_periods"], country_data, on="RegionCode", how="left")
         data_results = pd.concat([data_prev["data_periods"], data], axis=0)
         data_prev["data_periods"] = data_results
 
         return data_prev
     
-    def julias_data():
-        file_path = "data.xlsx"
-        data = pd.read_excel(file_path)
-        data.head()
-        return data
+    def read_forest_data_gfpm(self, country_data:pd.DataFrame):
+        
+        for_data_gfpm = pd.read_csv(parameters.csv_input_forest.value, encoding = "ISO-8859-1")
+        #country_data = self.read_country_data()
+
+        #rearranging the original data
+        rearranged_for_data = pd.melt(for_data_gfpm, id_vars=['domain','Country'], var_name='Year',value_name='for')
+        rearranged_for_data = rearranged_for_data.dropna()
+        rearranged_for_data['Year'] = rearranged_for_data['Year'].astype(int)
+
+        foreststock = pd.DataFrame()        
+        for domain in rearranged_for_data.domain.unique():
+            rearranged_for_data_domain = rearranged_for_data[rearranged_for_data['domain'] == domain].reset_index(drop=True)
+            if domain == 'ForArea':
+                rearranged_for_data_domain['ForStock'] = foreststock
+            else: 
+                foreststock = rearranged_for_data_domain['for']
+        print(rearranged_for_data_domain)
+        forest_data = rearranged_for_data_domain[['Country', 'Year', 'for', 'ForStock']]
+        forest_data.columns = ['Country', 'Year', 'ForArea', 'ForStock']
+        forest_data = pd.merge(forest_data, country_data, on= 'Country')
+
+        period_mapping = {2017: 0, 2020: 1, 2025: 2, 2030: 3, 2035: 4, 2040: 5, 2045: 6, 2050: 7, 2055: 8, 2060: 9, 2065: 10}
+        forest_data['Period'] = forest_data['Year'].map(period_mapping)
+
+        forest_gfpm = forest_data[['RegionCode', 'Period', 'ForStock', 'ForArea']]
+        forest_gfpm[parameters.column_name_scenario.value]= 'world500'
+        forest_data['Model'] = 'GFPM'
+        return forest_gfpm
+         
