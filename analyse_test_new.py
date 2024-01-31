@@ -70,6 +70,7 @@ class ForestData:
 
     def drop_duplicates(self):
         self.data = self.data.drop_duplicates().reset_index(drop=True)
+        print('Drop duplicates', self.data)
 
     def plot_stock_area_diagrams(self):
         scenarios = self.data['Scenario'].unique()
@@ -114,6 +115,7 @@ class ForestData:
 
 data_container = data
 forest_plot = ForestData(data_container)
+forest_plot.drop_duplicates()
 forest_plot.print_forest()
 forest_plot.plot_stock_area_diagrams()
 
