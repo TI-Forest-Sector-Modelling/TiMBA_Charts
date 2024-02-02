@@ -78,7 +78,7 @@ class ForestData:
 
         plt.figure(figsize=(12, 6))
         bar_width = 0.05
-        bar_gap = -0.55
+        bar_gap = -0.42
         for i, scenario in enumerate(scenarios):
             scenario_name = self.data[self.data['Scenario'] == scenario]
             total_stock = scenario_name.groupby('Period')['ForStock'].sum()
@@ -108,7 +108,7 @@ class ForestData:
         #plt.ylim(ymin=3e7)
         plt.xlabel('Period')
         plt.ylabel('Sum of ForArea')
-        plt.legend()
+        plt.legend(loc = 'lower right')
         plt.title('ForArea')
         plt.show()
 
