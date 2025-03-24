@@ -10,6 +10,8 @@ import numpy as np
 from pathlib import Path
 import plotly.express as px
 import textwrap
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
 PACKAGEDIR = Path(__file__).parent.parent.absolute()
 
@@ -20,18 +22,7 @@ class DashboardPlotter:
         self.app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
         self.start = self.data['year'].min()
         self.end = self.data['year'].max()
-        self.color_list = [
-            '#2A4D69',  # Dunkelblau
-            '#4B8BBE',  # Hellblau
-            '#D35400',  # Dunkelorange
-            '#AAB7B8',  # Grau
-            '#9B59B6',  # Lila
-            '#2980B9',  # Blau
-            '#27AE60',  # Grün
-            '#6C757D',  # Dunkelgrau
-            '#F1C40F',  # Senfgelb
-            '#E67E22',  # Orange  
-        ]
+        self.color_list = self.generate_color_palette()
         self.logo = PACKAGEDIR/'timba_dashboard_logo.png'#'timba_logo_v3.png' 
         self.create_layout()
         self.create_callbacks()
@@ -352,6 +343,17 @@ class DashboardPlotter:
         outlier_threshold = threshhold * IQR
         df.loc[df[col] >= outlier_threshold, col] = np.nan
         return df
+
+    def generate_color_palette(self):
+        """
+        Generates a color palette depending on the scenario number in hex format
+        :return: list of colors in hex format
+        """
+        sc_num = len(self.data['Scenario'].unique())
+        color_palette = plt.get_cmap('Spectral')(np.linspace(0, 1, sc_num))
+        hex_color_palette = [mcolors.to_hex(x) for x in color_palette]
+        return hex_color_palette
+
     
     def open_browser(self):
         webbrowser.open_new("http://localhost:8050")
