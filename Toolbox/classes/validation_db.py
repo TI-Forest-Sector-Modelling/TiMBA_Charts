@@ -569,10 +569,15 @@ class Vali_DashboardPlotter:
         title_formip_main = self.generate_title(
             region=region, estimate=estimate, scenario=scenario, model=model, plot="plot", value_type=value_type)
 
+        try:
+            yaxis_title = f'{estimate[0]}'
+        except TypeError:
+            yaxis_title = ""
+
         fig_formip_main.update_layout(
             title='<br>'.join(textwrap.wrap(title_formip_main, width=150)),
             xaxis_title='Year',
-            #yaxis_title=f'{estimate[0]}',
+            yaxis_title=yaxis_title,
             xaxis=dict(gridcolor='white'),
             yaxis=dict(rangemode='nonnegative', zeroline=True, zerolinewidth=2, zerolinecolor='LightGrey',
                        gridcolor='white'),
@@ -592,13 +597,19 @@ class Vali_DashboardPlotter:
         title_formip_second = self.generate_title(
             region=region, estimate=estimate, scenario=scenario, model=model, plot="bar_plot", value_type=value_type)
         if value_type == "absolute values":
-            pass#yaxis_title = f'Difference in {estimate[0]}'
+            try:
+                yaxis_title = f'Difference in {estimate[0]}'
+            except TypeError:
+                yaxis_title = ""
         if value_type == "relative values":
-            pass#yaxis_title = f'Difference in {' '.join(estimate[0].split(' ')[:-1])} (%)'
+            try:
+                yaxis_title = f'Difference in {' '.join(estimate[0].split(' ')[:-1])} (%)'
+            except TypeError:
+                yaxis_title = ""
 
         fig_formip_second.update_layout(
             title='<br>'.join(textwrap.wrap(title_formip_second, width=150)),
-            #yaxis_title=yaxis_title,
+            yaxis_title=yaxis_title,
             xaxis=dict(gridcolor='white'),
             yaxis=dict(zeroline=True, zerolinewidth=2, zerolinecolor='LightGrey', gridcolor='white'),
             legend=dict(orientation="h", yanchor="top", y=-0.1, xanchor="center", x=0.5),
@@ -615,9 +626,15 @@ class Vali_DashboardPlotter:
         title_parts = []
         if plot=="bar_plot":
             if value_type == "absolute values":
-                pass#title_parts.append(f'Difference in {estimate[0]}')
+                try:
+                    title_parts.append(f'Difference in {estimate[0]}')
+                except TypeError:
+                    title_parts.append(f'Difference in {estimate}')
             if value_type == "relative values":
-                pass#title_parts.append(f'Difference in {' '.join(estimate[0].split(' ')[:-1])} (%)')
+                try:
+                    title_parts.append(f'Difference in {' '.join(estimate[0].split(' ')[:-1])} (%)')
+                except TypeError:
+                    title_parts.append(f'Difference in {estimate}')
         else:
             title_parts.append(f"{estimate}")
         if region:
