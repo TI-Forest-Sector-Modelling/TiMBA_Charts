@@ -160,7 +160,7 @@ class Vali_DashboardPlotter:
                                     options=[{'label': i, 'value': i} for i in
                                              sorted(self.data['Year'].dropna().unique())],
                                     placeholder="Select Start Year ...",
-                                    value=2020,
+                                    value=self.data['Year'].min(),
                                     style=dropdown_style
                                 )
                             ], style={'marginBottom': '15px'}),
@@ -171,7 +171,7 @@ class Vali_DashboardPlotter:
                                     options=[{'label': i, 'value': i} for i in
                                              sorted(self.data['Year'].dropna().unique())],
                                     placeholder="Select End Year ...",
-                                    value=2100,
+                                    value=self.data['Year'].max(),
                                     style=dropdown_style
                                 )
                             ], style={'marginBottom': '15px'}),
