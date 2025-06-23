@@ -364,8 +364,10 @@ class import_formip_data:
             ["Model", "Scenario", "Region", "year", "Commodity"])["quantity"].sum().reset_index()
 
         try:
-            timba_data_carbon = timba_data_carbon.groupby(
-                ["Model", "Scenario", "Region", "year"])["CarbonStockBiomass [MtCO2]"].sum().reset_index()
+            timba_data_carbon_fb = timba_data_carbon.copy().groupby(["Model", "Scenario", "Region", "year"]
+                                                             )["CarbonStockBiomass [MtCO2]"].sum().reset_index()
+            timba_data_carbon_hwp = timba_data_carbon.copy().groupby(["Model", "Scenario", "Region", "year"]
+                                                             )["CarbonStockHWP [MtCO2]"].sum().reset_index()
         except UnboundLocalError:
             pass
 
@@ -381,10 +383,18 @@ class import_formip_data:
         timba_data_forest = pd.concat([timba_data_forest, timba_data_forest_world], axis=0).reset_index(drop=True)
 
         try:
-            timba_data_carbon_world = timba_data_carbon.groupby(
+            timba_data_carbon_fb_world = timba_data_carbon_fb.copy()
+            timba_data_carbon_fb_world = timba_data_carbon_fb_world.groupby(
                 ["Model", "Scenario", "year"])["CarbonStockBiomass [MtCO2]"].sum().reset_index()
-            timba_data_carbon_world["Region"] = "World"
-            timba_data_carbon = pd.concat([timba_data_carbon, timba_data_carbon_world], axis=0).reset_index(drop=True)
+            timba_data_carbon_fb_world["Region"] = "World"
+            timba_data_carbon_fb = pd.concat([timba_data_carbon_fb,
+                                              timba_data_carbon_fb_world], axis=0).reset_index(drop=True)
+            timba_data_carbon_hwp_world = timba_data_carbon_hwp.copy()
+            timba_data_carbon_hwp_world = timba_data_carbon_hwp_world.groupby(
+                ["Model", "Scenario", "year"])["CarbonStockHWP [MtCO2]"].sum().reset_index()
+            timba_data_carbon_hwp_world["Region"] = "World"
+            timba_data_carbon_hwp = pd.concat([timba_data_carbon_hwp,
+                                              timba_data_carbon_hwp_world], axis=0).reset_index(drop=True)
         except UnboundLocalError:
             pass
 
@@ -413,19 +423,30 @@ class import_formip_data:
         forest_area["Estimate"] = "Forest Area (Mha)"
         forest_area = forest_area.rename(columns={"ForArea": "Data", "Scenario": "RCP-SSP", "year": "Year"})
 
-        # Total forest non-soil C stock (MtC)
+        # Total forest non-soil C stock (MtC) + Harvest wood product C stock (MtC)
         try:
-            carbon_biomass = timba_data_carbon[["Model", "Scenario", "Region", "year", "CarbonStockBiomass [MtCO2]"]].copy()
+            carbon_biomass = timba_data_carbon_fb[
+                ["Model", "Scenario", "Region", "year", "CarbonStockBiomass [MtCO2]"]].copy()
             carbon_biomass["CarbonStockBiomass [MtCO2]"] = carbon_biomass["CarbonStockBiomass [MtCO2]"] / (44 / 12)
             carbon_biomass["Model"] = "TiMBA"
             carbon_biomass["Estimate"] = "Total Forest Non-soil C Stock (MtC)"
             carbon_biomass = carbon_biomass.rename(
                 columns={"CarbonStockBiomass [MtCO2]": "Data", "Scenario": "RCP-SSP", "year": "Year"})
+
+            carbon_hwp = timba_data_carbon_hwp[
+                ["Model", "Scenario", "Region", "year", "CarbonStockHWP [MtCO2]"]].copy()
+            carbon_hwp["CarbonStockHWP [MtCO2]"] = carbon_hwp["CarbonStockHWP [MtCO2]"] / (44 / 12)
+            carbon_hwp["Model"] = "TiMBA"
+            carbon_hwp["Estimate"] = "HWP C Stock (MtC)"
+            carbon_hwp = carbon_hwp.rename(
+                columns={"CarbonStockHWP [MtCO2]": "Data", "Scenario": "RCP-SSP", "year": "Year"})
+
         except UnboundLocalError:
             pass
         try:
             timba_data_new = pd.concat(
-                [rnd_harvest, total_harvest, forest_area, carbon_biomass], axis=0).reset_index(drop=True)
+                [rnd_harvest, total_harvest, forest_area, carbon_biomass, carbon_hwp],
+                axis=0).reset_index(drop=True)
         except UnboundLocalError:
             timba_data_new = pd.concat(
                 [rnd_harvest, total_harvest, forest_area], axis=0).reset_index(drop=True)
