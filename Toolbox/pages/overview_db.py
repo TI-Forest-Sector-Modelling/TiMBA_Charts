@@ -1,10 +1,8 @@
 import plotly.graph_objects as go
 import dash
 import dash_bootstrap_components as dbc
-from dash import dcc, html, register_page
+from dash import dcc, html
 from dash.dependencies import Input, Output, State
-import webbrowser
-from threading import Timer
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -14,7 +12,6 @@ from Toolbox.parameters.default_parameters import default_plot_settings, printin
 
 
 PACKAGEDIR = Path(__file__).parent.parent.absolute()
-# register_page(__name__, path="/")
 
 
 class OverviewDB:
@@ -57,52 +54,52 @@ class OverviewDB:
                     dbc.Card([
                         dbc.CardBody([
                             html.H4("Filters", className="card-title"),
-                            dcc.Dropdown(id='region-dropdown',
+                            dcc.Dropdown(id='odb_region-dropdown',
                                          options=[{'label': i, 'value': i} for i in
                                                   sorted(self.data['ISO3'].dropna().unique())],
                                          multi=True,
                                          placeholder="Select Country...",
                                          style=dropdown_style),
-                            dcc.Dropdown(id='continent-dropdown',
+                            dcc.Dropdown(id='odb_continent-dropdown',
                                          options=[{'label': i, 'value': i} for i in
                                                   sorted(self.data['Continent'].dropna().unique())],
                                          placeholder="Select Continent...",
                                          multi=True,
                                          style=dropdown_style),
-                            dcc.Dropdown(id='domain-dropdown',
+                            dcc.Dropdown(id='odb_domain-dropdown',
                                          options=[{'label': i, 'value': i} for i in
                                                   sorted(self.data['domain'].dropna().unique())],
                                          placeholder="Select Domain...",
                                          multi=True,
                                          style=dropdown_style),
-                            dcc.Dropdown(id='commodity-dropdown',
+                            dcc.Dropdown(id='odb_commodity-dropdown',
                                          options=[{'label': i, 'value': i} for i in
                                                   sorted(self.data['Commodity'].dropna().unique())],
                                          placeholder="Select Commodity...",
                                          multi=True,
                                          style=dropdown_style),
-                            dcc.Dropdown(id='commodity-group-dropdown',
+                            dcc.Dropdown(id='odb_commodity-group-dropdown',
                                          options=[{'label': i, 'value': i} for i in
                                                   self.data['Commodity_Group'].dropna().unique().tolist()],
                                          placeholder="Select Commodity Group...",
                                          multi=True,
                                          style=dropdown_style),
-                            dcc.Dropdown(id='scenario-filter',
+                            dcc.Dropdown(id='odb_scenario-filter',
                                          options=[{'label': i, 'value': i} for i in self.data['Scenario'].unique()],
                                          placeholder="Select Scenario...",
                                          multi=True,
                                          style=dropdown_style),
                             html.Button("Download CSV", id="btn_csv"),
-                            dcc.Download(id="download-dataframe-csv"),
+                            dcc.Download(id="odb_download-dataframe-csv"),
                         ])
                     ], className="mb-4", style={'white': 'white'}),  # filter box
                     dbc.Card([
                         dbc.CardBody([
-                            dcc.Graph(id='price-plot',
+                            dcc.Graph(id='odb_price-plot',
                                       config={'toImageButtonOptions': {'format': 'png',
                                                                        'filename': 'price_plot',
                                                                        'scale': 5}},
-                                      style={'height': '41vh', 'width': '46vh'})
+                                      style={'height': '43vh', 'width': '46vh'})
                         ])
                     ], style={'white': 'white'})  # price box
                 ], width=3),
@@ -111,22 +108,22 @@ class OverviewDB:
                         dbc.Col([
                             dbc.Card([
                                 dbc.CardBody([
-                                    dcc.Graph(id='quantity-plot',
+                                    dcc.Graph(id='odb_quantity-plot',
                                               config={'toImageButtonOptions': {'format': 'png',
                                                                                'filename': 'quantity_plot',
                                                                                'scale': 5}},
-                                              style={'height': '80.5vh'})
+                                              style={'height': '82.5vh'})
                                 ])
                             ], style={'backgroundColor': 'white'})  # mittelbox
                         ], width=8),  # Breite auf 8 reduziert
                         dbc.Col([
                             dbc.Card([
                                 dbc.CardBody([
-                                    dcc.Graph(id='forstock-plot',
+                                    dcc.Graph(id='odb_forstock-plot',
                                               config={'toImageButtonOptions': {'format': 'png',
                                                                                'filename': 'forstock_plot',
                                                                                'scale': 5}},
-                                              style={'height': '39vh'})
+                                              style={'height': '40vh'})
                                 ])
                             ], style={'backgroundColor': 'white', 'marginBottom': '20px'}),  # Abstand hinzugefügt
                             dbc.Card([
@@ -135,16 +132,16 @@ class OverviewDB:
                                     # html.H6("Scenario Filter", className="card-title"),  # Titel für den Scenario-Filter
                                     # html.H6("Year Filter", className="card-title"),  # Titel für den Year-Filter
                                     dcc.Dropdown(
-                                        id='year-filter',
+                                        id='odb_year-filter',
                                         options=[{'label': i, 'value': i} for i in sorted(self.data['year'].unique())],
                                         placeholder="Select Year...",
                                         style=dropdown_style
                                     ),
-                                    dcc.Graph(id='world-map',  # Geändert: ID auf 'world-map'
+                                    dcc.Graph(id='odb_world-map',  # Geändert: ID auf 'world-map'
                                               config={'toImageButtonOptions': {'format': 'png',
                                                                                'filename': 'world_map',
                                                                                'scale': 5}},
-                                              style={'height': '27.75vh'})
+                                              style={'height': '28.75vh'})
                                 ])
                             ], style={'backgroundColor': 'white'})
                         ], width=4),  # Breite auf 4 gesetzt
@@ -155,7 +152,7 @@ class OverviewDB:
                 dbc.Col(width=5),
                 dbc.Col(
                     dbc.Button(
-                        "Next → Forest Dashboard",
+                        "Forest Dashboard →",
                         color="success",
                         href="/forest",
                         className="float-end mt-1 mb-1"
@@ -170,41 +167,41 @@ class OverviewDB:
 
     def create_callbacks(self):
         @self.app.callback(
-            [Output('quantity-plot', 'figure'),
-             Output('price-plot', 'figure'),
-             Output('forstock-plot', 'figure')],
-            [Input('region-dropdown', 'value'),
-             Input('continent-dropdown', 'value'),
-             Input('domain-dropdown', 'value'),
-             Input('commodity-dropdown', 'value'),
-             Input('commodity-group-dropdown', 'value'),
-             Input('scenario-filter', 'value')]
+            [Output('odb_quantity-plot', 'figure'),
+             Output('odb_price-plot', 'figure'),
+             Output('odb_forstock-plot', 'figure')],
+            [Input('odb_region-dropdown', 'value'),
+             Input('odb_continent-dropdown', 'value'),
+             Input('odb_domain-dropdown', 'value'),
+             Input('odb_commodity-dropdown', 'value'),
+             Input('odb_commodity-group-dropdown', 'value'),
+             Input('odb_scenario-filter', 'value')]
         )
         def update_plots(region, continent, domain, commodity, commodity_group, scenario):
             return self.update_plot_data(region, continent, domain, commodity, commodity_group, scenario)
 
         @self.app.callback(
-            Output('world-map', 'figure'),
-            [Input('scenario-filter', 'value'),
-             Input('year-filter', 'value'),
-             Input('region-dropdown', 'value'),
-             Input('continent-dropdown', 'value'),
-             Input('domain-dropdown', 'value'),
-             Input('commodity-dropdown', 'value'),
-             Input('commodity-group-dropdown', 'value')]
+            Output('odb_world-map', 'figure'),
+            [Input('odb_scenario-filter', 'value'),
+             Input('odb_year-filter', 'value'),
+             Input('odb_region-dropdown', 'value'),
+             Input('odb_continent-dropdown', 'value'),
+             Input('odb_domain-dropdown', 'value'),
+             Input('odb_commodity-dropdown', 'value'),
+             Input('odb_commodity-group-dropdown', 'value')]
         )
         def update_world_map(scenario, year, region, continent, domain, commodity, commodity_group):
             return self.create_world_map(region, continent, domain, commodity, commodity_group, scenario, year)
 
         @self.app.callback(
-            Output("download-dataframe-csv", "data"),
-            Input("btn_csv", "n_clicks"),
-            [State('region-dropdown', 'value'),
-             State('continent-dropdown', 'value'),
-             State('domain-dropdown', 'value'),
-             State('commodity-dropdown', 'value'),
-             State('commodity-group-dropdown', 'value'),
-             State('scenario-filter', 'value')],  # Geändert von Input zu State
+            Output("odb_download-dataframe-csv", "data"),
+            Input("odb_btn_csv", "n_clicks"),
+            [State('odb_region-dropdown', 'value'),
+             State('odb_continent-dropdown', 'value'),
+             State('odb_domain-dropdown', 'value'),
+             State('odb_commodity-dropdown', 'value'),
+             State('odb_commodity-group-dropdown', 'value'),
+             State('odb_scenario-filter', 'value')],  # Geändert von Input zu State
             prevent_initial_call=True
         )
         def func(n_clicks, region, continent, domain, commodity, commodity_group, scenario):
@@ -394,10 +391,3 @@ class OverviewDB:
         outlier_threshold = threshhold * IQR
         df.loc[df[col] >= outlier_threshold, col] = np.nan
         return df
-
-    def open_browser(self):
-        webbrowser.open_new("http://localhost:8051")
-
-    def run(self):
-        Timer(1, self.open_browser).start()
-        self.app.run(host='localhost', debug=False, dev_tools_ui=False, dev_tools_hot_reload=False, port=8051)
