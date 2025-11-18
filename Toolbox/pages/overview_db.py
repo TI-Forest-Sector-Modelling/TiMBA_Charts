@@ -140,7 +140,13 @@ class OverviewDB:
                                                 style=dropdown_style
                                             ),
 
-                                            html.Button("Download CSV", id="btn_csv"),
+                                            html.Button("⬇️ CSV Export",
+                                                        id="odb_btn_csv",
+                                                        className="ml-auto btn btn-outline-secondary",
+                                                        style={
+                                                            'borderRadius': '4px',
+                                                        }
+                                                        ),
                                             dcc.Download(id="odb_download-dataframe-csv"),
                                         ]
                                     )
