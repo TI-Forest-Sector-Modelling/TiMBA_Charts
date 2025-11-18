@@ -48,120 +48,326 @@ class OverviewDB:
 
     def create_layout(self):
         dropdown_style = {'height': '30px', 'marginBottom': '10px'}
-        app_layout = dbc.Container([
-            dbc.Row([
-                dbc.Col([
-                    dbc.Card([
-                        dbc.CardBody([
-                            html.H4("Filters", className="card-title"),
-                            dcc.Dropdown(id='odb_region-dropdown',
-                                         options=[{'label': i, 'value': i} for i in
-                                                  sorted(self.data['ISO3'].dropna().unique())],
-                                         multi=True,
-                                         placeholder="Select Country...",
-                                         style=dropdown_style),
-                            dcc.Dropdown(id='odb_continent-dropdown',
-                                         options=[{'label': i, 'value': i} for i in
-                                                  sorted(self.data['Continent'].dropna().unique())],
-                                         placeholder="Select Continent...",
-                                         multi=True,
-                                         style=dropdown_style),
-                            dcc.Dropdown(id='odb_domain-dropdown',
-                                         options=[{'label': i, 'value': i} for i in
-                                                  sorted(self.data['domain'].dropna().unique())],
-                                         placeholder="Select Domain...",
-                                         multi=True,
-                                         style=dropdown_style),
-                            dcc.Dropdown(id='odb_commodity-dropdown',
-                                         options=[{'label': i, 'value': i} for i in
-                                                  sorted(self.data['Commodity'].dropna().unique())],
-                                         placeholder="Select Commodity...",
-                                         multi=True,
-                                         style=dropdown_style),
-                            dcc.Dropdown(id='odb_commodity-group-dropdown',
-                                         options=[{'label': i, 'value': i} for i in
-                                                  self.data['Commodity_Group'].dropna().unique().tolist()],
-                                         placeholder="Select Commodity Group...",
-                                         multi=True,
-                                         style=dropdown_style),
-                            dcc.Dropdown(id='odb_scenario-filter',
-                                         options=[{'label': i, 'value': i} for i in self.data['Scenario'].unique()],
-                                         placeholder="Select Scenario...",
-                                         multi=True,
-                                         style=dropdown_style),
-                            html.Button("Download CSV", id="btn_csv"),
-                            dcc.Download(id="odb_download-dataframe-csv"),
-                        ])
-                    ], className="mb-4", style={'white': 'white'}),  # filter box
-                    dbc.Card([
-                        dbc.CardBody([
-                            dcc.Graph(id='odb_price-plot',
-                                      config={'toImageButtonOptions': {'format': 'png',
-                                                                       'filename': 'price_plot',
-                                                                       'scale': 5}},
-                                      style={'height': '43vh', 'width': '46vh'})
-                        ])
-                    ], style={'white': 'white'})  # price box
-                ], width=3),
-                dbc.Col([
-                    dbc.Row([
-                        dbc.Col([
-                            dbc.Card([
-                                dbc.CardBody([
-                                    dcc.Graph(id='odb_quantity-plot',
-                                              config={'toImageButtonOptions': {'format': 'png',
-                                                                               'filename': 'quantity_plot',
-                                                                               'scale': 5}},
-                                              style={'height': '82.5vh'})
-                                ])
-                            ], style={'backgroundColor': 'white'})  # mittelbox
-                        ], width=8),  # Breite auf 8 reduziert
-                        dbc.Col([
-                            dbc.Card([
-                                dbc.CardBody([
-                                    dcc.Graph(id='odb_forstock-plot',
-                                              config={'toImageButtonOptions': {'format': 'png',
-                                                                               'filename': 'forstock_plot',
-                                                                               'scale': 5}},
-                                              style={'height': '40vh'})
-                                ])
-                            ], style={'backgroundColor': 'white', 'marginBottom': '20px'}),  # Abstand hinzugefügt
-                            dbc.Card([
-                                dbc.CardBody([
-                                    html.H5("Filter for Worldmap", className="card-title"),
-                                    # html.H6("Scenario Filter", className="card-title"),  # Titel für den Scenario-Filter
-                                    # html.H6("Year Filter", className="card-title"),  # Titel für den Year-Filter
-                                    dcc.Dropdown(
-                                        id='odb_year-filter',
-                                        options=[{'label': i, 'value': i} for i in sorted(self.data['year'].unique())],
-                                        placeholder="Select Year...",
-                                        style=dropdown_style
-                                    ),
-                                    dcc.Graph(id='odb_world-map',  # Geändert: ID auf 'world-map'
-                                              config={'toImageButtonOptions': {'format': 'png',
-                                                                               'filename': 'world_map',
-                                                                               'scale': 5}},
-                                              style={'height': '28.75vh'})
-                                ])
-                            ], style={'backgroundColor': 'white'})
-                        ], width=4),  # Breite auf 4 gesetzt
-                    ]),
-                ], width=9)
-            ]),
-            dbc.Row([
-                dbc.Col(width=5),
-                dbc.Col(
-                    dbc.Button(
-                        "Forest Dashboard →",
-                        color="success",
-                        href="/forest",
-                        className="float-end mt-1 mb-1"
+        app_layout = dbc.Container(
+            fluid=True,
+            className="p-2",
+            style={
+                'backgroundColor': 'white',
+                'height': 'calc(100vh - 80px)',
+                'display': 'flex',
+                'flexDirection': 'column',
+                'overflow': 'hidden'
+            },
+            children=[
+                dbc.Row([
+                    dbc.Col(
+                        [
+                            # === FILTER CARD ===
+                            dbc.Card(
+                                className="shadow-sm",
+                                style={
+                                    'backgroundColor': 'white',
+                                    'padding': '0',
+                                    'height': '50%',
+                                    'marginBottom': '0.5vh',
+                                    'display': 'flex',
+                                    'flexDirection': 'column'
+                                },
+                                children=[
+                                    dbc.CardBody(
+                                        style={
+                                            'padding': '15px',
+                                            'overflowY': 'auto',
+                                            'flex': '1 1 auto',
+                                            'display': 'flex',
+                                            'flexDirection': 'column',
+                                            'gap': '10px'
+                                        },
+                                        children=[
+                                            html.H4("Filters", className="card-title mb-2"),
+
+                                            dcc.Dropdown(
+                                                id='odb_region-dropdown',
+                                                options=[{'label': i, 'value': i} for i in
+                                                         sorted(self.data['ISO3'].dropna().unique())],
+                                                multi=True,
+                                                placeholder="Select Country...",
+                                                style=dropdown_style
+                                            ),
+
+                                            dcc.Dropdown(
+                                                id='odb_continent-dropdown',
+                                                options=[{'label': i, 'value': i} for i in
+                                                         sorted(self.data['Continent'].dropna().unique())],
+                                                multi=True,
+                                                placeholder="Select Continent...",
+                                                style=dropdown_style
+                                            ),
+
+                                            dcc.Dropdown(
+                                                id='odb_domain-dropdown',
+                                                options=[{'label': i, 'value': i} for i in
+                                                         sorted(self.data['domain'].dropna().unique())],
+                                                multi=True,
+                                                placeholder="Select Domain...",
+                                                style=dropdown_style
+                                            ),
+
+                                            dcc.Dropdown(
+                                                id='odb_commodity-dropdown',
+                                                options=[{'label': i, 'value': i} for i in
+                                                         sorted(self.data['Commodity'].dropna().unique())],
+                                                multi=True,
+                                                placeholder="Select Commodity...",
+                                                style=dropdown_style
+                                            ),
+
+                                            dcc.Dropdown(
+                                                id='odb_commodity-group-dropdown',
+                                                options=[{'label': i, 'value': i} for i in
+                                                         self.data['Commodity_Group'].dropna().unique().tolist()],
+                                                multi=True,
+                                                placeholder="Select Commodity Group...",
+                                                style=dropdown_style
+                                            ),
+
+                                            dcc.Dropdown(
+                                                id='odb_scenario-filter',
+                                                options=[{'label': i, 'value': i}
+                                                         for i in self.data['Scenario'].unique()],
+                                                multi=True,
+                                                placeholder="Select Scenario...",
+                                                style=dropdown_style
+                                            ),
+
+                                            html.Button("Download CSV", id="btn_csv"),
+                                            dcc.Download(id="odb_download-dataframe-csv"),
+                                        ]
+                                    )
+                                ]
+                            ),
+
+                            # === PRICE PLOT CARD ===
+                            dbc.Card(
+                                className="shadow-sm",
+                                style={
+                                    'backgroundColor': 'white',
+                                    'padding': '0',
+                                    'height': '50%',
+                                    'display': 'flex',
+                                    'flexDirection': 'column'
+                                },
+                                children=[
+                                    dbc.CardBody(
+                                        style={
+                                            'padding': '10px',
+                                            'height': '100%',  # FULL HEIGHT inside card
+                                            'display': 'flex',
+                                            'flexDirection': 'column'
+                                        },
+                                        children=[
+                                            dcc.Graph(
+                                                id='odb_price-plot',
+                                                config={
+                                                    'toImageButtonOptions': {
+                                                        'format': 'png',
+                                                        'filename': 'price_plot',
+                                                        'scale': 5
+                                                    }
+                                                },
+                                                style={
+                                                    'flex': '1 1 auto',  # Graph stretches fully
+                                                    'height': '100%',
+                                                    'width': '100%',
+                                                    'minHeight': '250px'
+                                                }
+                                            )
+                                        ]
+                                    )
+                                ]
+                            )
+                        ],
+                        width=3,
+                        style={'height': 'calc(100% - 1.5vh)',
+                               'display': 'flex',
+                               'flexDirection': 'column'}
                     ),
-                    width=2
-                ),
-                dbc.Col(width=5)
-            ])
-        ], fluid=True, style={'backgroundColor': 'white'})  # gesamthintergrund
+                    dbc.Col(
+                        [
+                            dbc.Row(
+                                [
+                                    # === QUANTITY PLOT CARD ===
+                                    dbc.Col(
+                                        [
+                                            dbc.Card(
+                                                className="shadow-sm",
+                                                style={
+                                                    "backgroundColor": "white",
+                                                    "padding": "0",
+                                                    "height": "100%",
+                                                    'marginBottom': '0.5vh',
+                                                    "display": "flex",
+                                                    "flexDirection": "column",
+                                                },
+                                                children=[
+                                                    dbc.CardBody(
+                                                        style={
+                                                            "padding": "10px",
+                                                            "flex": "1 1 auto",
+                                                            "display": "flex",
+                                                            "flexDirection": "column",
+                                                        },
+                                                        children=[
+                                                            dcc.Graph(
+                                                                id="odb_quantity-plot",
+                                                                config={
+                                                                    "toImageButtonOptions": {
+                                                                        "format": "png",
+                                                                        "filename": "quantity_plot",
+                                                                        "scale": 5,
+                                                                    }
+                                                                },
+                                                                style={
+                                                                    "flex": "1 1 auto",
+                                                                    "width": "100%",
+                                                                    "minHeight": "250px",
+                                                                },
+                                                            )
+                                                        ],
+                                                    )
+                                                ],
+                                            )
+                                        ],
+                                        width=8,
+                                        style={"height": "100%"},
+                                    ),
+                                    # === FOREST PLOT and WORLD MAP CARD ===
+                                    dbc.Col(
+                                        [
+                                            dbc.Card(
+                                                className="shadow-sm",
+                                                style={
+                                                    "backgroundColor": "white",
+                                                    "padding": "0",
+                                                    "height": "50%",
+                                                    "flex": "1 1 0",
+                                                    "marginBottom": "0.5vh",
+                                                    "display": "flex",
+                                                    "flexDirection": "column",
+                                                },
+                                                children=[
+                                                    dbc.CardBody(
+                                                        style={
+                                                            "padding": "15px",
+                                                            "overflowY": "auto",
+                                                            "flex": "1 1 auto",
+                                                            "display": "flex",
+                                                            "flexDirection": "column",
+                                                        },
+                                                        children=[
+                                                            dcc.Graph(
+                                                                id="odb_forstock-plot",
+                                                                config={
+                                                                    "toImageButtonOptions": {
+                                                                        "format": "png",
+                                                                        "filename": "forstock_plot",
+                                                                        "scale": 5,
+                                                                    }
+                                                                },
+                                                                style={
+                                                                    "flex": "1 1 auto",
+                                                                    "width": "100%",
+                                                                    "minHeight": "250px",
+                                                                },
+                                                            )
+                                                        ],
+                                                    )
+                                                ],
+                                            ),
+
+                                            dbc.Card(
+                                                className="shadow-sm",
+                                                style={
+                                                    "backgroundColor": "white",
+                                                    "padding": "0",
+                                                    "height": "50%",
+                                                    "flex": "1 1 0",
+                                                    "display": "flex",
+                                                    "flexDirection": "column",
+                                                },
+                                                children=[
+                                                    dbc.CardBody(
+                                                        style={
+                                                            "padding": "10px",
+                                                            "flex": "1 1 auto",
+                                                            "display": "flex",
+                                                            "flexDirection": "column",
+                                                        },
+                                                        children=[
+                                                            html.H5("Filter for Worldmap"),
+                                                            dcc.Dropdown(
+                                                                id="odb_year-filter",
+                                                                options=[
+                                                                    {"label": i, "value": i}
+                                                                    for i in sorted(self.data["year"].unique())
+                                                                ],
+                                                                placeholder="Select Year...",
+                                                                style=dropdown_style,
+                                                            ),
+                                                            dcc.Graph(
+                                                                id="odb_world-map",
+                                                                config={
+                                                                    "toImageButtonOptions": {
+                                                                        "format": "png",
+                                                                        "filename": "world_map",
+                                                                        "scale": 5,
+                                                                    }
+                                                                },
+                                                                style={
+                                                                    "flex": "1 1 auto",
+                                                                    "width": "100%",
+                                                                    "minHeight": "250px",
+                                                                },
+                                                            ),
+                                                        ],
+                                                    )
+                                                ],
+                                            ),
+                                        ],
+                                        width=4,
+                                        style={
+                                            "display": "flex",
+                                            "flexDirection": "column",
+                                            "height": "100%",
+                                        },
+                                    ),
+                                ],
+                                style={"flex": "1 1 auto"},
+                            )
+                        ],
+                        width=9,
+                        style={
+                            "height": "calc(100% - 1.5vh)",
+                            "display": "flex",
+                            "flexDirection": "column",
+                        },
+                    )
+                ]),
+                # ==== NAVIGATION BUTTONS ====
+                dbc.Row(
+                    [
+                        dbc.Col([""]),
+                        dbc.Col(
+                            dbc.Button("Forest Dashboard →", color="success", href="/forest",
+                                       className="mt-1 mb-1 w-100"),
+                            xs=6, sm=6, md=3, className="ms-auto"
+                        )
+                    ],
+                    justify="between",
+                    className="mt-auto mb-1"
+                )
+            ]
+        )
 
         return app_layout
 
