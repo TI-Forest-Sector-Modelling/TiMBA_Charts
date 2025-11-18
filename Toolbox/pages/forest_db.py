@@ -138,7 +138,7 @@ class ForestDB:
 
                         # RIGHT COLUMN
                         dbc.Col(
-                            html.Div(  # 🔹 replaced CardGroup with Div for independent card styling
+                            html.Div(
                                 children=[
                                     dbc.Card(
                                         className="shadow-sm",
@@ -182,7 +182,7 @@ class ForestDB:
                                     'display': 'flex',
                                     'flexDirection': 'column',
                                     'justifyContent': 'space-between',
-                                    'height': '100%'  # 🔹 match left column height
+                                    'height': '100%'
                                 }
                             ),
                             md=6, xs=12,
