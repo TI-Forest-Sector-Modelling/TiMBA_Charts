@@ -112,7 +112,7 @@ class PriceDB:
                     ])
                 ], className="mb-3"),
 
-                # ==== MAIN CONTENT (scrollable area below navbar) ====
+                # ==== MAIN CONTENT ====
                 dbc.Row(
                     [
                         # LEFT COLUMN
