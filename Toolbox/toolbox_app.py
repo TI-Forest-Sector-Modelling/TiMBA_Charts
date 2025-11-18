@@ -53,7 +53,7 @@ app.layout = dbc.Card([
                 dbc.Col(
                     dbc.NavbarBrand(
                         html.Img(
-                            src="https://raw.githubusercontent.com/TI-Forest-Sector-Modelling/TiMBA/ToolBox_implementation_cm/images/timba_dashboard_logo.png",
+                            src="/assets/timba_dashboard_logo.png",
                             height="80px"
                         ),
                         className="mx-auto"
