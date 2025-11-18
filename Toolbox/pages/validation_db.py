@@ -40,163 +40,201 @@ class ValidationDB:
 
     def create_layout(self):
         dropdown_style = {
-            'height': '30px',
+            'height': '38px',
             'marginRight': '10px',
-            'flex': '1 1 200px',
-            'minWidth': '200px'
+            'flex': '1 1 220px',
+            'minWidth': '180px'
         }
 
-        app_layout = dbc.Container(fluid=True, style={'backgroundColor': 'white'}, children=[
-
-            # 1. filter options (bottom line)
-            dbc.Row([
-                dbc.Col([
-                    dbc.Card(className="border-0 shadow-sm", children=[
-                        dbc.CardBody(style={'padding': '5px'}, children=[
-                            html.Div(style={
-                                'display': 'flex',
-                                'flexWrap': 'wrap',
-                                'gap': '10px',
-                                'alignItems': 'center'
-                            }, children=[
-                                # Logo links
-                                html.Img(
-                                    src=self.app.get_asset_url('timba_validation_logo.png'),
-                                    style={'height': '50px', 'marginRight': '20px'}
-                                ),
-
-                                # Filter-Dropdowns
-                                dcc.Dropdown(id='vdb_region-dropdown',
-                                             options=[{'label': i, 'value': i}
-                                                      for i in sorted(self.data['Region'].dropna().unique())],
-                                             multi=True,
-                                             placeholder='Select Region...',
-                                             style=dropdown_style),
-                                dcc.Dropdown(id='vdb_estimate-dropdown',
-                                             options=[{'label': i, 'value': i}
-                                                      for i in sorted(self.data['Estimate'].dropna().unique())],
-                                             placeholder='Select Estimate...',
-                                             multi=True,
-                                             style=dropdown_style),
-                                dcc.Dropdown(id='vdb_scenario-dropdown',
-                                             options=[{'label': 'All', 'value': 'All'}] +
-                                                     [{'label': i, 'value': i}
-                                                      for i in sorted(self.data['Scenario'].dropna().unique())],
-                                             placeholder='Select Scenario...',
-                                             multi=True,
-                                             style=dropdown_style),
-                                dcc.Dropdown(id='vdb_model-dropdown',
-                                             options=[{'label': 'All', 'value': 'All'}] +
-                                                     [{'label': i, 'value': i}
-                                                      for i in sorted(self.data['Model'].dropna().unique())],
-                                             placeholder='Select Model...',
-                                             multi=True,
-                                             style=dropdown_style),
-                                # Download-Button
-                                html.Button(
-                                    "⬇️ CSV Export",
-                                    id="vdb_btn_csv",
-                                    className="ml-auto",
-                                    style={
-                                        'height': '30px',
-                                        'marginLeft': 'auto',
-                                        'padding': '0 15px',
-                                        'borderRadius': '4px',
-                                        'border': '1px solid #ddd'
-                                    }
-                                ),
-                                dcc.Download(id="vdb_download-dataframe-csv")
-                            ])
-                        ])
-                    ], style={'backgroundColor': '#f8f9fa'})
-                ])
-            ], className="mb-4"),  # Distance to bottom
-
-            # 2. Main content
-            dbc.Row([
-                # Left column
-                dbc.Col(children=[
-                    dbc.Card(className="h-100 shadow-sm", children=[
-                        dbc.CardBody(children=[
-                            # html.H5("Figure filter", className="card-title"),
-                            html.Div([dcc.Dropdown(
-                                id='vdb_figure-type-dropdown',
-                                options=[{'label': i, 'value': i}
-                                         for i in ['range', 'min_max', 'ssp_fsm_range', 'ssp_fsm_all']],
-                                placeholder="Select Figure Type...",
-                                value='ssp_fsm_range',
-                                style=dropdown_style
-                            )], style={'marginBottom': '15px'}),
-                            dcc.Graph(
-                                id='vdb_formip-plot',
-                                config={'toImageButtonOptions': {'format': 'png'},
-                                        'displayModeBar': True},
-                                style={'height': '57.5vh'}
-                            )
-                        ])
-                    ], style={'backgroundColor': 'white', 'padding': '15px'})
-                ], width=6),
-
-                dbc.Col(md=6, children=[
+        app_layout = dbc.Container(
+            fluid=True,
+            className="p-2",
+            style={'backgroundColor': 'white',
+                   'height': 'calc(100vh - 80px)',  # Adapting to the hight of the navigation header
+                   'display': 'flex',
+                   'flexDirection': 'column',
+                   'overflow': 'hidden'
+                   },
+            children=[
+                dbc.Row([
+                    dbc.Col([
+                        dbc.Card(className="border-0 shadow-sm",
+                                 style={'backgroundColor': '#f8f9fa'},
+                                 children=[
+                                     dbc.CardBody(
+                                         style={'padding': '10px'},
+                                         children=[
+                                             html.Div(
+                                                 style={
+                                                     'display': 'flex',
+                                                     'flexWrap': 'wrap',
+                                                     'gap': '10px',
+                                                     'alignItems': 'center'
+                                                 },
+                                                 children=[
+                                                    dcc.Dropdown(id='vdb_region-dropdown',
+                                                                 options=[{'label': i, 'value': i}
+                                                                          for i in sorted(self.data['Region'].dropna().unique())],
+                                                                 multi=True,
+                                                                 placeholder='Select Region...',
+                                                                 style=dropdown_style),
+                                                    dcc.Dropdown(id='vdb_estimate-dropdown',
+                                                                 options=[{'label': i, 'value': i}
+                                                                          for i in sorted(self.data['Estimate'].dropna().unique())],
+                                                                 placeholder='Select Estimate...',
+                                                                 multi=True,
+                                                                 style=dropdown_style),
+                                                    dcc.Dropdown(id='vdb_scenario-dropdown',
+                                                                 options=[{'label': 'All', 'value': 'All'}] +
+                                                                         [{'label': i, 'value': i}
+                                                                          for i in sorted(self.data['Scenario'].dropna().unique())],
+                                                                 placeholder='Select Scenario...',
+                                                                 multi=True,
+                                                                 style=dropdown_style),
+                                                    dcc.Dropdown(id='vdb_model-dropdown',
+                                                                 options=[{'label': 'All', 'value': 'All'}] +
+                                                                         [{'label': i, 'value': i}
+                                                                          for i in sorted(self.data['Model'].dropna().unique())],
+                                                                 placeholder='Select Model...',
+                                                                 multi=True,
+                                                                 style=dropdown_style),
+                                                    # Download-Button
+                                                    html.Button(
+                                                        "⬇️ CSV Export",
+                                                        id="vdb_btn_csv",
+                                                        className="ml-auto btn btn-outline-secondary",
+                                                        style={
+                                                            'height': '38px',
+                                                            'marginLeft': 'auto',
+                                                            'padding': '0 15px',
+                                                            'borderRadius': '4px',
+                                                        }
+                                                    ),
+                                                    dcc.Download(id="vdb_download-dataframe-csv")
+                                                 ])
+                                         ])
+                                 ])
+                    ])
+                ], className="mb-3"),
+                # ==== MAIN CONTENT ====
+                dbc.Row([
+                    # Left column
+                    dbc.Col(children=[
+                        dbc.Card(className="h-100 shadow-sm",
+                                 style={
+                                     'backgroundColor': 'white',
+                                     'padding': '15px',
+                                     'display': 'flex',
+                                     'flexDirection': 'column',
+                                     'height': '100%'
+                                 },
+                                 children=[
+                                     dbc.CardBody(
+                                         style={
+                                             "display": "flex",
+                                             "flexDirection": "column",
+                                             "height": "100%",
+                                             "padding": "10px"
+                                         },
+                                         children=[
+                                             # html.H5("Figure filter", className="card-title"),
+                                             html.Div([dcc.Dropdown(
+                                                 id='vdb_figure-type-dropdown',
+                                                 options=[{'label': i, 'value': i}
+                                                          for i in ['range', 'min_max', 'ssp_fsm_range', 'ssp_fsm_all']],
+                                                 placeholder="Select Figure Type...",
+                                                 value='ssp_fsm_range',
+                                                 style=dropdown_style
+                                             )], style={'marginBottom': '15px', 'flex': '0 0 auto'}),
+                                             dcc.Graph(
+                                                 id='vdb_formip-plot',
+                                                 config={'toImageButtonOptions': {'format': 'png'},
+                                                         'displayModeBar': True},
+                                                 style={'flex': '1 1 auto',
+                                                        'height': '100%',
+                                                        'minHeight': '300px'
+                                                        }
+                                             )
+                                         ])
+                                 ])
+                    ],
+                        md=6, xs=12, className="mb-1",
+                        style={'display': 'flex', 'flexDirection': 'column'}),
                     # Right column
-                    dbc.Card(className="h-100 shadow-sm", children=[
-                        dbc.CardBody(style={'padding': '15px'}, children=[
-                            # html.H5("Figure filter", className="card-title"),
-                            html.Div([
-                                dcc.Dropdown(
-                                    id='vdb_value-type-dropdown',
-                                    options=[{'label': i, 'value': i} for i in ['relative values', 'absolute values']],
-                                    placeholder="Select Value Type...",
-                                    value='relative values',
-                                    style=dropdown_style
-                                )
-                            ], style={'marginBottom': '15px'}),
-
-                            html.Div([
-                                dcc.Dropdown(
-                                    id='vdb_start-year-dropdown',
-                                    options=[{'label': i, 'value': i} for i in
-                                             sorted(self.data['Year'].dropna().unique())],
-                                    placeholder="Select Start Year ...",
-                                    value=2020,
-                                    style=dropdown_style
-                                )
-                            ], style={'marginBottom': '15px'}),
-
-                            html.Div([
-                                dcc.Dropdown(
-                                    id='vdb_end-year-dropdown',
-                                    options=[{'label': i, 'value': i} for i in
-                                             sorted(self.data['Year'].dropna().unique())],
-                                    placeholder="Select End Year ...",
-                                    value=2100,
-                                    style=dropdown_style
-                                )
-                            ], style={'marginBottom': '15px'}),
-                            dcc.Graph(
-                                id='vdb_formip-bar',
-                                config={'toImageButtonOptions': {'format': 'png'},
-                                        'displayModeBar': True},
-                                style={'height': '57.5vh'}
-                            )
-                        ])
-                    ], style={'backgroundColor': 'white', 'padding': '15px'})
-                ], width=6)
-            ]),
-            dbc.Row([
-                dbc.Col(width=5),  # spacing to center button group
-                dbc.Col(
-                    dbc.Button(
-                        "← Trade Dashboard",
-                        color="warning",
-                        href="/trade",
-                        className="float-start mt-1 mb-1"
-                    ),
-                    width=2
-                ),
-                dbc.Col(width=5)
+                    dbc.Col(children=[
+                        dbc.Card(className="h-100 shadow-sm",
+                                 style={
+                                     'backgroundColor': 'white',
+                                     'padding': '15px',
+                                     'display': 'flex',
+                                     'flexDirection': 'column',
+                                     'height': '100%'
+                                 },
+                                 children=[
+                                     dbc.CardBody(style={
+                                         "display": "flex",
+                                         "flexDirection": "column",
+                                         "height": "100%",
+                                         "padding": "10px"
+                                     }, children=[
+                                         # html.H5("Figure filter", className="card-title"),
+                                         html.Div([
+                                             dcc.Dropdown(
+                                                 id='vdb_value-type-dropdown',
+                                                 options=[{'label': i, 'value': i} for i in ['relative values', 'absolute values']],
+                                                 placeholder="Select Value Type...",
+                                                 value='relative values',
+                                                 style=dropdown_style
+                                             )
+                                         ], style={'marginBottom': '15px', 'flex': '0 0 auto'}),
+                                         html.Div([
+                                             dcc.Dropdown(
+                                                 id='vdb_start-year-dropdown',
+                                                 options=[{'label': i, 'value': i} for i in
+                                                          sorted(self.data['Year'].dropna().unique())],
+                                                 placeholder="Select Start Year ...",
+                                                 value=2020,
+                                                 style=dropdown_style
+                                             )
+                                         ], style={'marginBottom': '15px', 'flex': '0 0 auto'}),
+                                         html.Div([
+                                             dcc.Dropdown(
+                                                 id='vdb_end-year-dropdown',
+                                                 options=[{'label': i, 'value': i} for i in
+                                                          sorted(self.data['Year'].dropna().unique())],
+                                                 placeholder="Select End Year ...",
+                                                 value=2100,
+                                                 style=dropdown_style
+                                             )
+                                         ], style={'marginBottom': '15px', 'flex': '0 0 auto'}),
+                                         dcc.Graph(
+                                             id='vdb_formip-bar',
+                                             config={'toImageButtonOptions': {'format': 'png'},
+                                                     'displayModeBar': True},
+                                             style={'flex': '1 1 auto',
+                                                    'height': '100%',
+                                                    'minHeight': '300px'
+                                                    }
+                                         )
+                                     ])
+                                 ])
+                    ], md=6, xs=12, className="mb-1",
+                        style={'display': 'flex', 'flexDirection': 'column'})
+                ],
+                    className="flex-fill overflow-auto align-items-stretch",
+                    style={'paddingBottom': '5px', 'marginBottom': '0', '--bs-gutter-x': '1vh'}),
+                # ==== NAVIGATION BUTTONS ====
+                dbc.Row([
+                    dbc.Col(
+                        dbc.Button("← Trade Dashboard", color="warning", href="/trade",
+                                   className="mt-1 mb-1 w-100"),
+                        xs=6, sm=6, md=3
+                    )
+                ],
+                    justify="between",
+                    className="mt-auto mb-1"
+                )
             ])
-        ])
 
         return app_layout
 
