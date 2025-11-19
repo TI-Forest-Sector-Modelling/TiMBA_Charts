@@ -47,7 +47,7 @@ class OverviewDB:
         print(self.plot_settings["line_witdh"])
 
     def create_layout(self):
-        dropdown_style = {'height': '30px', 'marginBottom': '10px'}
+        dropdown_style = {'height': '25px', 'marginBottom': '5px'}
         app_layout = dbc.Container(
             fluid=True,
             className="p-2",
@@ -67,7 +67,7 @@ class OverviewDB:
                                 className="shadow-sm",
                                 style={
                                     'backgroundColor': 'white',
-                                    'padding': '0',
+                                    'padding': '15px',
                                     'height': '50%',
                                     'marginBottom': '0.5vh',
                                     'display': 'flex',
@@ -158,8 +158,9 @@ class OverviewDB:
                                 className="shadow-sm",
                                 style={
                                     'backgroundColor': 'white',
-                                    'padding': '0',
+                                    'padding': '15px',
                                     'height': '50%',
+                                    'marginBottom': '0.25vh',
                                     'display': 'flex',
                                     'flexDirection': 'column'
                                 },
@@ -167,7 +168,7 @@ class OverviewDB:
                                     dbc.CardBody(
                                         style={
                                             'padding': '10px',
-                                            'height': '100%',  # FULL HEIGHT inside card
+                                            'height': '100%',
                                             'display': 'flex',
                                             'flexDirection': 'column'
                                         },
@@ -182,7 +183,7 @@ class OverviewDB:
                                                     }
                                                 },
                                                 style={
-                                                    'flex': '1 1 auto',  # Graph stretches fully
+                                                    'flex': '1 1 auto',
                                                     'height': '100%',
                                                     'width': '100%',
                                                     'minHeight': '250px'
@@ -194,7 +195,7 @@ class OverviewDB:
                             )
                         ],
                         width=3,
-                        style={'height': 'calc(100% - 1.5vh)',
+                        style={'height': '100%',
                                'display': 'flex',
                                'flexDirection': 'column'}
                     ),
@@ -209,9 +210,9 @@ class OverviewDB:
                                                 className="shadow-sm",
                                                 style={
                                                     "backgroundColor": "white",
-                                                    "padding": "0",
+                                                    "padding": "15px",
                                                     "height": "100%",
-                                                    'marginBottom': '0.5vh',
+                                                    'marginBottom': '0.25vh',
                                                     "display": "flex",
                                                     "flexDirection": "column",
                                                 },
@@ -254,7 +255,7 @@ class OverviewDB:
                                                 className="shadow-sm",
                                                 style={
                                                     "backgroundColor": "white",
-                                                    "padding": "0",
+                                                    "padding": "15px",
                                                     "height": "50%",
                                                     "flex": "1 1 0",
                                                     "marginBottom": "0.5vh",
@@ -295,8 +296,9 @@ class OverviewDB:
                                                 className="shadow-sm",
                                                 style={
                                                     "backgroundColor": "white",
-                                                    "padding": "0",
+                                                    "padding": "15px",
                                                     "height": "50%",
+                                                    'marginBottom': '0.25vh',
                                                     "flex": "1 1 0",
                                                     "display": "flex",
                                                     "flexDirection": "column",
@@ -353,12 +355,12 @@ class OverviewDB:
                         ],
                         width=9,
                         style={
-                            "height": "calc(100% - 1.5vh)",
+                            "height": "100%",
                             "display": "flex",
                             "flexDirection": "column",
                         },
                     )
-                ]),
+                ], style={"height": "calc(100% - 6.5vh)"}),
                 # ==== NAVIGATION BUTTONS ====
                 dbc.Row(
                     [
