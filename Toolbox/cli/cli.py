@@ -14,10 +14,10 @@ def cli():
 @click.option('-NF', '--num_files', default=10, 
               show_default=True, required=True, type=int, 
               help="Number of .pkl files to read")
-@click.option('-FP', '--sc_folderpath', default=toolbox_paths.SCINPUTPATH, 
+@click.option('-FP', '--sc_folderpath', default=None,
               show_default=True, required=True, type=Path, 
               help="Define the folder where the code will look for .pkl files containing the scenarios.")
-@click.option('-AIFP', '--additional_info_folderpath', default=toolbox_paths.AIINPUTPATH, 
+@click.option('-AIFP', '--additional_info_folderpath', default=None,
               show_default=True, required=True, type=Path, 
               help="Define the folder where the code will look for additional infos, like historic data or country information.")
 @click.option('-PS', '--print_settings', default=False, 
