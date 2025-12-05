@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 import webbrowser
 from threading import Timer
 from pathlib import Path
-from Toolbox.classes.import_data import import_pkl_data, import_formip_data, check_data_availability, set_data_paths
+from Toolbox.classes.import_data import import_pkl_data, import_formip_data, check_data_availability
 from Toolbox.pages.overview_db import OverviewDB
 from Toolbox.pages.forest_db import ForestDB
 from Toolbox.pages.price_db import PriceDB

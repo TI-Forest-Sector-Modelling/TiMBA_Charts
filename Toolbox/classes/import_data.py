@@ -463,32 +463,29 @@ class import_formip_data:
         return self.formip_data
 
 
-def set_data_paths(sc_folder_path: str, additional_info_folder_path: str):
-    if sc_folder_path is None:
-        sc_folder_path = toolbox_paths.SCINPUTPATH
-
-        additional_info_folder_path = toolbox_paths.AIINPUTPATH
-
-    return sc_folder_path, additional_info_folder_path
-
-
 def check_data_availability(self, sc_folder_path: str, additional_info_folder_path: str):
-    if sc_folder_path is None:
-        self.scenario_folder_path = toolbox_paths.SCINPUTPATH
-        if not check_folder_availability(folder_path=toolbox_paths.SCINPUTPATH):
-            toolbox_paths.SCINPUTPATH.mkdir(parents=True, exist_ok=True)
+    if (sc_folder_path is None) or (sc_folder_path != toolbox_paths.SCINPUTPATH):
+        if sc_folder_path is None:
+            self.scenario_folder_path = toolbox_paths.SCINPUTPATH
+        else:
+            self.scenario_folder_path = Path(self.scenario_folder_path) / Path("Input") / Path("Scenario_Files")
+        if not check_folder_availability(folder_path=self.scenario_folder_path):
+            self.scenario_folder_path.mkdir(parents=True, exist_ok=True)
             download_data_from_github(repo_zip_url=toolbox_paths.TIMBA_DATA_REPO_URL,
                                       target_subdir=toolbox_paths.SCINPUT_GITHUB_URL,
-                                      folder_path=toolbox_paths.SCINPUTPATH,
+                                      folder_path=self.scenario_folder_path,
                                       file_list=toolbox_paths.scenario_file_list)
 
-    if additional_info_folder_path is None:
-        self.additional_info_folderpath = toolbox_paths.AIINPUTPATH
-        if not check_folder_availability(folder_path=toolbox_paths.AIINPUTPATH):
-            toolbox_paths.AIINPUTPATH.mkdir(parents=True, exist_ok=True)
+    if (additional_info_folder_path is None) or (additional_info_folder_path != toolbox_paths.AIINPUTPATH):
+        if additional_info_folder_path is None:
+            self.additional_info_folderpath = toolbox_paths.AIINPUTPATH
+        else:
+            self.additional_info_folderpath = Path(additional_info_folder_path) / Path("Input") / Path("Additional_Information")
+        if not check_folder_availability(folder_path=self.additional_info_folderpath):
+            self.additional_info_folderpath.mkdir(parents=True, exist_ok=True)
             download_data_from_github(repo_zip_url=toolbox_paths.TIMBA_DATA_REPO_URL,
                                       target_subdir=toolbox_paths.AIINPUT_GITHUB_URL,
-                                      folder_path=toolbox_paths.AIINPUTPATH,
+                                      folder_path=self.additional_info_folderpath,
                                       file_list=toolbox_paths.addinfo_file_list)
 
 
