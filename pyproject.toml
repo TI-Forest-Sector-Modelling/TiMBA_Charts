@@ -34,4 +34,3 @@ Repository = "https://github.com/TI-Forest-Sector-Modelling/TiMBA_Charts"
 
 [project.scripts]
 show_dashboard = "Toolbox.cli.cli:dashboard_cli"
-show_validation = "Toolbox.cli.cli:validation_cli"
