@@ -24,7 +24,10 @@ def cli():
               show_default=True, required=True, type=bool, 
               help="If True, the quantity plot will be plotted with bigger lines and font sizes, so that the figure can be used for presentations etc.")
 
-def dashboard_cli(num_files,sc_folderpath,additional_info_folderpath,print_settings):    
+def dashboard_cli(num_files,sc_folderpath,additional_info_folderpath,print_settings):
+    click.echo("Dashboard is started")
+    click.echo(f"Scenario path: {additional_info_folderpath}")
+    click.echo(f"Additional Information path: {additional_info_folderpath}")
     td = timba_dashboard(num_files_to_read=num_files,
                          scenario_folder_path=sc_folderpath,
                          additional_info_folderpath=additional_info_folderpath,
