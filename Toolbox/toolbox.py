@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 import webbrowser
 from threading import Timer
 from pathlib import Path
-from Toolbox.classes.import_data import import_pkl_data, import_formip_data
+from Toolbox.classes.import_data import import_pkl_data, import_formip_data, check_data_availability, set_data_paths
 from Toolbox.pages.overview_db import OverviewDB
 from Toolbox.pages.forest_db import ForestDB
 from Toolbox.pages.price_db import PriceDB
@@ -19,8 +19,8 @@ import warnings
 class timba_dashboard:
 
     def __init__(self,
-                 scenario_folder_path: Path,
-                 additional_info_folderpath: Path,
+                 scenario_folder_path: Path = None,
+                 additional_info_folderpath: Path = None,
                  num_files_to_read: int = 10,
                  print_settings: bool = False):
 
@@ -61,6 +61,9 @@ class timba_dashboard:
 
     def _import_data(self):
         warnings.simplefilter(action='ignore', category=FutureWarning)
+        check_data_availability(self,
+                                sc_folder_path=self.scenario_folder_path,
+                                additional_info_folder_path=self.additional_info_folderpath)
         importer = import_pkl_data(
             num_files_to_read=self.num_files_to_read,
             SCENARIOPATH=self.scenario_folder_path,
@@ -156,6 +159,6 @@ class timba_dashboard:
 
 if __name__ == "__main__":
     timba_dashboard(
-        scenario_folder_path=Path(r"E:/TiMBA/data/output/data"),
-        additional_info_folderpath=Path(r"E:/TiMBA/data/input/02_Additional_Information")
-    ).run()
+        scenario_folder_path=None,
+        additional_info_folderpath=None
+        ).run()
