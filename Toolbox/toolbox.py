@@ -76,7 +76,7 @@ class timba_dashboard:
         self.formip_data = importer.load_formip_data()
 
     def _build_layout(self):
-        self.overview_db   = OverviewDB(app=self.app, data=self.data["data_periods"])
+        self.overview_db   = OverviewDB(app=self.app, data=self.data["data_periods"],print_settings=self.print_settings)
         self.forest_db     = ForestDB(app=self.app, data=self.data["data_periods"])
         self.price_db      = PriceDB(app=self.app, data=self.data["data_periods"])
         self.trade_db      = TradeDB(app=self.app, data=self.data["data_periods"])
@@ -94,7 +94,7 @@ class timba_dashboard:
                         dbc.Col(
                             dbc.NavbarBrand(
                                 html.Img(
-                                    src="/assets/timba_dashboard_logo.png",
+                                    src="https://raw.githubusercontent.com/TI-Forest-Sector-Modelling/TiMBA_Additional_Information/main/images/toolbox_assets/timba_dashboard_logo.png",
                                     height="80px"
                                 ),
                                 className="mx-auto"
