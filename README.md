@@ -49,6 +49,10 @@ you might need to update the pip version you use with:
 ### Install via Pypi
    >pip install timba-charts
 
+Note: The module requires input data from TiMBA simulations. Before proceeding, please ensure that the simulation results are stored in .../Toolbox/Input/Scenario_Files/ or in the file path specified with the CLI command show_dashboard -FP=. Otherwise, the dashboards will not open.
+
+The same applies to the additional information, which must be located in .../Toolbox/Input/Additional_Information/ or in the path provided with show_dashboard -AIFP=.
+
 ## Start the default dashbord
 After installing the package, the user can start the dashboard board with the following CLI command:
 > show_dashboard

@@ -91,5 +91,5 @@ if __name__ == "__main__":
 
     # vd = validation_dashboard(num_files_to_read=5,
     #                           scenario_folder_path=toolbox_paths.SCINPUTPATH,
-    #                           only_baseline_sc=True)
+    #                           additional_info_folderpath=toolbox_paths.AIINPUTPATH)
     # vd.run()

@@ -3,6 +3,8 @@ import numpy as np
 import os
 from pathlib import Path
 from enum import Enum
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 class parameters(Enum):
