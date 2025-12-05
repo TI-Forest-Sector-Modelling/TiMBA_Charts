@@ -29,7 +29,6 @@ class timba_dashboard:
         self.data = None
         self.formip_data = None
 
-
     def run(self, open_browser=True, port=8053):
         self._app_initial()
         self._import_data()
@@ -47,7 +46,6 @@ class timba_dashboard:
             dev_tools_ui=False,
             dev_tools_hot_reload=False
         )
-
 
     def _app_initial(self):
         self.app = dash.Dash(
@@ -76,10 +74,10 @@ class timba_dashboard:
         self.formip_data = importer.load_formip_data()
 
     def _build_layout(self):
-        self.overview_db   = OverviewDB(app=self.app, data=self.data["data_periods"],print_settings=self.print_settings)
-        self.forest_db     = ForestDB(app=self.app, data=self.data["data_periods"])
-        self.price_db      = PriceDB(app=self.app, data=self.data["data_periods"])
-        self.trade_db      = TradeDB(app=self.app, data=self.data["data_periods"])
+        self.overview_db = OverviewDB(app=self.app, data=self.data["data_periods"], print_settings=self.print_settings)
+        self.forest_db = ForestDB(app=self.app, data=self.data["data_periods"])
+        self.price_db = PriceDB(app=self.app, data=self.data["data_periods"])
+        self.trade_db = TradeDB(app=self.app, data=self.data["data_periods"])
         self.validation_db = ValidationDB(app=self.app, data=self.formip_data)
 
         self.app.layout = dbc.Card([
@@ -121,7 +119,6 @@ class timba_dashboard:
             ),
             html.Div(id="page-content"),
         ])
-
 
     def _register_callbacks(self):
 
