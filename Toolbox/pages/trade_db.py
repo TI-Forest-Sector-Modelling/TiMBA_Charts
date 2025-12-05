@@ -1,13 +1,20 @@
 import dash
+import pandas as pd
 from dash import dcc, html
 import dash_bootstrap_components as dbc
+from Toolbox.parameters.default_parameters import default_plot_settings, printing_plot_settings
 
 
 class TradeDB:
-    def __init__(self, app, data=None):
+    def __init__(self, app, data: pd.DataFrame = None, print_settings: bool = False, color_list: list = None):
         self.app = app
         self.data = data
         self.app_layout = self.create_layout()
+        self.color_list = color_list
+        if print_settings:
+            self.plot_settings = printing_plot_settings
+        else:
+            self.plot_settings = default_plot_settings
 
     def create_layout(self):
         dropdown_style = {

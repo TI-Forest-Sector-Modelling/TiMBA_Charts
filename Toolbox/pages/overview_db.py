@@ -15,36 +15,18 @@ PACKAGEDIR = Path(__file__).parent.parent.absolute()
 
 
 class OverviewDB:
-    def __init__(self, app, data, print_settings: bool = False):
+    def __init__(self, app, data, print_settings: bool = False, color_list: list = None):
         self.data = data
         self.app = app
         self.start = self.data['year'].min()
         self.end = self.data['year'].max()
-        self.color_list = [
-            '#2A4D69',  # Dunkelblau
-            "#000000",
-            '#2980B9',  # Blau
-            '#27AE60',  # Grün
-            '#D35400',  # Dunkelorange
-            '#9B59B6',  # Lila
-            '#F1C40F',  # Senfgelb
-            '#E67E22',  # Orange
-            '#AAB7B8',  # Grau
-            '#E67E22',  # Orange
-            '#4B8BBE',  # Hellblau
-            '#6C757D',  # Dunkelgrau
-            "#14B150",
-            "#000000",
-            "#662308",
-        ]
+        self.color_list = color_list
         self.app_layout = self.create_layout()
         self.create_callbacks()
         if print_settings:
             self.plot_settings = printing_plot_settings
         else:
             self.plot_settings = default_plot_settings
-        print(self.plot_settings)
-        print(self.plot_settings["line_witdh"])
 
     def create_layout(self):
         dropdown_style = {'height': '25px', 'marginBottom': '5px'}

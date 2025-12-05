@@ -9,13 +9,14 @@ from pathlib import Path
 import plotly.express as px
 import textwrap
 import re
+from Toolbox.parameters.default_parameters import default_plot_settings, printing_plot_settings
 
 PACKAGEDIR = Path(__file__).parent.parent.absolute()
 
 
 class ValidationDB:
 
-    def __init__(self, app, data):
+    def __init__(self, app, data: pd.DataFrame = None, print_settings: bool = False):
         self.data = data
         self.app = app
         self.start = self.data['Year'].min()
@@ -24,6 +25,10 @@ class ValidationDB:
         self.logo = PACKAGEDIR / 'timba_validation_logo.png'
         self.app_layout = self.create_layout()
         self.create_callbacks()
+        if print_settings:
+            self.plot_settings = printing_plot_settings
+        else:
+            self.plot_settings = default_plot_settings
 
     def get_colors(self):
         color_palette = px.colors.qualitative.Bold
