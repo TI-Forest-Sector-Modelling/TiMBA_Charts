@@ -53,7 +53,7 @@ class DashboardPlotter:
             dbc.Row([
                 dbc.Col(width=5),  # Leere Spalte für den linken Rand
                 dbc.Col(
-                    html.Img(src="https://raw.githubusercontent.com/TI-Forest-Sector-Modelling/TiMBA/ToolBox_implementation_cm/images/timba_dashboard_logo.png",
+                    html.Img(src="https://raw.githubusercontent.com/TI-Forest-Sector-Modelling/TiMBA_Additional_Information/main/images/toolbox_assets/timba_dashboard_logo.png",
                              style={'height': '90px', 'width': 'auto'}),
                     width=1
                 ),
