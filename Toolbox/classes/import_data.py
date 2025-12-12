@@ -6,14 +6,19 @@ import os
 from enum import Enum
 import pickle
 import gzip
+import requests
+from io import BytesIO
+import zipfile
 import Toolbox.parameters.paths as toolbox_paths
 import Toolbox.parameters.default_parameters as toolbox_parameters
 from Toolbox.parameters.defines_geo import CountryGroups
 
+
 class import_pkl_data:
-    def __init__(self, num_files_to_read:int=10,
-                 SCENARIOPATH:Path= toolbox_paths.SCINPUTPATH,
-                 ADDINFOPATH:Path= toolbox_paths.AIINPUTPATH):
+    def __init__(self,
+                 num_files_to_read: int = 10,
+                 SCENARIOPATH: Path = toolbox_paths.SCINPUTPATH,
+                 ADDINFOPATH: Path = toolbox_paths.AIINPUTPATH):
         self.num_files_to_read = num_files_to_read
         self.SCENARIOPATH = SCENARIOPATH
         self.ADDINFOPATH = ADDINFOPATH
@@ -456,6 +461,72 @@ class import_formip_data:
         self.timba_data = self.process_timba_data()
         self.formip_data = self.align_formip_data()
         return self.formip_data
+
+
+def check_data_availability(self, sc_folder_path: str, additional_info_folder_path: str):
+    if (sc_folder_path is None) or (sc_folder_path != toolbox_paths.SCINPUTPATH):
+        if sc_folder_path is None:
+            self.scenario_folder_path = toolbox_paths.SCINPUTPATH
+        else:
+            self.scenario_folder_path = Path(self.scenario_folder_path) / Path("Input") / Path("Scenario_Files")
+        if not check_folder_availability(folder_path=self.scenario_folder_path):
+            self.scenario_folder_path.mkdir(parents=True, exist_ok=True)
+            download_data_from_github(repo_zip_url=toolbox_paths.TIMBA_DATA_REPO_URL,
+                                      target_subdir=toolbox_paths.SCINPUT_GITHUB_URL,
+                                      folder_path=self.scenario_folder_path,
+                                      file_list=toolbox_paths.scenario_file_list)
+
+    if (additional_info_folder_path is None) or (additional_info_folder_path != toolbox_paths.AIINPUTPATH):
+        if additional_info_folder_path is None:
+            self.additional_info_folderpath = toolbox_paths.AIINPUTPATH
+        else:
+            self.additional_info_folderpath = Path(additional_info_folder_path) / Path("Input") / Path("Additional_Information")
+        if not check_folder_availability(folder_path=self.additional_info_folderpath):
+            self.additional_info_folderpath.mkdir(parents=True, exist_ok=True)
+            download_data_from_github(repo_zip_url=toolbox_paths.TIMBA_DATA_REPO_URL,
+                                      target_subdir=toolbox_paths.AIINPUT_GITHUB_URL,
+                                      folder_path=self.additional_info_folderpath,
+                                      file_list=toolbox_paths.addinfo_file_list)
+
+
+def check_folder_availability(folder_path: Path):
+    return Path.is_dir(folder_path)
+
+
+def download_data_from_github(repo_zip_url: str, target_subdir: str, folder_path: Path, file_list: list):
+    """
+    Downloads missing input data from GitHub.
+    :param repo_zip_url: Remote input data zip url
+    :param target_subdir: Target subdirectory of remote input data folder
+    :param folder_path: Local input data folder
+    :param file_list: List of files to download for each folder
+    """
+    response = requests.get(repo_zip_url, timeout=60)
+    response.raise_for_status()
+    with zipfile.ZipFile(BytesIO(response.content)) as zip_file:
+        all_zip_files = zip_file.namelist()
+
+        if not target_subdir.endswith("/"):
+            target_subdir = target_subdir + "/"
+
+        target_files = [f for f in all_zip_files if f.startswith(target_subdir) and not f.endswith("/")]
+
+        filtered_files = [f for f in target_files if Path(f).name in file_list]
+
+        if not filtered_files:
+            raise ValueError(f"No files found in subdirectory '{target_subdir}' inside ZIP")
+
+        for zip_filepath in target_files:
+
+            local_filename = Path(zip_filepath).name
+            local_output_path = folder_path / local_filename
+
+            with zip_file.open(zip_filepath) as zf:
+                with open(local_output_path, "wb") as f:
+                    f.write(zf.read())
+
+            print(f"Downloaded: {local_output_path}")
+
 
 if __name__ == "__main__":
     import_pkl = import_pkl_data()

@@ -17,7 +17,7 @@ classifiers = [
     "Intended Audience :: Science/Research",
 ]
 dependencies = [
-    "click==8.3.0",
+    "click==8.1.7",
     "dash==3.0.0",
     "dash-bootstrap-components==2.0.0",
     "ipywidgets==8.1.7",
@@ -34,4 +34,3 @@ Repository = "https://github.com/TI-Forest-Sector-Modelling/TiMBA_Charts"
 
 [project.scripts]
 show_dashboard = "Toolbox.cli.cli:dashboard_cli"
-show_validation = "Toolbox.cli.cli:validation_cli"
