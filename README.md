@@ -14,7 +14,7 @@ This package serves as a toolkit for analysing **TiMBA's** simulation results. T
 ## Cite the package
 We are happy that you consider to use TiMBA Charts for your research. When publishing your work in articles, working paper, presentations or elsewhere, please cite the package as:
 
-Morland, C., Tandetzki, J. and Honkomp, T. (2025) TiMBA Charts v.0.2.0
+Morland, C., Tandetzki, J. and Honkomp, T. (2025) TiMBA Charts v.0.3.0
 
 ## Install TiMBA Charts
 
