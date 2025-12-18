@@ -10,23 +10,33 @@ from Toolbox.parameters.defines import VarNames
 class TestDashboardRouting(unittest.TestCase):
 
     def setUp(self):
+        # ---- Patch Path.exists to always return True ----
+        self.patcher_exists = patch("pathlib.Path.exists", return_value=True)
+        self.patcher_exists.start()
+        self.addCleanup(self.patcher_exists.stop)
+
+        # ---- Patch download_input_data (prevent real download) ----
+        self.patcher_download = patch("Toolbox.toolbox.download_input_data")
+        self.mock_download = self.patcher_download.start()
+        self.addCleanup(self.patcher_download.stop)
+
+        # ---- Patch import_pkl_data ----
         self.patcher_pkl = patch("Toolbox.classes.import_data.import_pkl_data")
         self.mock_pkl = self.patcher_pkl.start()
+        self.addCleanup(self.patcher_pkl.stop)
 
+        # ---- Patch import_formip_data ----
         self.patcher_formip = patch("Toolbox.classes.import_data.import_formip_data")
         self.mock_formip = self.patcher_formip.start()
-
-        self.addCleanup(self.patcher_pkl.stop)
         self.addCleanup(self.patcher_formip.stop)
 
-        # ---- Mock Data Returned by import_pkl_data ----
+        # ---- Mock return values ----
         mock_pkl_instance = MagicMock()
         mock_pkl_instance.combined_data.return_value = {
             VarNames.data_periods.value: {"dummy": 1}
         }
         self.mock_pkl.return_value = mock_pkl_instance
 
-        # ---- Mock Data Returned by import_formip_data ----
         mock_formip_instance = MagicMock()
         mock_formip_instance.load_formip_data.return_value = {"formip": 1}
         self.mock_formip.return_value = mock_formip_instance
