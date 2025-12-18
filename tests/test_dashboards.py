@@ -7,43 +7,45 @@ from Toolbox.parameters.defines import VarNames
 
 
 class TestDashboardRouting(unittest.TestCase):
-    @patch("Toolbox.classes.import_data.import_pkl_data")
-    @patch("Toolbox.classes.import_data.import_formip_data")
-    #@patch("Toolbox.classes.import_data.check_data_availability")
-    def setUp(self, mock_check, mock_formip, mock_pkl):
-        """Prepare a dashboard instance with mocked data imports."""
+
+    def setUp(self):
+        self.patcher_pkl = patch("Toolbox.classes.import_data.import_pkl_data")
+        self.mock_pkl = self.patcher_pkl.start()
+
+        self.patcher_formip = patch("Toolbox.classes.import_data.import_formip_data")
+        self.mock_formip = self.patcher_formip.start()
+
+        self.addCleanup(self.patcher_pkl.stop)
+        self.addCleanup(self.patcher_formip.stop)
 
         # ---- Mock Data Returned by import_pkl_data ----
         mock_pkl_instance = MagicMock()
         mock_pkl_instance.combined_data.return_value = {
             VarNames.data_periods.value: {"dummy": 1}
         }
-        mock_pkl.return_value = mock_pkl_instance
+        self.mock_pkl.return_value = mock_pkl_instance
 
         # ---- Mock Data Returned by import_formip_data ----
         mock_formip_instance = MagicMock()
         mock_formip_instance.load_formip_data.return_value = {"formip": 1}
-        mock_formip.return_value = mock_formip_instance
+        self.mock_formip.return_value = mock_formip_instance
 
         # ---- Instantiate dashboard ----
         self.dashboard = timba_dashboard(
-            scenario_folder_path=None,
-            additional_info_folderpath=None,
+            FOLDER_PATH=None,
             num_files_to_read=5,
             print_settings=False,
         )
 
-        # Manually run the setup steps
         self.dashboard._app_initial()
         self.dashboard._import_data()
         self.dashboard._import_formip()
         self.dashboard._build_layout()
         self.dashboard._register_callbacks()
 
-        # Retrieve the Dash-managed callback
         cb = self.dashboard.app.callback_map["page-content.children"]
-        wrapped_callback = cb["callback"]
-        self.display_page_callback = wrapped_callback.__wrapped__
+        self.display_page_callback = cb["callback"].__wrapped__
+
 
     # -------------------------
     #       TEST CASES
