@@ -9,7 +9,7 @@ from Toolbox.parameters.defines import VarNames
 class TestDashboardRouting(unittest.TestCase):
     @patch("Toolbox.classes.import_data.import_pkl_data")
     @patch("Toolbox.classes.import_data.import_formip_data")
-    @patch("Toolbox.classes.import_data.check_data_availability")
+    #@patch("Toolbox.classes.import_data.check_data_availability")
     def setUp(self, mock_check, mock_formip, mock_pkl):
         """Prepare a dashboard instance with mocked data imports."""
 
