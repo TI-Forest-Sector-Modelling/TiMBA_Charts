@@ -33,12 +33,16 @@ class timba_dashboard:
         self.data = None
         self.formip_data = None
 
-    def run(self, open_browser=True, port=8053):
+    def create_app(self):
         self._app_initial()
         self._import_data()
         self._import_formip()
         self._build_layout()
         self._register_callbacks()
+        return self.app
+    
+    def run(self, open_browser=True, port=8053):
+        self.create_app()
 
         if open_browser:
             Timer(1, lambda: webbrowser.open_new(f"http://localhost:{port}")).start()
