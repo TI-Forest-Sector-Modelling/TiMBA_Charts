@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 from dash import Dash
 from Toolbox.toolbox import timba_dashboard
 import Toolbox.parameters.paths as toolbox_paths
@@ -32,7 +33,7 @@ class TestDashboardRouting(unittest.TestCase):
 
         # ---- Instantiate dashboard ----
         self.dashboard = timba_dashboard(
-            FOLDER_PATH=None,
+            FOLDER_PATH=Path("example_path"),
             num_files_to_read=5,
             print_settings=False,
         )
