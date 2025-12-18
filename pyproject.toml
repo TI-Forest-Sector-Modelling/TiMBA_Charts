@@ -7,7 +7,7 @@ packages = ["Toolbox"]
 
 [project]
 name = "TiMBA_Charts"
-version = "0.3.0"
+version = "0.3.2"
 description = """
 A toolbox for analysing forest sector model results.
 """
