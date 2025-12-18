@@ -22,9 +22,9 @@ from Toolbox.parameters.defines_geo import CountryGroups
 
 class import_pkl_data:
     def __init__(self,
-                 num_files_to_read: int = 10,
-                 SCENARIOPATH: Path = toolbox_paths.SCINPUTPATH,
-                 ADDINFOPATH: Path = toolbox_paths.AIINPUTPATH):
+                 num_files_to_read: int,
+                 SCENARIOPATH: Path,
+                 ADDINFOPATH: Path):
         self.num_files_to_read = num_files_to_read
         self.SCENARIOPATH = SCENARIOPATH
         self.ADDINFOPATH = ADDINFOPATH
@@ -176,7 +176,6 @@ class import_pkl_data:
         ID = 1
         for scenario_files in newest_files:
             src_filepath = scenario_path / scenario_files
-            print(src_filepath)
             scenario_name = str(scenario_files)[str(scenario_files).rfind(toolbox_parameters.seperator_scenario_name)+3
                                         :-4]
             try:
@@ -469,17 +468,13 @@ class import_formip_data:
         return self.formip_data
 
 class download_input_data:
-    def __init__(self, folder_path: Path = None):
-        self.folder_path = (
-            Path(folder_path)
-            if folder_path is not None
-            else Path(toolbox_paths.PACKAGEDIR)
-        )
+    def __init__(self, 
+                 SCENARIO_FOLDER_PATH: Path,
+                 ADDINFOPATH: Path):
+        self.SCENARIO_FOLDER_PATH = SCENARIO_FOLDER_PATH
+        self.ADDINFOPATH = ADDINFOPATH
 
     def download_data_from_github(self):
-        SCENARIO_FOLDER_PATH = self.folder_path / toolbox_paths.SCINPUTPATH
-        ADDINFOPATH = self.folder_path / toolbox_paths.AIINPUTPATH
-
         user = toolbox_paths.GIT_USER
         repo = toolbox_paths.GIT_REPO
         branch = toolbox_paths.GIT_BRANCH
@@ -487,8 +482,8 @@ class download_input_data:
         zip_url = f"https://github.com/{user}/{repo}/archive/refs/heads/{branch}.zip"
 
         folder_dict = {
-            toolbox_paths.SCINPUT_GITHUB_URL: SCENARIO_FOLDER_PATH,
-            toolbox_paths.AIINPUT_GITHUB_URL: ADDINFOPATH
+            toolbox_paths.SCINPUT_GITHUB_URL: self.SCENARIO_FOLDER_PATH,
+            toolbox_paths.AIINPUT_GITHUB_URL: self.ADDINFOPATH
         }
 
         try:
@@ -515,6 +510,10 @@ class download_input_data:
                             f"{source_rel} not found in {repo_root}"
                         )
 
+                    if target_folder.exists():
+                        print(f"{target_folder} already exists – skipping copy")
+                        continue
+
                     target_folder.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copytree(source_path, target_folder)
 
@@ -525,8 +524,3 @@ class download_input_data:
                 "Failed to download input data from GitHub.\n"
                 "Please check your internet connection."
             )
-
-
-if __name__ == "__main__":
-    download_input_data = download_input_data(folder_path=None)
-    download_input_data.download_data_from_github()

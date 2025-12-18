@@ -1,9 +1,9 @@
 from pathlib import Path
 
-PACKAGEDIR = Path(__file__).resolve().parent.parent
-SCINPUTPATH = Path("Input") / Path("Scenario_Files")
-AIINPUTPATH = Path("Input") / Path("Additional_Information")
-SCFOLDERPATH = Path("Input")
+PACKAGEDIR = Path(__file__).resolve().parent.parent.parent
+SCINPUTPATH = Path("Scenario_Files")
+AIINPUTPATH = Path("Additional_Information")
+SCFOLDERPATH = Path("Toolbox") / Path("Input")
 
 # Input to adress data storage in GIT Repo
 GIT_USER = "TI-Forest-Sector-Modelling"
