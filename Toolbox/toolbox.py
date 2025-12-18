@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 import webbrowser
 from threading import Timer
 from pathlib import Path
-from Toolbox.classes.import_data import import_pkl_data, import_formip_data, check_data_availability
+from Toolbox.classes.import_data import import_pkl_data, import_formip_data, download_input_data
 from Toolbox.pages.overview_db import OverviewDB
 from Toolbox.pages.forest_db import ForestDB
 from Toolbox.pages.price_db import PriceDB
@@ -13,20 +13,23 @@ from Toolbox.pages.validation_db import ValidationDB
 from Toolbox.parameters.defines import VarNames
 from Toolbox.classes.utils import generate_color_palette
 from Toolbox.parameters.default_parameters import color_palette
+from Toolbox.parameters.paths import PACKAGEDIR,SCINPUTPATH,AIINPUTPATH
 import warnings
 
 
 class timba_dashboard:
 
     def __init__(self,
-                 scenario_folder_path: Path = None,
-                 additional_info_folderpath: Path = None,
+                 scenario_folder_path: Path = PACKAGEDIR / SCINPUTPATH,
+                 additional_info_folderpath: Path = PACKAGEDIR / AIINPUTPATH,
+                 PACKAGEDIR: Path = PACKAGEDIR,
                  num_files_to_read: int = 10,
                  print_settings: bool = False):
 
         self.num_files_to_read = num_files_to_read
         self.scenario_folder_path = scenario_folder_path
         self.additional_info_folderpath = additional_info_folderpath
+        self.PACKAGEDIR = PACKAGEDIR
         self.print_settings = print_settings
         self.app = None
         self.data = None
@@ -60,10 +63,14 @@ class timba_dashboard:
         self.app.config.suppress_callback_exceptions = True
 
     def _import_data(self):
+        print(self.scenario_folder_path)
         warnings.simplefilter(action='ignore', category=FutureWarning)
-        check_data_availability(self,
-                                sc_folder_path=self.scenario_folder_path,
-                                additional_info_folder_path=self.additional_info_folderpath)
+
+        if not (self.scenario_folder_path.exists() and self.additional_info_folderpath.exists()):
+            print(f"No data found!")
+            download = download_input_data(folder_path=self.PACKAGEDIR)
+            download.download_data_from_github()
+
         importer = import_pkl_data(
             num_files_to_read=self.num_files_to_read,
             SCENARIOPATH=self.scenario_folder_path,
@@ -71,7 +78,9 @@ class timba_dashboard:
         )
         self.data = importer.combined_data()
 
+
     def _import_formip(self):
+        print(self.additional_info_folderpath)
         importer = import_formip_data(
             timba_data=self.data,
             only_baseline_sc=True,
@@ -158,7 +167,4 @@ class timba_dashboard:
 
 
 if __name__ == "__main__":
-    timba_dashboard(
-        scenario_folder_path=None,
-        additional_info_folderpath=None
-        ).run()
+    timba_dashboard().run()

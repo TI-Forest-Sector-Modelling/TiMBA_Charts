@@ -9,6 +9,12 @@ import gzip
 import requests
 from io import BytesIO
 import zipfile
+from urllib.error import URLError
+import os
+import shutil
+import tempfile
+import zipfile
+import urllib.request
 import Toolbox.parameters.paths as toolbox_paths
 import Toolbox.parameters.default_parameters as toolbox_parameters
 from Toolbox.parameters.defines_geo import CountryGroups
@@ -190,7 +196,6 @@ class import_pkl_data:
 
             data_prev = data
             ID += 1
-        
         data_prev["data_periods"] = self.downcasting(data_prev["data_periods"])
         try:
             data = self.read_historic_data()
@@ -253,6 +258,7 @@ class import_formip_data:
         self.formip_data = self.read_formip_data()
         self.timba_data = timba_data
         self.only_baseline_sc = only_baseline_sc
+        self.ADDINFOPATH = ADDINFOPATH
 
     def read_formip_data(self):
         """
@@ -316,7 +322,7 @@ class import_formip_data:
         :return:
         """
 
-        geo_data = pd.read_csv(toolbox_paths.AIINPUTPATH / toolbox_paths.COUNTRYINFO,
+        geo_data = pd.read_csv(self.ADDINFOPATH / toolbox_paths.COUNTRYINFO,
                                encoding = "ISO-8859-1")
         geo_data = geo_data[["Country-Code", "ISO-Code"]]
 
@@ -462,73 +468,65 @@ class import_formip_data:
         self.formip_data = self.align_formip_data()
         return self.formip_data
 
+class download_input_data:
+    def __init__(self, folder_path: Path = None):
+        self.folder_path = (
+            Path(folder_path)
+            if folder_path is not None
+            else Path(toolbox_paths.PACKAGEDIR)
+        )
 
-def check_data_availability(self, sc_folder_path: str, additional_info_folder_path: str):
-    if (sc_folder_path is None) or (sc_folder_path != toolbox_paths.SCINPUTPATH):
-        if sc_folder_path is None:
-            self.scenario_folder_path = toolbox_paths.SCINPUTPATH
-        else:
-            self.scenario_folder_path = Path(self.scenario_folder_path) / Path("Input") / Path("Scenario_Files")
-        if not check_folder_availability(folder_path=self.scenario_folder_path):
-            self.scenario_folder_path.mkdir(parents=True, exist_ok=True)
-            download_data_from_github(repo_zip_url=toolbox_paths.TIMBA_DATA_REPO_URL,
-                                      target_subdir=toolbox_paths.SCINPUT_GITHUB_URL,
-                                      folder_path=self.scenario_folder_path,
-                                      file_list=toolbox_paths.scenario_file_list)
+    def download_data_from_github(self):
+        SCENARIO_FOLDER_PATH = self.folder_path / toolbox_paths.SCINPUTPATH
+        ADDINFOPATH = self.folder_path / toolbox_paths.AIINPUTPATH
 
-    if (additional_info_folder_path is None) or (additional_info_folder_path != toolbox_paths.AIINPUTPATH):
-        if additional_info_folder_path is None:
-            self.additional_info_folderpath = toolbox_paths.AIINPUTPATH
-        else:
-            self.additional_info_folderpath = Path(additional_info_folder_path) / Path("Input") / Path("Additional_Information")
-        if not check_folder_availability(folder_path=self.additional_info_folderpath):
-            self.additional_info_folderpath.mkdir(parents=True, exist_ok=True)
-            download_data_from_github(repo_zip_url=toolbox_paths.TIMBA_DATA_REPO_URL,
-                                      target_subdir=toolbox_paths.AIINPUT_GITHUB_URL,
-                                      folder_path=self.additional_info_folderpath,
-                                      file_list=toolbox_paths.addinfo_file_list)
+        user = toolbox_paths.GIT_USER
+        repo = toolbox_paths.GIT_REPO
+        branch = toolbox_paths.GIT_BRANCH
 
+        zip_url = f"https://github.com/{user}/{repo}/archive/refs/heads/{branch}.zip"
 
-def check_folder_availability(folder_path: Path):
-    return Path.is_dir(folder_path)
+        folder_dict = {
+            toolbox_paths.SCINPUT_GITHUB_URL: SCENARIO_FOLDER_PATH,
+            toolbox_paths.AIINPUT_GITHUB_URL: ADDINFOPATH
+        }
 
+        try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                tmpdir = Path(tmpdir)
+                zip_path = tmpdir / f"{repo}.zip"
 
-def download_data_from_github(repo_zip_url: str, target_subdir: str, folder_path: Path, file_list: list):
-    """
-    Downloads missing input data from GitHub.
-    :param repo_zip_url: Remote input data zip url
-    :param target_subdir: Target subdirectory of remote input data folder
-    :param folder_path: Local input data folder
-    :param file_list: List of files to download for each folder
-    """
-    response = requests.get(repo_zip_url, timeout=60)
-    response.raise_for_status()
-    with zipfile.ZipFile(BytesIO(response.content)) as zip_file:
-        all_zip_files = zip_file.namelist()
+                print(f"Load {zip_url} ...")
+                urllib.request.urlretrieve(zip_url, zip_path)
 
-        if not target_subdir.endswith("/"):
-            target_subdir = target_subdir + "/"
+                with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                    zip_ref.extractall(tmpdir)
 
-        target_files = [f for f in all_zip_files if f.startswith(target_subdir) and not f.endswith("/")]
+                repo_root = next(
+                    p for p in tmpdir.iterdir()
+                    if p.is_dir() and p.name.startswith(repo)
+                )
 
-        filtered_files = [f for f in target_files if Path(f).name in file_list]
+                for source_rel, target_folder in folder_dict.items():
+                    source_path = repo_root / source_rel
 
-        if not filtered_files:
-            raise ValueError(f"No files found in subdirectory '{target_subdir}' inside ZIP")
+                    if not source_path.exists():
+                        raise FileNotFoundError(
+                            f"{source_rel} not found in {repo_root}"
+                        )
 
-        for zip_filepath in target_files:
+                    target_folder.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copytree(source_path, target_folder)
 
-            local_filename = Path(zip_filepath).name
-            local_output_path = folder_path / local_filename
+                    print(f"Input data saved to {target_folder}")
 
-            with zip_file.open(zip_filepath) as zf:
-                with open(local_output_path, "wb") as f:
-                    f.write(zf.read())
-
-            print(f"Downloaded: {local_output_path}")
+        except URLError:
+            print(
+                "Failed to download input data from GitHub.\n"
+                "Please check your internet connection."
+            )
 
 
 if __name__ == "__main__":
-    import_pkl = import_pkl_data()
-    data = import_pkl.combined_data()
-    print(data['data_periods'])
+    download_input_data = download_input_data(folder_path=None)
+    download_input_data.download_data_from_github()
