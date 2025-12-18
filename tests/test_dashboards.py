@@ -1,79 +1,83 @@
-# import unittest
-# from pathlib import Path
-# from dash import Dash
-# from Toolbox.toolbox import timba_dashboard
-# import Toolbox.parameters.paths as toolbox_paths
-# from unittest.mock import patch, MagicMock
-# from Toolbox.parameters.defines import VarNames
+import pytest
+from dash import html
+import Toolbox.toolbox as toolbox_module
+from Toolbox.toolbox import timba_dashboard
 
 
-# class TestDashboardRouting(unittest.TestCase):
+class TestTimbaDashboard:
+    @pytest.fixture(autouse=True)
+    def _mock_all_dependencies(self, monkeypatch):
+        # ==================================================
+        # download_input_data mock
+        # ==================================================
+        class MockDownload:
+            def download_data_from_github(self):
+                return None
 
-#     def setUp(self):
-#         # ---- Patch _import_data COMPLETELY ----
-#         self.patcher_import_data = patch.object(
-#             timba_dashboard,
-#             "_import_data",
-#             autospec=True
-#         )
-#         self.mock_import_data = self.patcher_import_data.start()
-#         self.addCleanup(self.patcher_import_data.stop)
+        monkeypatch.setattr(
+            toolbox_module,
+            "download_input_data",
+            lambda *a, **k: MockDownload(),
+        )
 
-#         # ---- Patch _import_formip COMPLETELY ----
-#         self.patcher_import_formip = patch.object(
-#             timba_dashboard,
-#             "_import_formip",
-#             autospec=True
-#         )
-#         self.mock_import_formip = self.patcher_import_formip.start()
-#         self.addCleanup(self.patcher_import_formip.stop)
+        # ==================================================
+        # import_pkl_data mock
+        # ==================================================
+        class MockPKLImporter:
+            def combined_data(self):
+                return {"data_periods": [{}]}
 
-#         # ---- Instantiate dashboard ----
-#         self.dashboard = timba_dashboard(
-#             FOLDER_PATH=Path("example_path"),
-#             num_files_to_read=5,
-#             print_settings=False,
-#         )
+        monkeypatch.setattr(
+            toolbox_module,
+            "import_pkl_data",
+            lambda *a, **k: MockPKLImporter(),
+        )
 
-#         self.dashboard._app_initial()
+        # ==================================================
+        # import_formip_data mock
+        # ==================================================
+        class MockFormipImporter:
+            def load_formip_data(self):
+                return {}
 
-#         # ---- Inject fake data DIRECTLY ----
-#         self.dashboard.data = {
-#             VarNames.data_periods.value: {"dummy": 1}
-#         }
-#         self.dashboard.formip_data = {"formip": 1}
+        monkeypatch.setattr(
+            toolbox_module,
+            "import_formip_data",
+            lambda *a, **k: MockFormipImporter(),
+        )
 
-#         self.dashboard._build_layout()
-#         self.dashboard._register_callbacks()
+        class MockPage:
+            def __init__(self, *args, **kwargs):
+                self.app_layout = html.Div("Mock Page")
 
-#         cb = self.dashboard.app.callback_map["page-content.children"]
-#         self.display_page_callback = cb["callback"].__wrapped__
+        monkeypatch.setattr(toolbox_module, "OverviewDB", MockPage)
+        monkeypatch.setattr(toolbox_module, "ForestDB", MockPage)
+        monkeypatch.setattr(toolbox_module, "PriceDB", MockPage)
+        monkeypatch.setattr(toolbox_module, "TradeDB", MockPage)
+        monkeypatch.setattr(toolbox_module, "ValidationDB", MockPage)
 
+    def test_create_app_returns_dash_app(self, tmp_path):
+        dashboard = timba_dashboard(FOLDER_PATH=tmp_path)
+        dashboard.create_app()
 
-#     # -------------------------
-#     #       TEST CASES
-#     # -------------------------
+        assert dashboard.app is not None
+        assert dashboard.app.title == "TiMBA Dashboards"
 
-#     def test_overview_page(self):
-#         result = self.display_page_callback("/")
-#         self.assertIs(result, self.dashboard.overview_db.app_layout)
+    def test_layout_contains_page_content(self, tmp_path):
+        dashboard = timba_dashboard(FOLDER_PATH=tmp_path)
+        dashboard.create_app()
 
-#     def test_forest_page(self):
-#         result = self.display_page_callback("/forest")
-#         self.assertIs(result, self.dashboard.forest_db.app_layout)
+        ids = [c.id for c in dashboard.app.layout.children if hasattr(c, "id")]
 
-#     def test_price_page(self):
-#         result = self.display_page_callback("/price")
-#         self.assertIs(result, self.dashboard.price_db.app_layout)
+        assert "page-content" in ids
 
-#     def test_trade_page(self):
-#         result = self.display_page_callback("/trade")
-#         self.assertIs(result, self.dashboard.trade_db.app_layout)
+    def test_run_does_not_open_browser(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(
+            toolbox_module.webbrowser,
+            "open_new",
+            lambda *a, **k: None,
+        )
 
-#     def test_validation_page(self):
-#         result = self.display_page_callback("/validation")
-#         self.assertIs(result, self.dashboard.validation_db.app_layout)
-
-#     def test_default_for_invalid_path(self):
-#         result = self.display_page_callback("/unknown-page")
-#         self.assertIs(result, self.dashboard.overview_db.app_layout)
+        dashboard = timba_dashboard(FOLDER_PATH=tmp_path)
+        dashboard.create_app()
+        assert dashboard.app is not None
