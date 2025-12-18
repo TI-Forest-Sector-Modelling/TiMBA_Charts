@@ -11,7 +11,8 @@ import Toolbox.parameters.default_parameters as toolbox_parameters
 
 @pytest.fixture
 def import_pkl_instance():
-    return import_pkl_data(SCENARIOPATH=toolbox_paths.SCINPUTPATH)
+    return import_pkl_data(SCENARIOPATH=toolbox_paths.SCINPUTPATH,
+                           ADDINFOPATH=toolbox_paths.AIINPUTPATH)
 
 def create_mock_pkl_file(data):
     mock_pkl = pickle.dumps(data)
