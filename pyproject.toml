@@ -2,12 +2,12 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["Toolbox"]
+[tool.setuptools.packages.find]
+include = ["Toolbox*"]
 
 [project]
 name = "TiMBA_Charts"
-version = "0.3.2"
+version = "0.3.3"
 description = """
 A toolbox for analysing forest sector model results.
 """
@@ -25,9 +25,14 @@ dependencies = [
     "pandas==1.5.3",
     "dash==3.0.0",
     "dash-bootstrap-components==2.0.0",
-    "pytest==8.3.5",
-    "pytest-cov==6.2.1",
     "seaborn==0.13.2"
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.5",
+    "pytest-cov==6.2.1"
 ]
 
 [project.urls]
