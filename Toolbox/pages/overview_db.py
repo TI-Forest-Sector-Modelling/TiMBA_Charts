@@ -5,7 +5,7 @@ from dash.dependencies import Input, Output, State
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from Toolbox.classes.PlotManager import overviewplots
+from Toolbox.classes.PlotManager import Plots
 
 from Toolbox.parameters.default_parameters import (
     default_plot_settings,
@@ -19,7 +19,7 @@ class OverviewDB:
     def __init__(self, app, data, print_settings=False, color_list=None):
         self.app = app
         self.data = data
-        self.op = overviewplots()
+        self.op = Plots()
         self.color_list = color_list or ["#1f77b4", "#ff7f0e", "#2ca02c"]
         self.start = data["year"].min()
         self.end = data["year"].max()
@@ -464,21 +464,18 @@ class OverviewDB:
                 filtered_data=filtered_data,
                 start_year=self.start,
                 end_year=self.end,
-                color_list=self.color_list,
                 plot_settings=self.plot_settings,
                 title_suffix=title_suffix,
             )
 
             fig_price = self.op.create_price_plot(
                 filtered_data=filtered_data,
-                color_list=self.color_list,
             )
 
             fig_forstock = self.op.create_forstock_plot(
                 filtered_data=filtered_data,
-                color_list=self.color_list,
             )
-            
+
             return fig_quantity, fig_price, fig_forstock
 
 

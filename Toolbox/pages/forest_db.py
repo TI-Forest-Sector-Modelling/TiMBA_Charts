@@ -4,17 +4,17 @@ import numpy as np
 from dash import dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
-from Toolbox.classes.PlotManager import forestplots
+from Toolbox.classes.PlotManager import Plots, PlotUtils
 
 
 class ForestDB:
 
     def __init__(self, app, data: pd.DataFrame):
         self.app = app
-        self.fp = forestplots(data=data)
+        self.fp = Plots()
         self.data = data #self.fp.drop_duplicates_df(data)
         self.scenarios = sorted(self.data["Scenario"].dropna().unique())
-        self.colors = self.fp.get_scenario_colors(self.scenarios)
+        self.colors = PlotUtils().get_scenario_colors(self.scenarios)
         self.app_layout = self.create_layout()
         self.register_callbacks()
 
@@ -131,10 +131,10 @@ class ForestDB:
                 df = df[df["Continent"].isin(continents)]
 
             return (
-                self.fp.plot_forarea(df, self.colors),
-                self.fp.plot_forstock(df, self.colors),
-                self.fp.plot_area_growth(df, self.colors),
-                self.fp.plot_stock_growth(df, self.colors),
-                self.fp.plot_stock_area_ratio(df, self.colors),
-                self.fp.plot_supply_from_forest(df, self.colors),
+                self.fp.plot_forarea(df),
+                self.fp.plot_forstock(df),
+                self.fp.plot_area_growth(df),
+                self.fp.plot_stock_growth(df),
+                self.fp.plot_stock_area_ratio(df),
+                self.fp.plot_supply_from_forest(df),
             )
