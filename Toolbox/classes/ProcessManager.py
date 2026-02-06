@@ -42,6 +42,5 @@ class DataProcessor:
         forest_data["ISO3"] = forest_data["RegionCode"].map(country_dict)
         forest_data["Continent"] = forest_data["RegionCode"].map(continent_dict)
         forest_data["year"] = forest_data["Period"].map(year_dict)
-        print(forest_data)
         self.data[dp.forest_db] = forest_data
         return self.data

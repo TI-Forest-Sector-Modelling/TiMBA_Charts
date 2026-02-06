@@ -85,7 +85,7 @@ class timba_dashboard:
                                 commodity_data=commodity_data,
                                 data_hist=hist_data)
         self.data = process.combined_data()
-        print("\nTiMBA data is fully loaded!")
+        print("TiMBA data is fully loaded!")
 
     def _import_formip(self):
         importer = import_formip_data(
