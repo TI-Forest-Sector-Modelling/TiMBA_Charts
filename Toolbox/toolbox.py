@@ -10,9 +10,8 @@ from Toolbox.pages.forest_db import ForestDB
 from Toolbox.pages.price_db import PriceDB
 from Toolbox.pages.trade_db import TradeDB
 from Toolbox.pages.validation_db import ValidationDB
-from Toolbox.parameters.defines import VarNames
 from Toolbox.classes.utils import generate_color_palette
-from Toolbox.parameters.default_parameters import color_palette
+import Toolbox.parameters.default_parameters as dp
 from Toolbox.parameters.paths import PACKAGEDIR,SCINPUTPATH,AIINPUTPATH,SCFOLDERPATH
 import warnings
 
@@ -80,6 +79,7 @@ class timba_dashboard:
             ADDINFOPATH=self.ADDINFO_PATH
         )
         self.data = importer.combined_data()
+        #print(self.data[dp.overview_db])
 
 
     def _import_formip(self):
@@ -91,21 +91,23 @@ class timba_dashboard:
         self.formip_data = importer.load_formip_data()
 
     def _build_layout(self):
-        self.color_list = generate_color_palette(palette_name=color_palette, n_colors=self.num_files_to_read)
+        self.color_list = generate_color_palette(palette_name=dp.color_palette, n_colors=self.num_files_to_read)
         self.overview_db = OverviewDB(app=self.app,
-                                      data=self.data[VarNames.data_periods.value],
+                                      data=self.data[dp.overview_db],
                                       print_settings=self.print_settings,
-                                      color_list=self.color_list)
+                                      color_list=self.color_list,
+                                      )
         self.forest_db = ForestDB(app=self.app,
-                                  data=self.data[VarNames.data_periods.value],
-                                  print_settings=self.print_settings,
-                                  color_list=self.color_list)
+                                  data=self.data[dp.forest_db],
+                                  #print_settings=self.print_settings,
+                                  #color_list=self.color_list,
+                                  )
         self.price_db = PriceDB(app=self.app,
-                                data=self.data[VarNames.data_periods.value],
+                                data=self.data[dp.overview_db],
                                 print_settings=self.print_settings,
                                 color_list=self.color_list)
         self.trade_db = TradeDB(app=self.app,
-                                data=self.data[VarNames.data_periods.value],
+                                data=self.data[dp.overview_db],
                                 print_settings=self.print_settings,
                                 color_list=self.color_list)
         self.validation_db = ValidationDB(app=self.app, data=self.formip_data)

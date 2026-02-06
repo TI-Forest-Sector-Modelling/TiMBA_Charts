@@ -16,7 +16,7 @@ import tempfile
 import zipfile
 import urllib.request
 import Toolbox.parameters.paths as toolbox_paths
-import Toolbox.parameters.default_parameters as toolbox_parameters
+import Toolbox.parameters.default_parameters as dp
 from Toolbox.parameters.defines_geo import CountryGroups
 
 
@@ -123,10 +123,10 @@ class import_pkl_data:
         return result_df
 
     def add_calculated_domains(self,data:pd.DataFrame):
-        pivoted_price = data["data_periods"].pivot(index=["RegionCode", "CommodityCode", "Period", "year"], 
+        pivoted_price = data[dp.overview_db].pivot(index=["RegionCode", "CommodityCode", "Period", "year"], 
                          columns="domain", 
                          values="price").add_prefix("price_")
-        pivoted_quantity = data["data_periods"].pivot(index=["RegionCode", "CommodityCode", "Period", "year"], 
+        pivoted_quantity = data[dp.overview_db].pivot(index=["RegionCode", "CommodityCode", "Period", "year"], 
                                     columns="domain", 
                                     values="quantity").add_prefix("quantity_")
         pivoted_df = pd.concat([pivoted_price, pivoted_quantity], axis=1).reset_index()    
@@ -138,20 +138,20 @@ class import_pkl_data:
                                 ]
         for method_name in calculated_functions:
             calc_df = getattr(self, method_name)(data=pivoted_df)
-            data["data_periods"] = self.concat_calc_domains(origin_data=data["data_periods"], calc_data=calc_df)
+            data[dp.overview_db] = self.concat_calc_domains(origin_data=data[dp.overview_db], calc_data=calc_df)
 
-        return data["data_periods"]
+        return data[dp.overview_db]
 
     def concat_scenarios(self, data: pd.DataFrame, sc_name:str, data_prev: pd.DataFrame, ID: int):
         """concat_scenarios, add scenario name from pkl file to data frames
         :param data: dictionary of the data container
         :param sc_name: scenario name from file name in dictionary
         """    
-        data["data_periods"] = self.add_calculated_domains(data=data)
+        data[dp.overview_db] = self.add_calculated_domains(data=data)
         try:
             for key in data: #loop through all data from datacontainer
-                data[key][toolbox_parameters.column_name_scenario] = sc_name
-                data[key][toolbox_parameters.column_name_model] = toolbox_parameters.model_name
+                data[key][dp.column_name_scenario] = sc_name
+                data[key][dp.column_name_model] = dp.model_name
                 #data[key][parameters.column_name_id.value] = ID
                 if data_prev != []:
                     data[key] = pd.concat([data_prev[key], data[key]], axis=0)
@@ -176,13 +176,13 @@ class import_pkl_data:
         ID = 1
         for scenario_files in newest_files:
             src_filepath = scenario_path / scenario_files
-            scenario_name = str(scenario_files)[str(scenario_files).rfind(toolbox_parameters.seperator_scenario_name)+3
+            scenario_name = str(scenario_files)[str(scenario_files).rfind(dp.seperator_scenario_name)+3
                                         :-4]
             try:
                 with gzip.open(src_filepath,'rb') as f:
                     if type(f) == gzip.GzipFile:
                         data = pickle.load(f)
-                        data['data_periods'] = data['data_periods'][['RegionCode','CommodityCode','Period','year','domain','price','quantity']]
+                        data[dp.overview_db] = data[dp.overview_db][['RegionCode','CommodityCode','Period','year','domain','price','quantity']]
                 self.concat_scenarios(data=data, sc_name=scenario_name, data_prev=data_prev, ID=ID)
             except gzip.BadGzipFile:
                 pass
@@ -195,30 +195,40 @@ class import_pkl_data:
 
             data_prev = data
             ID += 1
-        data_prev["data_periods"] = self.downcasting(data_prev["data_periods"])
+        data_prev[dp.overview_db] = self.downcasting(data_prev[dp.overview_db])
         try:
             data = self.read_historic_data()
         except FileNotFoundError:
             data = pd.DataFrame()
         country_data = self.read_country_data()
         commodity_data = self.read_commodity_data()
-        forest_data = data_prev['Forest']
-        forest_data = forest_data[['Scenario','RegionCode','Period','ForStock','ForArea']]
+        forest_data = data_prev[dp.forest_db]
+        data_prev[dp.forest_formip_db] = data_prev[dp.forest_db] 
+        forest_data = forest_data[['Scenario','RegionCode','Period','ForStock','ForArea','supply_from_forest']]
         forest_data = forest_data.drop_duplicates(subset=['Scenario', 'RegionCode', 'Period'], keep='first')
-        data_prev["data_periods"] = pd.merge(data_prev["data_periods"], forest_data, how='left', on=['Scenario','RegionCode','Period'])
-        data_prev["data_periods"] = pd.concat([data_prev["data_periods"], data], axis=0)
-        data_prev["data_periods"] = pd.merge(data_prev["data_periods"], country_data, on="RegionCode", how="left")
-        data_prev["data_periods"] = pd.merge(data_prev["data_periods"], commodity_data, on="CommodityCode", how="left")
-        data_prev["data_periods"]["domain"] = data_prev["data_periods"]["domain"].replace({
+        data_prev[dp.overview_db] = pd.merge(data_prev[dp.overview_db], forest_data, how='left', on=['Scenario','RegionCode','Period'])
+        year_df= data_prev[dp.overview_db][["Period","year"]].drop_duplicates()
+        year_dict = dict(zip(year_df["Period"],year_df["year"]))
+        data_prev[dp.overview_db] = pd.concat([data_prev[dp.overview_db], data], axis=0)
+        data_prev[dp.overview_db] = pd.merge(data_prev[dp.overview_db], country_data, on="RegionCode", how="left")
+        data_prev[dp.overview_db] = pd.merge(data_prev[dp.overview_db], commodity_data, on="CommodityCode", how="left")
+        data_prev[dp.overview_db]["domain"] = data_prev[dp.overview_db]["domain"].replace({
             'ManufactureCost': 'Manufacturing',
             'TransportationExport': 'Export',
             'TransportationImport': 'Import',
             })
-        data_prev["data_periods"] = data_prev["data_periods"][['Model','Scenario','RegionCode','Continent','Country','ISO3',
+        data_prev[dp.overview_db] = data_prev[dp.overview_db][['Model','Scenario','RegionCode','Continent','Country','ISO3',
                                                                'CommodityCode','Commodity','Commodity_Group','Period','year',
                                                                'domain','price','quantity',
                                                                'ForStock','ForArea',
                                                                ]]
+        country_dict = dict(zip(country_data["RegionCode"], country_data["ISO3"]))
+        continent_dict = dict(zip(country_data["RegionCode"], country_data["Continent"]))
+        forest_data["ISO3"] = forest_data["RegionCode"].map(country_dict)
+        forest_data["Continent"] = forest_data["RegionCode"].map(continent_dict)
+        forest_data["year"] = forest_data["Period"].map(year_dict)
+        print(forest_data)
+        data_prev[dp.forest_db] = forest_data
         return data_prev
 
     def read_forest_data_gfpm(self, country_data:pd.DataFrame):
@@ -243,7 +253,7 @@ class import_pkl_data:
         forest_data['Period'] = forest_data['Year'].map(period_mapping)
 
         forest_gfpm = forest_data[['RegionCode', 'Period', 'ForStock', 'ForArea']]
-        forest_gfpm[toolbox_parameters.column_name_scenario]= 'world500'
+        forest_gfpm[dp.column_name_scenario]= 'world500'
         forest_data['Model'] = 'GFPM'
         return forest_gfpm
 
@@ -325,8 +335,8 @@ class import_formip_data:
                                encoding = "ISO-8859-1")
         geo_data = geo_data[["Country-Code", "ISO-Code"]]
 
-        timba_data_prod = self.timba_data["data_periods"].copy().reset_index(drop=True)
-        timba_data_forest = self.timba_data["Forest"].copy().reset_index(drop=True)
+        timba_data_prod = self.timba_data[dp.overview_db].copy().reset_index(drop=True)
+        timba_data_forest = self.timba_data[dp.forest_formip_db].copy().reset_index(drop=True)
         try:
             timba_data_carbon = self.timba_data["Carbon"].copy().reset_index(drop=True)
         except KeyError:

@@ -3,6 +3,9 @@ column_name_scenario = "Scenario"
 column_name_model = "Model"
 column_name_id = "ID"
 model_name = "TiMBA"
+overview_db = "data_periods"
+forest_db = "Forest"
+forest_formip_db = "ForestForMip"
 
 default_plot_settings = {"line_witdh": 1.5,
                          "title_font_size": 20,
