@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from Toolbox.classes.PlotManager import Plots
+import Toolbox.parameters.default_parameters as dp
+from Toolbox.classes.utils import PlotUtils
 
 from Toolbox.parameters.default_parameters import (
     default_plot_settings,
@@ -18,11 +20,12 @@ PACKAGEDIR = Path(__file__).parent.parent.absolute()
 class OverviewDB:
     def __init__(self, app, data, print_settings=False, color_list=None):
         self.app = app
-        self.data = data
-        self.op = Plots()
+        self.data = data[dp.overview_db]
+        self.forest_data = data[dp.forest_db]
+        self.plots = Plots()
         self.color_list = color_list or ["#1f77b4", "#ff7f0e", "#2ca02c"]
-        self.start = data["year"].min()
-        self.end = data["year"].max()
+        self.start = self.data["year"].min()
+        self.end = self.data["year"].max()
 
         self.plot_settings = (
             printing_plot_settings if print_settings else default_plot_settings
@@ -395,31 +398,6 @@ class OverviewDB:
 
         return app_layout
 
-
-    # ======================================================
-    # FILTERING
-    # ======================================================
-    def filter_data(self, region, continent, domain, commodity, commodity_group, scenario):
-        df = self.data.copy()
-
-        if region:
-            df = df[df["ISO3"].isin(region)]
-        if continent:
-            df = df[df["Continent"].isin(continent)]
-        if domain:
-            df = df[df["domain"].isin(domain)]
-        if commodity:
-            df = df[df["Commodity"].isin(commodity)]
-        if commodity_group:
-            df = df[df["Commodity_Group"].isin(commodity_group)]
-        if scenario:
-            df = df[df["Scenario"].isin(scenario)]
-
-        return self.remove_extreme_outliers(df, "price")
-
-    # ======================================================
-    # CALLBACKS
-    # ======================================================
     def create_callbacks(self):
         @self.app.callback(
             [
@@ -437,7 +415,19 @@ class OverviewDB:
             ],
         )
         def update_plots(region, continent, domain, commodity, commodity_group, scenario):
-            filtered_data = self.filter_data(
+            df = PlotUtils.filter_data(
+                df=self.data.copy(),
+                region=region,
+                continent=continent,
+                domain=domain,
+                commodity=commodity,
+                commodity_group=commodity_group,
+                scenario=scenario,
+            )
+            df=self.remove_extreme_outliers(df, "price")
+
+            forest_df = PlotUtils.filter_data(
+                df=self.forest_data.copy(),
                 region=region,
                 continent=continent,
                 domain=domain,
@@ -446,10 +436,10 @@ class OverviewDB:
                 scenario=scenario,
             )
 
-            if not isinstance(filtered_data, pd.DataFrame):
+            if not isinstance(df, pd.DataFrame):
                 raise TypeError(
                     f"filter_data muss DataFrame liefern, "
-                    f"bekommen: {type(filtered_data)}"
+                    f"bekommen: {type(df)}"
                 )
             
             title_suffix = self.generate_title(
@@ -460,21 +450,16 @@ class OverviewDB:
                 commodity_group,
             )
 
-            fig_quantity = self.op.create_quantity_plot(
-                filtered_data=filtered_data,
+            fig_quantity = self.plots.create_quantity_plot(
+                df=df,
                 start_year=self.start,
                 end_year=self.end,
                 plot_settings=self.plot_settings,
                 title_suffix=title_suffix,
             )
 
-            fig_price = self.op.create_price_plot(
-                filtered_data=filtered_data,
-            )
-
-            fig_forstock = self.op.create_forstock_plot(
-                filtered_data=filtered_data,
-            )
+            fig_price = self.plots.create_price_plot(df=df)
+            fig_forstock = self.plots.plot_forstock(df=forest_df)
 
             return fig_quantity, fig_price, fig_forstock
 
@@ -492,18 +477,24 @@ class OverviewDB:
             ],
         )
         def update_world_map(scenario, year, region, continent, domain, commodity, commodity_group):
-            filtered = self.filter_data(
-                region, continent, domain, commodity, commodity_group, scenario
+            df = PlotUtils.filter_data(
+                df=self.data.copy(),
+                region=region,
+                continent=continent,
+                domain=domain,
+                commodity=commodity,
+                commodity_group=commodity_group,
+                scenario=scenario,
             )
 
             if year:
-                filtered = filtered[filtered["year"] == year]
+                df = df[df["year"] == year]
 
             title_suffix = self.generate_title(
                 region, continent, domain, commodity, commodity_group
             )
 
-            return self.op.create_world_map_plot(filtered, title_suffix)
+            return self.plots.create_world_map_plot(df, title_suffix)
 
     # ======================================================
     # HELPERS

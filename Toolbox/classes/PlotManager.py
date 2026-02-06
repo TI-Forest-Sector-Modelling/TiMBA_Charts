@@ -3,52 +3,26 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 import textwrap
-
-# ======================================================
-# Hilfsfunktionen
-# ======================================================
-class PlotUtils:
-    """
-    Utility-Klasse für Hilfsfunktionen wie Farbzuweisungen und dynamische Y-Achse.
-    """
-    @staticmethod
-    def get_scenario_colors(scenarios, color_list=None):
-        base_colors = color_list or ["#1f77b4", "#ff7f0e", "#2ca02c",
-                                     "#d62728", "#9467bd", "#8c564b"]
-        return {s: base_colors[i % len(base_colors)] for i, s in enumerate(scenarios)}
-
-    @staticmethod
-    def dynamic_y_range(values, lower_factor=0.9, upper_factor=1.1):
-        values = pd.Series(values).dropna()
-        if values.empty:
-            return None
-        return [values.min() * lower_factor, values.max() * upper_factor]
+from Toolbox.classes.utils import PlotUtils
 
 class Plots:
-    """
-    Zentrale Plot-Klasse für Overview- und Forest-Dashboards.
-    Methoden erwarten jeweils ein DataFrame als Input und geben Plotly-Figuren zurück.
-    Farbpalette und Template werden über die Instanz gesteuert.
-    """
 
-    def __init__(self, color_list=None, template="plotly_white"):
-        self.color_list = color_list or ["#1f77b4", "#ff7f0e", "#2ca02c",
-                                         "#d62728", "#9467bd", "#8c564b"]
+    def __init__(self, template="plotly_white"):
         self.template = template
 
-    def create_quantity_plot(self, filtered_data, start_year, end_year, plot_settings, title_suffix):
-        grouped = filtered_data.groupby(["year", "Scenario"]).sum().reset_index()
-        grouped = grouped[(grouped["year"] >= start_year) & (grouped["year"] <= end_year)]
+    def create_quantity_plot(self, df, start_year, end_year, plot_settings, title_suffix):
+        grouped_df = df.groupby(["year", "Scenario"]).sum().reset_index()
+        grouped_df = grouped_df[(grouped_df["year"] >= start_year) & (grouped_df["year"] <= end_year)]
+        colors = PlotUtils.get_scenario_colors(scenarios=grouped_df["Scenario"].unique())
 
         fig = go.Figure()
-        for i, scenario in enumerate(grouped["Scenario"].unique()):
-            subset = grouped[grouped["Scenario"] == scenario]
-            color = self.color_list[i % len(self.color_list)]
+        for i, scenario in enumerate(grouped_df["Scenario"].unique()):
+            subset = grouped_df[grouped_df["Scenario"] == scenario]
             dash = "solid" if scenario == "Historic Data" else "dash"
             fig.add_trace(go.Scatter(
                 x=subset["year"], y=subset["quantity"]*1000,
                 mode="lines", name=scenario,
-                line=dict(color=color, dash=dash, width=plot_settings["line_witdh"])
+                line=dict(color=colors[scenario], dash=dash, width=plot_settings["line_witdh"])
             ))
 
         title = f"Quantity by Year and Scenario for {title_suffix}"
@@ -66,16 +40,17 @@ class Plots:
         )
         return fig
 
-    def create_price_plot(self, filtered_data):
-        grouped = filtered_data.groupby(["year", "Scenario"]).mean().reset_index()
+    def create_price_plot(self, df):
+        grouped = df.groupby(["year", "Scenario"]).mean().reset_index()
+        colors = PlotUtils.get_scenario_colors(scenarios=grouped["Scenario"].unique())
+
         fig = go.Figure()
         for i, scenario in enumerate(grouped["Scenario"].unique()):
             subset = grouped[grouped["Scenario"] == scenario]
-            color = self.color_list[i % len(self.color_list)]
             fig.add_trace(go.Bar(
                 x=subset["price"], y=subset["year"],
                 orientation="h", name=scenario,
-                marker_color=color
+                marker_color=colors[scenario]
             ))
         fig.update_layout(
             title="Price by Period and Scenario",
@@ -88,19 +63,19 @@ class Plots:
         )
         return fig
 
-    def create_forstock_plot(self, filtered_data):
-        stock = filtered_data.drop(columns=[
+    def create_forstock_plot(self, df):
+        stock = df.drop(columns=[
             "domain","price","quantity","CommodityCode","Commodity","Commodity_Group"
         ]).drop_duplicates().groupby(["year", "Scenario"]).agg({"ForStock":"sum"}).reset_index()
         stock = stock[stock["Scenario"] != "Historic Data"]
+        colors = PlotUtils.get_scenario_colors(scenarios=stock["Scenario"].unique())
 
         fig = go.Figure()
         for i, scenario in enumerate(stock["Scenario"].unique()):
             subset = stock[stock["Scenario"] == scenario]
-            color = self.color_list[i % len(self.color_list)]
             fig.add_trace(go.Bar(
                 x=subset["year"], y=subset["ForStock"],
-                name=scenario, marker_color=color
+                name=scenario, marker_color=colors[scenario]
             ))
         fig.update_layout(
             title="Forest Stock by Year and Scenario",
@@ -129,9 +104,10 @@ class Plots:
 
     def plot_forarea(self, df):
         periods = sorted(df["Period"].unique())
+        colors = PlotUtils.get_scenario_colors(scenarios=df["Scenario"].unique())
+
         fig = go.Figure()
         all_values = []
-        colors = PlotUtils.get_scenario_colors(df["Scenario"].unique(), self.color_list)
         for s in df["Scenario"].unique():
             area = df[df["Scenario"]==s].groupby("Period")["ForArea"].sum()
             y_vals = [area.get(p,0) for p in periods]
@@ -147,7 +123,7 @@ class Plots:
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
         all_values = []
-        colors = PlotUtils.get_scenario_colors(df["Scenario"].unique(), self.color_list)
+        colors = PlotUtils.get_scenario_colors(scenarios=df["Scenario"].unique())
         for s in df["Scenario"].unique():
             stock = df[df["Scenario"]==s].groupby("Period")["ForStock"].sum()
             y_vals = [stock.get(p,0) for p in periods]
@@ -162,7 +138,7 @@ class Plots:
     def plot_area_growth(self, df):
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
-        colors = PlotUtils.get_scenario_colors(df["Scenario"].unique(), self.color_list)
+        colors = PlotUtils.get_scenario_colors(scenarios=df["Scenario"].unique())
         for s in df["Scenario"].unique():
             area = df[df["Scenario"]==s].groupby("Period")["ForArea"].sum().reindex(periods)
             fig.add_scatter(x=periods, y=area.pct_change(), mode="lines+markers",
@@ -175,7 +151,7 @@ class Plots:
     def plot_stock_growth(self, df):
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
-        colors = PlotUtils.get_scenario_colors(df["Scenario"].unique(), self.color_list)
+        colors = PlotUtils.get_scenario_colors(scenarios=df["Scenario"].unique())
         for s in df["Scenario"].unique():
             stock = df[df["Scenario"]==s].groupby("Period")["ForStock"].sum().reindex(periods)
             fig.add_scatter(x=periods, y=stock.pct_change(), mode="lines+markers",
@@ -188,7 +164,7 @@ class Plots:
     def plot_stock_area_ratio(self, df):
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
-        colors = PlotUtils.get_scenario_colors(df["Scenario"].unique(), self.color_list)
+        colors = PlotUtils.get_scenario_colors(scenarios=df["Scenario"].unique())
         for s in df["Scenario"].unique():
             g = df[df["Scenario"]==s].groupby("Period")[["ForStock","ForArea"]].sum().replace(0,np.nan)
             ratio = g["ForStock"]/g["ForArea"]
@@ -201,7 +177,7 @@ class Plots:
     def plot_supply_from_forest(self, df):
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
-        colors = PlotUtils.get_scenario_colors(df["Scenario"].unique(), self.color_list)
+        colors = PlotUtils.get_scenario_colors(scenarios=df["Scenario"].unique())
         for s in df["Scenario"].unique():
             sub = df[df["Scenario"]==s].sort_values("Period").groupby("Period")[["supply_from_forest","year"]].sum().reindex(periods)
             delta_year = sub["year"].diff()

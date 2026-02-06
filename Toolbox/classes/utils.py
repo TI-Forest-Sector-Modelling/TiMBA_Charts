@@ -1,10 +1,43 @@
-import seaborn as sns
+from plotly.colors import qualitative
+import pandas as pd
+import numpy as np
 
+class PlotUtils:
+    
+    @staticmethod
+    def generate_color_palette(palette_name: str, n_colors: int):
+        #palette_name = 'D3' #or, 'G10', 'T10', 'Alphabet', 'Dark24', etc.
+        base_palette = getattr(qualitative, palette_name, qualitative.Plotly)
+        return [base_palette[i % len(base_palette)] for i in range(n_colors)]
 
-def generate_color_palette(palette_name: str, n_colors: int):
-    try:
-        palette = sns.color_palette(palette_name, n_colors=n_colors + 1)
-    except IndexError:
-        palette = sns.color_palette("Spectral", as_cmap=True, n_colors=n_colors + 1)
-    return palette.as_hex()
+    @staticmethod
+    def get_scenario_colors(scenarios, palette_name="D3"):
+        n = len(scenarios)
+        color_list = PlotUtils.generate_color_palette(palette_name, n)
+        return {s: color_list[i % len(color_list)] for i, s in enumerate(scenarios)}
 
+    @staticmethod
+    def dynamic_y_range(values, lower_factor=0.9, upper_factor=1.1):
+        values = np.array(values)
+        values = values[~np.isnan(values)]
+        if len(values) == 0:
+            return None
+        return [values.min() * lower_factor, values.max() * upper_factor]
+    
+    @staticmethod
+    def filter_data(df:pd.DataFrame = None,region=None, continent=None, domain=None, commodity=None, commodity_group=None, scenario=None):
+        filters = {
+            "ISO3": region,
+            "Continent": continent,
+            "domain": domain,
+            "Commodity": commodity,
+            "Commodity_Group": commodity_group,
+            "Scenario": scenario
+        }
+
+        for col, values in filters.items():
+            if values is None or not values:
+                continue
+            if col in df.columns:
+                df = df[df[col].isin(values)]
+        return df

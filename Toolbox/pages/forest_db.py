@@ -11,7 +11,7 @@ class ForestDB:
 
     def __init__(self, app, data: pd.DataFrame):
         self.app = app
-        self.fp = Plots()
+        self.plots = Plots()
         self.data = data #self.fp.drop_duplicates_df(data)
         self.scenarios = sorted(self.data["Scenario"].dropna().unique())
         self.colors = PlotUtils().get_scenario_colors(self.scenarios)
@@ -118,23 +118,19 @@ class ForestDB:
             Input("fdb_continent-dropdown", "value"),
         )
         def update_graphs(scenarios, countries, continents):
-
             df = self.data.copy()
-
-            if scenarios and "All" not in scenarios:
-                df = df[df["Scenario"].isin(scenarios)]
-
-            if countries:
-                df = df[df["ISO3"].isin(countries)]
-
-            if continents:
-                df = df[df["Continent"].isin(continents)]
+            df = PlotUtils.filter_data(
+                df=df,
+                region=countries,
+                continent=continents,
+                scenario=scenarios,
+            )
 
             return (
-                self.fp.plot_forarea(df),
-                self.fp.plot_forstock(df),
-                self.fp.plot_area_growth(df),
-                self.fp.plot_stock_growth(df),
-                self.fp.plot_stock_area_ratio(df),
-                self.fp.plot_supply_from_forest(df),
+                self.plots.plot_forarea(df),
+                self.plots.plot_forstock(df),
+                self.plots.plot_area_growth(df),
+                self.plots.plot_stock_growth(df),
+                self.plots.plot_stock_area_ratio(df),
+                self.plots.plot_supply_from_forest(df),
             )
