@@ -4,7 +4,8 @@ import dash_bootstrap_components as dbc
 import webbrowser
 from threading import Timer
 from pathlib import Path
-from Toolbox.classes.import_data import import_pkl_data, import_formip_data, download_input_data
+from Toolbox.classes.InputManager import import_pkl_data, import_formip_data, download_input_data
+from Toolbox.classes.ProcessManager import DataProcessor
 from Toolbox.pages.overview_db import OverviewDB
 from Toolbox.pages.forest_db import ForestDB
 from Toolbox.pages.price_db import PriceDB
@@ -73,14 +74,18 @@ class timba_dashboard:
                                            ADDINFOPATH=self.ADDINFO_PATH)
             download.download_data_from_github()
 
+        print("\nStart the read-in process of TiMBA data")
         importer = import_pkl_data(
             num_files_to_read=self.num_files_to_read,
             SCENARIOPATH=self.SCENARIO_PATH,
             ADDINFOPATH=self.ADDINFO_PATH
         )
-        self.data = importer.combined_data()
-        #print(self.data[dp.overview_db])
-
+        data, country_data, commodity_data, hist_data = importer.main()
+        process = DataProcessor(data=data,country_data=country_data,
+                                commodity_data=commodity_data,
+                                data_hist=hist_data)
+        self.data = process.combined_data()
+        print("\nTiMBA data is fully loaded!")
 
     def _import_formip(self):
         importer = import_formip_data(

@@ -19,7 +19,6 @@ import Toolbox.parameters.paths as toolbox_paths
 import Toolbox.parameters.default_parameters as dp
 from Toolbox.parameters.defines_geo import CountryGroups
 
-
 class import_pkl_data:
     def __init__(self,
                  num_files_to_read: int,
@@ -38,6 +37,45 @@ class import_pkl_data:
         with open(src_filepath, "rb") as pkl_file:
             obj = pickle.load(pkl_file)
         return obj
+    
+    def files_in_folder(self):
+        num_files_to_read = self.num_files_to_read
+        pkl_files = [
+            Path(self.SCENARIOPATH) / file
+            for file in os.listdir(self.SCENARIOPATH)
+            if file.endswith(".pkl")
+        ]
+        sorted_files = sorted(pkl_files, key=lambda x: x.stat().st_mtime, reverse=True)
+        self.newest_files = sorted_files[:num_files_to_read]
+
+    def pkl_import(self):
+        self.files_in_folder()
+        data = []
+        data_prev = []
+        ID = 1
+        for scenario_files in self.newest_files:
+            src_filepath = self.SCENARIOPATH / scenario_files
+            scenario_name = str(scenario_files)[str(scenario_files).rfind(dp.seperator_scenario_name)+3
+                                        :-4]
+            try:
+                with gzip.open(src_filepath,'rb') as f:
+                    if type(f) == gzip.GzipFile:
+                        data = pickle.load(f)
+                        data[dp.overview_db] = data[dp.overview_db][['RegionCode','CommodityCode','Period','year','domain','price','quantity']]
+                self.concat_scenarios(data=data, sc_name=scenario_name, data_prev=data_prev, ID=ID)
+            except gzip.BadGzipFile:
+                pass
+            except pickle.UnpicklingError:
+                pass
+            except PermissionError:
+                pass
+            except ValueError:
+                pass
+
+            data_prev = data
+            ID += 1
+        data_prev[dp.overview_db] = self.downcasting(data_prev[dp.overview_db])
+        return data_prev
 
     def read_country_data(self):
         """read data additional information for country data
@@ -141,7 +179,7 @@ class import_pkl_data:
             data[dp.overview_db] = self.concat_calc_domains(origin_data=data[dp.overview_db], calc_data=calc_df)
 
         return data[dp.overview_db]
-
+    
     def concat_scenarios(self, data: pd.DataFrame, sc_name:str, data_prev: pd.DataFrame, ID: int):
         """concat_scenarios, add scenario name from pkl file to data frames
         :param data: dictionary of the data container
@@ -157,106 +195,17 @@ class import_pkl_data:
                     data[key] = pd.concat([data_prev[key], data[key]], axis=0)
         except KeyError:
             pass
-                
-    def combined_data(self):
-        """loop trough all input files in input directory
-        """
-        scenario_path = self.SCENARIOPATH
-        num_files_to_read = self.num_files_to_read
-        pkl_files = [
-            Path(scenario_path) / file
-            for file in os.listdir(scenario_path)
-            if file.endswith(".pkl")
-        ]
-        sorted_files = sorted(pkl_files, key=lambda x: x.stat().st_mtime, reverse=True)
-        newest_files = sorted_files[:num_files_to_read]
-
-        data = []
-        data_prev = []
-        ID = 1
-        for scenario_files in newest_files:
-            src_filepath = scenario_path / scenario_files
-            scenario_name = str(scenario_files)[str(scenario_files).rfind(dp.seperator_scenario_name)+3
-                                        :-4]
-            try:
-                with gzip.open(src_filepath,'rb') as f:
-                    if type(f) == gzip.GzipFile:
-                        data = pickle.load(f)
-                        data[dp.overview_db] = data[dp.overview_db][['RegionCode','CommodityCode','Period','year','domain','price','quantity']]
-                self.concat_scenarios(data=data, sc_name=scenario_name, data_prev=data_prev, ID=ID)
-            except gzip.BadGzipFile:
-                pass
-            except pickle.UnpicklingError:
-                pass
-            except PermissionError:
-                pass
-            except ValueError:
-                pass
-
-            data_prev = data
-            ID += 1
-        data_prev[dp.overview_db] = self.downcasting(data_prev[dp.overview_db])
+    
+    def main(self):
+        data = self.pkl_import()
         try:
-            data = self.read_historic_data()
+            hist_data = self.read_historic_data()
         except FileNotFoundError:
-            data = pd.DataFrame()
+            hist_data = pd.DataFrame()
         country_data = self.read_country_data()
         commodity_data = self.read_commodity_data()
-        forest_data = data_prev[dp.forest_db]
-        data_prev[dp.forest_formip_db] = data_prev[dp.forest_db] 
-        forest_data = forest_data[['Scenario','RegionCode','Period','ForStock','ForArea','supply_from_forest']]
-        forest_data = forest_data.drop_duplicates(subset=['Scenario', 'RegionCode', 'Period'], keep='first')
-        data_prev[dp.overview_db] = pd.merge(data_prev[dp.overview_db], forest_data, how='left', on=['Scenario','RegionCode','Period'])
-        year_df= data_prev[dp.overview_db][["Period","year"]].drop_duplicates()
-        year_dict = dict(zip(year_df["Period"],year_df["year"]))
-        data_prev[dp.overview_db] = pd.concat([data_prev[dp.overview_db], data], axis=0)
-        data_prev[dp.overview_db] = pd.merge(data_prev[dp.overview_db], country_data, on="RegionCode", how="left")
-        data_prev[dp.overview_db] = pd.merge(data_prev[dp.overview_db], commodity_data, on="CommodityCode", how="left")
-        data_prev[dp.overview_db]["domain"] = data_prev[dp.overview_db]["domain"].replace({
-            'ManufactureCost': 'Manufacturing',
-            'TransportationExport': 'Export',
-            'TransportationImport': 'Import',
-            })
-        data_prev[dp.overview_db] = data_prev[dp.overview_db][['Model','Scenario','RegionCode','Continent','Country','ISO3',
-                                                               'CommodityCode','Commodity','Commodity_Group','Period','year',
-                                                               'domain','price','quantity',
-                                                               'ForStock','ForArea',
-                                                               ]]
-        country_dict = dict(zip(country_data["RegionCode"], country_data["ISO3"]))
-        continent_dict = dict(zip(country_data["RegionCode"], country_data["Continent"]))
-        forest_data["ISO3"] = forest_data["RegionCode"].map(country_dict)
-        forest_data["Continent"] = forest_data["RegionCode"].map(continent_dict)
-        forest_data["year"] = forest_data["Period"].map(year_dict)
-        print(forest_data)
-        data_prev[dp.forest_db] = forest_data
-        return data_prev
-
-    def read_forest_data_gfpm(self, country_data:pd.DataFrame):
-        for_data_gfpm = pd.read_csv(self.ADDINFOPATH / toolbox_paths.FORESTINFO, encoding = "ISO-8859-1")
-        
-        rearranged_for_data = pd.melt(for_data_gfpm, id_vars=['domain','Country'], var_name='Year',value_name='for')
-        rearranged_for_data = rearranged_for_data.dropna()
-        rearranged_for_data['Year'] = rearranged_for_data['Year'].astype(int)
-
-        foreststock = pd.DataFrame()        
-        for domain in rearranged_for_data.domain.unique():
-            rearranged_for_data_domain = rearranged_for_data[rearranged_for_data['domain'] == domain].reset_index(drop=True)
-            if domain == 'ForArea':
-                rearranged_for_data_domain['ForStock'] = foreststock
-            else: 
-                foreststock = rearranged_for_data_domain['for']
-        forest_data = rearranged_for_data_domain[['Country', 'Year', 'for', 'ForStock']]
-        forest_data.columns = ['Country', 'Year', 'ForArea', 'ForStock']
-        forest_data = pd.merge(forest_data, country_data, on= 'Country')
-
-        period_mapping = {2017: 0, 2020: 1, 2025: 2, 2030: 3, 2035: 4, 2040: 5, 2045: 6, 2050: 7, 2055: 8, 2060: 9, 2065: 10}
-        forest_data['Period'] = forest_data['Year'].map(period_mapping)
-
-        forest_gfpm = forest_data[['RegionCode', 'Period', 'ForStock', 'ForArea']]
-        forest_gfpm[dp.column_name_scenario]= 'world500'
-        forest_data['Model'] = 'GFPM'
-        return forest_gfpm
-
+        return data, country_data, commodity_data, hist_data
+    
 
 class import_formip_data:
     def __init__(self,
