@@ -1,0 +1,67 @@
+/* Registerkarten Stil */
+.navbar .nav-link {
+    color: #333;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    margin-right: 6px;
+    padding: 8px 18px;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Hover Effekt */
+.navbar .nav-link:hover {
+    background-color: #ffffff;
+}
+
+/* Aktiver Tab */
+.navbar .nav-link.active {
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-bottom: 3px solid white;
+    font-weight: 600;
+}
+
+/* Optional: Bereich unter Tabs */
+#page-content {
+    border-top: 1px solid #dee2e6;
+    padding: 20px;
+}
+
+.tabs-equal {
+    display: flex;
+    gap: 0;
+}
+
+.tabs-equal .nav-link {
+    flex: 1;                /* gleiche Breite */
+    text-align: center;
+    border-radius: 12px 12px 0 0;
+    border: 1px solid #dee2e6;
+    border-bottom: none;
+    background-color: #f8f9fa;
+    margin-left: -6px;       /* leichte Überlappung */
+    padding: 8px 0;
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+}
+
+.tabs-equal .nav-link:first-child {
+    margin-left: 0;
+}
+
+.tabs-equal .nav-link:hover {
+    background-color: #ffffff;
+}
+
+.tabs-equal .nav-link.active {
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-bottom: 3px solid white;
+    font-weight: 600;
+    z-index: 2;
+}
+

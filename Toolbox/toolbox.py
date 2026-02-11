@@ -122,42 +122,44 @@ class timba_dashboard:
         self.app.layout = dbc.Card([
             dcc.Location(id="url"),
             dbc.Navbar(
-                dbc.Container([
-                    dbc.Row([
-                        dbc.Col(
-                            dbc.Nav([], className="d-flex align-items-center"),
-                            width=2
-                        ),
-                        dbc.Col(
+                dbc.Container(
+                    dbc.Col(
+                        [
+                            # Logo oben
                             dbc.NavbarBrand(
                                 html.Img(
                                     src=dp.logo,
-                                    height="80px"
+                                    height="80px",
+                                    style={"mixBlendMode": "multiply"}
                                 ),
                                 className="mx-auto"
                             ),
-                            width=8,
-                            className="d-flex justify-content-center align-items-center"
-                        ),
-                        dbc.Col(
-                            dbc.Nav([
-                                dbc.Button("Overview", href="/", color="primary", className="me-2"),
-                                dbc.Button("Forest", href="/forest", color="success", className="me-2"),
-                                dbc.Button("Price", href="/price", color="info", className="me-2"),
-                                dbc.Button("Trade", href="/trade", color="warning", className="me-2"),
-                                dbc.Button("Validation", href="/validation", color="secondary", className="me-2")
-                            ], className="d-flex align-items-center ms-auto"),
-                            width=2
-                        ),
-                    ], className="w-100 align-items-center")
-                ]),
+
+                            # Tabs darunter
+                            dbc.Nav(
+                                [
+                                    dbc.NavLink("Overview", href="/", active="exact"),
+                                    dbc.NavLink("Forest", href="/forest", active="exact"),
+                                    dbc.NavLink("Price", href="/price", active="exact"),
+                                    dbc.NavLink("Trade", href="/trade", active="exact"),
+                                    dbc.NavLink("Validation", href="/validation", active="exact")
+                                ],
+                                navbar=True,
+                                className="tabs-equal justify-content-center mt-2"
+                            )
+                        ],
+                        width=12,
+                        className="d-flex flex-column align-items-center"
+                    )
+                ),
                 color="light",
-                dark=True,
+                dark=False,
                 className="mb-2 border-3 rounded-4 shadow-sm",
-                style={"height": "80px"}
+                style={"height": "140px"}  # passt für Logo + Tabs
             ),
             html.Div(id="page-content"),
         ])
+
 
     def _register_callbacks(self):
 
