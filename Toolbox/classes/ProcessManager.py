@@ -21,7 +21,6 @@ class DataProcessor:
         self.data[dp.forest_formip_db] = self.data[dp.forest_db] 
         forest_data = forest_data[['Scenario','RegionCode','Period','ForStock','ForArea','supply_from_forest']]
         forest_data = forest_data.drop_duplicates(subset=['Scenario', 'RegionCode', 'Period'], keep='first')
-        self.data[dp.overview_db] = pd.merge(self.data[dp.overview_db], forest_data, how='left', on=['Scenario','RegionCode','Period'])
         year_df= self.data[dp.overview_db][["Period","year"]].drop_duplicates()
         year_dict = dict(zip(year_df["Period"],year_df["year"]))
         self.data[dp.overview_db] = pd.concat([self.data[dp.overview_db], self.data_hist], axis=0)
@@ -35,7 +34,6 @@ class DataProcessor:
         self.data[dp.overview_db] = self.data[dp.overview_db][['Model','Scenario','RegionCode','Continent','Country','ISO3',
                                                                'CommodityCode','Commodity','Commodity_Group','Period','year',
                                                                'domain','price','quantity',
-                                                               'ForStock','ForArea',
                                                                ]]
         country_dict = dict(zip(self.country_data["RegionCode"], self.country_data["ISO3"]))
         continent_dict = dict(zip(self.country_data["RegionCode"], self.country_data["Continent"]))

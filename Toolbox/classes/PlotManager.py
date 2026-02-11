@@ -27,13 +27,14 @@ class Plots:
 
         title = f"Quantity by Year and Scenario for {title_suffix}"
         fig.update_layout(
+            showlegend=False,
             title=dict(text="<br>".join(textwrap.wrap(title, 90)),
                        font=dict(size=plot_settings["title_font_size"])),
             xaxis=dict(title="Year", tickfont=dict(size=plot_settings["tick_font_size"])),
             yaxis=dict(title="Quantity", rangemode="nonnegative",
                        tickfont=dict(size=plot_settings["tick_font_size"])),
-            legend=dict(orientation="h", y=-0.1, x=0.5, xanchor="center",
-                        font=dict(size=plot_settings["legend_font_size"])),
+            # legend=dict(orientation="h", y=-0.1, x=0.5, xanchor="center",
+            #             font=dict(size=plot_settings["legend_font_size"])),
             hovermode="x unified",
             template=self.template,
             margin=dict(l=35, r=35, t=60, b=90)
@@ -60,6 +61,96 @@ class Plots:
             showlegend=False,
             margin=dict(l=35, r=60, t=50, b=5),
             barmode="group"
+        )
+        return fig
+
+    def create_value_plot(self, df: pd.DataFrame) -> go.Figure:
+        df["Value"] = df.price * df.quantity
+        fig = go.Figure()
+        plot_df = (
+            df.groupby(["Scenario", "Period"], as_index=False)["Value"]
+              .sum())
+
+        try:
+            colors = PlotUtils().get_scenario_colors(
+                plot_df["Scenario"].unique())
+        except Exception:
+            colors = {}
+
+        for scenario in plot_df["Scenario"].unique():
+            scenario_df = plot_df[plot_df["Scenario"] == scenario]
+
+            fig.add_trace(
+                go.Bar(
+                    x=scenario_df["Period"],
+                    y=scenario_df["Value"],
+                    #mode="lines+markers", #only with scatter or line plot
+                    name=scenario,
+                    # line=dict(
+                    #     width=2,
+                    #     color=colors.get(scenario)
+                    # )
+                )
+            )
+
+        fig.update_layout(
+            title="Total Value over Time",
+            xaxis_title="Period",
+            yaxis_title="Value",
+            template="plotly_white",
+            barmode="group",
+            margin=dict(l=40, r=20, t=40, b=40),
+            hovermode="x unified",
+            showlegend=False
+        )
+
+        return fig
+
+    def create_price_plot(self, df: pd.DataFrame) -> go.Figure:
+        df["Value"] = df.price * df.quantity
+        fig = go.Figure()
+        agg_df = (
+            df.groupby(["Scenario", "Period"], as_index=False)
+              .agg({
+                  "Value": "sum",
+                  "quantity": "sum"
+              })
+        )
+        agg_df["Price"] = np.where(
+            agg_df["quantity"] > 0,
+            agg_df["Value"] / agg_df["quantity"],
+            np.nan
+        )
+
+        try:
+            colors = PlotUtils().get_scenario_colors(
+                agg_df["Scenario"].unique()
+            )
+        except Exception:
+            colors = {}
+
+        for scenario in agg_df["Scenario"].unique():
+            scenario_df = agg_df[agg_df["Scenario"] == scenario]
+
+            fig.add_trace(
+                go.Scatter(
+                    x=scenario_df["Period"],
+                    y=scenario_df["Price"],
+                    name=scenario,
+                    marker_color=colors.get(scenario),
+                    mode="lines+markers", #only with scatter or line plot
+                    line=dict(width=2,color=colors.get(scenario)),
+                    )
+            )
+
+        fig.update_layout(
+            title="Price by Period",
+            xaxis_title="Period",
+            yaxis_title="Price",
+            template="plotly_white",
+            margin=dict(l=40, r=20, t=40, b=40),
+            hovermode="x unified",
+            showlegend=False
         )
         return fig
 

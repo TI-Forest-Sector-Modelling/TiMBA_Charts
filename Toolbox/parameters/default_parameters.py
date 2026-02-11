@@ -1,3 +1,4 @@
+logo = "https://raw.githubusercontent.com/TI-Forest-Sector-Modelling/TiMBA_Additional_Information/main/images/toolbox_assets/timba_charts_logo.png"
 seperator_scenario_name = "Sc_"
 column_name_scenario = "Scenario"
 column_name_model = "Model"

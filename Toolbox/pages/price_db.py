@@ -1,223 +1,168 @@
 import dash
 import pandas as pd
-from dash import dcc, html
+import numpy as np
+from dash import dcc, html, Input, Output
 import dash_bootstrap_components as dbc
-from Toolbox.parameters.default_parameters import default_plot_settings, printing_plot_settings
+import plotly.graph_objects as go
+from Toolbox.classes.PlotManager import Plots, PlotUtils
 
 
 class PriceDB:
-    def __init__(self, app, data: pd.DataFrame = None, print_settings: bool = False, color_list: list = None):
+
+    def __init__(self, app, data: pd.DataFrame):
         self.app = app
         self.data = data
+        self.plots = Plots()
+        self.scenarios = sorted(self.data["Scenario"].dropna().unique())
+        self.colors = PlotUtils().get_scenario_colors(self.scenarios)
+
         self.app_layout = self.create_layout()
-        self.color_list = color_list
-        if print_settings:
-            self.plot_settings = printing_plot_settings
-        else:
-            self.plot_settings = default_plot_settings
+        self.register_callbacks()
 
+    # ------------------------------------------------------------------
+    # LAYOUT
+    # ------------------------------------------------------------------
     def create_layout(self):
-        dropdown_style = {
-            'height': '38px',
-            'marginRight': '10px',
-            'flex': '1 1 220px',
-            'minWidth': '180px'
-        }
 
-        app_layout = dbc.Container(
-            fluid=True,
-            className="p-2",
-            style={
-                'backgroundColor': 'white',
-                'height': 'calc(100vh - 80px)',  # Adapting to the hight of the navigation header
-                'display': 'flex',
-                'flexDirection': 'column',
-                'overflow': 'hidden'
-            },
-            children=[
+        legend_items = [
+            html.Div(
+                style={
+                    "display": "flex",
+                    "alignItems": "center",
+                    "margin": "0 14px"
+                },
+                children=[
+                    html.Div(
+                        style={
+                            "width": "14px",
+                            "height": "14px",
+                            "backgroundColor": self.colors[s],
+                            "marginRight": "6px"
+                        }
+                    ),
+                    html.Span(s)
+                ]
+            )
+            for s in self.scenarios
+        ]
 
-                # ==== FILTER BAR ====
-                dbc.Row([
-                    dbc.Col([
-                        dbc.Card(
-                            className="border-0 shadow-sm",
-                            style={'backgroundColor': '#f8f9fa'},
-                            children=[
-                                dbc.CardBody(
-                                    style={'padding': '10px'},
-                                    children=[
-                                        html.Div(
-                                            style={
-                                                'display': 'flex',
-                                                'flexWrap': 'wrap',
-                                                'gap': '10px',
-                                                'alignItems': 'center'
-                                            },
-                                            children=[
-                                                dcc.Dropdown(
-                                                    id='pdb_continent-dropdown',
-                                                    options=[{'label': i, 'value': i}
-                                                             for i in sorted(self.data['Continent'].dropna().unique())],
-                                                    multi=True,
-                                                    placeholder='Select Continent...',
-                                                    style=dropdown_style
-                                                ),
-                                                dcc.Dropdown(
-                                                    id='pdb_region-dropdown',
-                                                    options=[{'label': 'Europe', 'value': 'Europe'},
-                                                             {'label': 'Asia', 'value': 'Asia'}],
-                                                    multi=True,
-                                                    placeholder='Select Region...',
-                                                    style=dropdown_style
-                                                ),
-                                                dcc.Dropdown(
-                                                    id='pdb_country-dropdown',
-                                                    options=[{'label': i, 'value': i}
-                                                             for i in sorted(self.data['ISO3'].dropna().unique())],
-                                                    multi=True,
-                                                    placeholder='Select Country...',
-                                                    style=dropdown_style
-                                                ),
-                                                dcc.Dropdown(
-                                                    id='pdb_estimate-dropdown',
-                                                    options=[
-                                                        {'label': 'Forest Area', 'value': 'Forest Area'},
-                                                        {'label': 'Forest Stock', 'value': 'Forest Stock'},
-                                                        {'label': 'Harvest Intensity', 'value': 'Harvest Intensity'}
-                                                    ],
-                                                    multi=True,
-                                                    placeholder='Select Estimate...',
-                                                    style=dropdown_style
-                                                ),
-                                                dcc.Dropdown(
-                                                    id='pdb_scenario-dropdown',
-                                                    options=[{'label': 'All', 'value': 'All'}] +
-                                                            [{'label': i, 'value': i}
-                                                             for i in sorted(self.data['Scenario'].dropna().unique())],
-                                                    multi=True,
-                                                    placeholder='Select Scenario...',
-                                                    style=dropdown_style
-                                                ),
-                                                html.Button(
-                                                    "⬇️ CSV Export",
-                                                    id="pdb_btn_csv",
-                                                    className="ml-auto btn btn-outline-secondary",
-                                                    style={
-                                                        'height': '38px',
-                                                        'marginLeft': 'auto',
-                                                        'padding': '0 15px',
-                                                        'borderRadius': '4px',
-                                                    }
-                                                ),
-                                                dcc.Download(id="pdb_download-dataframe-csv")
-                                            ]
-                                        )
-                                    ]
-                                )
-                            ]
-                        )
-                    ])
-                ], className="mb-3"),
+        return dbc.Container(fluid=True, children=[
 
-                # ==== MAIN CONTENT ====
-                dbc.Row(
-                    [
-                        # LEFT COLUMN
+            # ==========================================================
+            # FILTER BAR
+            # ==========================================================
+            dbc.Card(
+                className="border-0 shadow-sm mb-2",
+                body=True,
+                children=[
+                    dbc.Row(className="g-3", children=[
+
                         dbc.Col(
-                            dbc.Card(
-                                className="shadow-sm h-100",
-                                style={
-                                    'backgroundColor': 'white',
-                                    'padding': '15px',
-                                    'display': 'flex',
-                                    'flexDirection': 'column',
-                                    'height': '100%'
-                                },
-                                children=[
-                                    html.H5("Price Placeholder Lineplot", className="card-title mb-3"),
-                                    dcc.Graph(id='pdb_trend-graph', figure={},
-                                              style={'flex': '1', 'minHeight': '300px'})
-                                ]
-                            ),
-                            md=6, xs=12, className="mb-1",
-                            style={'display': 'flex', 'flexDirection': 'column'}
-                        ),
-
-                        # RIGHT COLUMN
-                        dbc.Col(
-                            html.Div(
-                                children=[
-                                    dbc.Card(
-                                        className="shadow-sm",
-                                        style={
-                                            'backgroundColor': 'white',
-                                            'padding': '15px',
-                                            'height': 'calc(50% - 0.5vh)',
-                                            'marginBottom': '0.5vh',
-                                            'display': 'flex',
-                                            'flexDirection': 'column'
-                                        },
-                                        children=[
-                                            html.H5("Price Placeholder Barplot", className="card-title mb-3"),
-                                            dcc.Graph(
-                                                id='pdb_region-graph',
-                                                figure={},
-                                                style={'flex': '1', 'minHeight': '250px'}
-                                            )
-                                        ]
-                                    ),
-                                    dbc.Card(
-                                        className="shadow-sm",
-                                        style={
-                                            'backgroundColor': 'white',
-                                            'padding': '15px',
-                                            'height': 'calc(50% - 0.5vh)',
-                                            'display': 'flex',
-                                            'flexDirection': 'column'
-                                        },
-                                        children=[
-                                            html.H5("Price Placeholder Worldmap", className="card-title mb-3"),
-                                            dcc.Graph(
-                                                id='pdb_scatter-graph',
-                                                figure={},
-                                                style={'flex': '1', 'minHeight': '250px'}
-                                            )
-                                        ]
-                                    )
+                            dcc.Dropdown(
+                                id="fdb_continent-dropdown",
+                                options=[
+                                    {"label": c, "value": c}
+                                    for c in sorted(self.data["Continent"].dropna().unique())
                                 ],
-                                style={
-                                    'display': 'flex',
-                                    'flexDirection': 'column',
-                                    'justifyContent': 'space-between',
-                                    'height': '100%'
-                                }
+                                multi=True,
+                                placeholder="Continent"
                             ),
-                            md=6, xs=12,
-                            style={'display': 'flex', 'flexDirection': 'column', 'height': '100%'}
-                        )
-                    ],
-                    className="flex-fill overflow-auto align-items-stretch",
-                    style={'paddingBottom': '5px', 'marginBottom': '0', '--bs-gutter-x': '1vh'}
-                ),
-
-                # ==== NAVIGATION BUTTONS ====
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            dbc.Button("← Forest Dashboard", color="success", href="/forest",
-                                       className="mt-1 mb-1 w-100"),
-                            xs=6, sm=6, md=3
+                            width=4
                         ),
+
                         dbc.Col(
-                            dbc.Button("Trade Dashboard →", color="warning", href="/trade",
-                                       className="mt-1 mb-1 w-100"),
-                            xs=6, sm=6, md=3, className="ms-auto"
-                        )
-                    ],
-                    justify="between",
-                    className="mt-auto mb-1"
-                )
-            ]
+                            dcc.Dropdown(
+                                id="fdb_country-dropdown",
+                                options=[
+                                    {"label": c, "value": c}
+                                    for c in sorted(self.data["ISO3"].dropna().unique())
+                                ],
+                                multi=True,
+                                placeholder="Country (ISO3)"
+                            ),
+                            width=4
+                        ),
+
+                        dbc.Col(
+                            dcc.Dropdown(
+                                id="fdb_scenario-dropdown",
+                                options=[{"label": "All", "value": "All"}] + [
+                                    {"label": s, "value": s}
+                                    for s in self.scenarios
+                                ],
+                                multi=True,
+                                placeholder="Scenario"
+                            ),
+                            width=4
+                        ),
+                    ])
+                ]
+            ),
+
+            # ==========================================================
+            # 2x2 GRID
+            # ==========================================================
+            html.Div(
+                style={
+                    "display": "grid",
+                    "gridTemplateColumns": "1fr 1fr",
+                    "gridTemplateRows": "1fr 1fr",
+                    "gap": "10px"
+                },
+                children=[
+                    dcc.Graph(id="g_value"),   # links oben
+                    html.Div(),                # rechts oben (leer)
+                    dcc.Graph(id="g_price"),   # links unten  ✅ NEU
+                    html.Div(),                # rechts unten (leer)
+                ]
+            ),
+
+
+            # ==========================================================
+            # GLOBAL LEGEND
+            # ==========================================================
+            dbc.Card(
+                className="border-0 mt-2",
+                body=True,
+                children=[
+                    html.Div(
+                        legend_items,
+                        style={
+                            "display": "flex",
+                            "justifyContent": "center",
+                            "flexWrap": "wrap"
+                        }
+                    )
+                ]
+            )
+        ])
+
+    # ------------------------------------------------------------------
+    # CALLBACKS
+    # ------------------------------------------------------------------
+    def register_callbacks(self):
+
+        @self.app.callback(
+        Output("g_value", "figure"),
+        Output("g_price", "figure"),   # ✅ NEU
+        Input("fdb_scenario-dropdown", "value"),
+        Input("fdb_country-dropdown", "value"),
+        Input("fdb_continent-dropdown", "value"),
         )
 
-        return app_layout
+        def update_plots(scenarios, countries, continents):
+
+            df = self.data.copy()
+
+            df = PlotUtils.filter_data(
+                df=df,
+                region=countries,
+                continent=continents,
+                scenario=scenarios,
+            )
+
+            value_fig = self.plots.create_value_plot(df)
+            price_fig = self.plots.create_price_plot(df)
+
+            return value_fig, price_fig
+

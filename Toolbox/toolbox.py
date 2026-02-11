@@ -109,7 +109,7 @@ class timba_dashboard:
                                   )
         self.price_db = PriceDB(app=self.app,
                                 data=self.data[dp.overview_db],
-                                print_settings=self.print_settings,
+                                #print_settings=self.print_settings,
                                 #color_list=self.color_list,
                                 )
         self.trade_db = TradeDB(app=self.app,
@@ -131,7 +131,7 @@ class timba_dashboard:
                         dbc.Col(
                             dbc.NavbarBrand(
                                 html.Img(
-                                    src="https://raw.githubusercontent.com/TI-Forest-Sector-Modelling/TiMBA_Additional_Information/main/images/toolbox_assets/timba_dashboard_logo.png",
+                                    src=dp.logo,
                                     height="80px"
                                 ),
                                 className="mx-auto"
