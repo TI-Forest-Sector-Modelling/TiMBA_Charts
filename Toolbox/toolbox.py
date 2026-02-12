@@ -125,7 +125,6 @@ class timba_dashboard:
                 dbc.Container(
                     dbc.Col(
                         [
-                            # Logo oben
                             dbc.NavbarBrand(
                                 html.Img(
                                     src=dp.logo,
@@ -134,8 +133,6 @@ class timba_dashboard:
                                 ),
                                 className="mx-auto"
                             ),
-
-                            # Tabs darunter
                             dbc.Nav(
                                 [
                                     dbc.NavLink("Overview", href="/", active="exact"),
@@ -154,8 +151,8 @@ class timba_dashboard:
                 ),
                 color="light",
                 dark=False,
-                className="mb-2 border-3 rounded-4 shadow-sm",
-                style={"height": "140px"}  # passt für Logo + Tabs
+                className="mb-0 border-1 rounded-2 shadow-sm",
+                style={"height": "140px"} 
             ),
             html.Div(id="page-content"),
         ])

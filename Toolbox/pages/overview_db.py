@@ -372,27 +372,6 @@ class OverviewDB:
                     ],
                     style={"height": "calc(100% - 6.5vh)"},
                 ),
-
-                # ================= NAVIGATION =================
-                dbc.Row(
-                    [
-                        dbc.Col(),
-                        dbc.Col(
-                            dbc.Button(
-                                "Forest Dashboard →",
-                                color="success",
-                                href="/forest",
-                                className="mt-1 mb-1 w-100",
-                            ),
-                            xs=6,
-                            sm=6,
-                            md=3,
-                            className="ms-auto",
-                        ),
-                    ],
-                    justify="between",
-                    className="mt-auto mb-1",
-                ),
             ],
         )
 

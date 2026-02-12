@@ -228,17 +228,6 @@ class ValidationDB:
                 ],
                     className="flex-fill overflow-auto align-items-stretch",
                     style={'paddingBottom': '5px', 'marginBottom': '0', '--bs-gutter-x': '1vh'}),
-                # ==== NAVIGATION BUTTONS ====
-                dbc.Row([
-                    dbc.Col(
-                        dbc.Button("← Trade Dashboard", color="warning", href="/trade",
-                                   className="mt-1 mb-1 w-100"),
-                        xs=6, sm=6, md=3
-                    )
-                ],
-                    justify="between",
-                    className="mt-auto mb-1"
-                )
             ])
 
         return app_layout

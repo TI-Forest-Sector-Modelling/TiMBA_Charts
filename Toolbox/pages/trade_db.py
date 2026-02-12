@@ -199,24 +199,6 @@ class TradeDB:
                     className="flex-fill overflow-auto align-items-stretch",
                     style={'paddingBottom': '5px', 'marginBottom': '0', '--bs-gutter-x': '1vh'}
                 ),
-
-                # ==== NAVIGATION BUTTONS ====
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            dbc.Button("← Price Dashboard", color="info", href="/price",
-                                       className="mt-1 mb-1 w-100"),
-                            xs=6, sm=6, md=3
-                        ),
-                        dbc.Col(
-                            dbc.Button("Validation Dashboard →", color="secondary", href="/validation",
-                                       className="mt-1 mb-1 w-100"),
-                            xs=6, sm=6, md=3, className="ms-auto"
-                        )
-                    ],
-                    justify="between",
-                    className="mt-auto mb-1"
-                )
             ]
         )
 
