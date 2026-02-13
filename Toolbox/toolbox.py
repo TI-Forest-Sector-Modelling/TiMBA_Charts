@@ -98,7 +98,7 @@ class timba_dashboard:
     def _build_layout(self):
         self.overview_db = OverviewDB(app=self.app,
                                       data=self.data,
-                                      print_settings=self.print_settings,
+                                      #print_settings=self.print_settings,
                                       )
         self.forest_db = ForestDB(app=self.app,
                                   data=self.data[dp.forest_db],

@@ -10,9 +10,10 @@ class Plots:
     def __init__(self, template="plotly_white"):
         self.template = template
 
-    def create_quantity_plot(self, df, start_year, end_year, plot_settings, title_suffix):
+    def create_quantity_plot(self, df,# start_year, end_year, plot_settings, title_suffix
+                             ):
         grouped_df = df.groupby(["year", "Scenario"]).sum().reset_index()
-        grouped_df = grouped_df[(grouped_df["year"] >= start_year) & (grouped_df["year"] <= end_year)]
+        #grouped_df = grouped_df[(grouped_df["year"] >= start_year) & (grouped_df["year"] <= end_year)]
         colors = PlotUtils.get_scenario_colors(scenarios=grouped_df["Scenario"].unique())
 
         fig = go.Figure()
@@ -26,32 +27,32 @@ class Plots:
                     mode="lines", 
                     name=scenario,
                     line=dict(color=colors.get(scenario), 
-                              dash=dash, width=plot_settings["line_witdh"]
+                              #dash=dash, width=plot_settings["line_witdh"]
                     )
                 )
             )
 
-        title = f"Quantity by Year and Scenario for {title_suffix}"
+        title = f"Quantity by Year and Scenario for"# {title_suffix}"
         fig.update_layout(
             showlegend=False,
             title=dict(
                 text="<br>".join(textwrap.wrap(title, 90)),
-                font=dict(size=plot_settings["title_font_size"])
+                #font=dict(size=plot_settings["title_font_size"])
             ),
             xaxis=dict(
                 title="Year", 
-                tickfont=dict(size=plot_settings["tick_font_size"])
+                #tickfont=dict(size=plot_settings["tick_font_size"])
             ),
             yaxis=dict(
                 title="Quantity", 
                 rangemode="nonnegative",
-                tickfont=dict(size=plot_settings["tick_font_size"])
+                #tickfont=dict(size=plot_settings["tick_font_size"])
             ),
             # legend=dict(orientation="h", y=-0.1, x=0.5, xanchor="center",
             #             font=dict(size=plot_settings["legend_font_size"])),
             hovermode="x unified",
             template=self.template,
-            margin=dict(l=35, r=35, t=60, b=90)
+            margin=dict(l=40, r=20, t=40, b=40),
         )
         return fig
 
