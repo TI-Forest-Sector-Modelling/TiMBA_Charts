@@ -9,7 +9,7 @@ from Toolbox.classes.ProcessManager import DataProcessor
 from Toolbox.pages.overview_db import OverviewDB
 from Toolbox.pages.forest_db import ForestDB
 from Toolbox.pages.price_db import PriceDB
-from Toolbox.pages.trade_db import TradeDB
+from Toolbox.pages.bitrade_db import BiTradeDB
 from Toolbox.pages.validation_db import ValidationDB
 from Toolbox.classes.utils import PlotUtils
 import Toolbox.parameters.default_parameters as dp
@@ -85,7 +85,7 @@ class timba_dashboard:
                                 commodity_data=commodity_data,
                                 data_hist=hist_data)
         self.data = process.combined_data()
-        print("TiMBA data is fully loaded!")
+        print("TiMBA data is fully loaded!\n")
 
     def _import_formip(self):
         importer = import_formip_data(
@@ -96,26 +96,21 @@ class timba_dashboard:
         self.formip_data = importer.load_formip_data()
 
     def _build_layout(self):
-        #self.color_list = PlotUtils.generate_color_palette(palette_name=dp.color_palette, n_colors=self.num_files_to_read)
         self.overview_db = OverviewDB(app=self.app,
                                       data=self.data,
                                       print_settings=self.print_settings,
-                                      #color_list=self.color_list,
                                       )
         self.forest_db = ForestDB(app=self.app,
                                   data=self.data[dp.forest_db],
                                   #print_settings=self.print_settings,
-                                  #color_list=self.color_list,
                                   )
         self.price_db = PriceDB(app=self.app,
                                 data=self.data[dp.overview_db],
                                 #print_settings=self.print_settings,
-                                #color_list=self.color_list,
                                 )
-        self.trade_db = TradeDB(app=self.app,
+        self.bitrade_db = BiTradeDB(app=self.app,
                                 data=self.data[dp.overview_db],
-                                print_settings=self.print_settings,
-                                #color_list=self.color_list,
+                                #print_settings=self.print_settings,
                                 )
         self.validation_db = ValidationDB(app=self.app, data=self.formip_data)
 
@@ -138,7 +133,7 @@ class timba_dashboard:
                                     dbc.NavLink("Overview", href="/", active="exact"),
                                     dbc.NavLink("Forest", href="/forest", active="exact"),
                                     dbc.NavLink("Price", href="/price", active="exact"),
-                                    dbc.NavLink("Trade", href="/trade", active="exact"),
+                                    dbc.NavLink("Trade", href="/bitrade", active="exact"),
                                     dbc.NavLink("Validation", href="/validation", active="exact")
                                 ],
                                 navbar=True,
@@ -169,8 +164,8 @@ class timba_dashboard:
                 return self.forest_db.app_layout
             elif pathname == "/price":
                 return self.price_db.app_layout
-            elif pathname == "/trade":
-                return self.trade_db.app_layout
+            elif pathname == "/bitrade":
+                return self.bitrade_db.app_layout
             elif pathname == "/validation":
                 return self.validation_db.app_layout
             return self.overview_db.app_layout

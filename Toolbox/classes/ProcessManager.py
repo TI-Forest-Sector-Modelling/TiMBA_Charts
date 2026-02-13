@@ -31,9 +31,10 @@ class DataProcessor:
             'TransportationExport': 'Export',
             'TransportationImport': 'Import',
             })
+        self.data[dp.overview_db]["Value"] = self.data[dp.overview_db].price * self.data[dp.overview_db].quantity
         self.data[dp.overview_db] = self.data[dp.overview_db][['Model','Scenario','RegionCode','Continent','Country','ISO3',
                                                                'CommodityCode','Commodity','Commodity_Group','Period','year',
-                                                               'domain','price','quantity',
+                                                               'domain','price','quantity','Value'
                                                                ]]
         country_dict = dict(zip(self.country_data["RegionCode"], self.country_data["ISO3"]))
         continent_dict = dict(zip(self.country_data["RegionCode"], self.country_data["Continent"]))

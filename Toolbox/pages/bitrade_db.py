@@ -8,7 +8,7 @@ from Toolbox.classes.PlotManager import Plots, PlotUtils
 from datetime import datetime
 
 
-class PriceDB:
+class BiTradeDB:
 
     def __init__(self, app, data: pd.DataFrame):
         self.app = app
@@ -82,7 +82,7 @@ class PriceDB:
 
                                 html.Div(
                                     dcc.Dropdown(
-                                        id="fdb_continent-dropdown",
+                                        id="tdb_continent-dropdown",
                                         options=[{"label": c, "value": c}
                                                 for c in sorted(self.data["Continent"].dropna().unique())],
                                         multi=True,
@@ -93,7 +93,7 @@ class PriceDB:
 
                                 html.Div(
                                     dcc.Dropdown(
-                                        id="fdb_country-dropdown",
+                                        id="tdb_country-dropdown",
                                         options=[{"label": c, "value": c}
                                                 for c in sorted(self.data["ISO3"].dropna().unique())],
                                         multi=True,
@@ -104,7 +104,7 @@ class PriceDB:
 
                                 html.Div(
                                     dcc.Dropdown(
-                                        id="fdb_scenario-dropdown",
+                                        id="tdb_scenario-dropdown",
                                         options=[{"label": "All", "value": "All"}] + [
                                             {"label": s, "value": s}
                                             for s in self.scenarios
@@ -117,18 +117,7 @@ class PriceDB:
 
                                 html.Div(
                                     dcc.Dropdown(
-                                        id="fdb_domain-dropdown",
-                                        options=[{"label": c, "value": c}
-                                                for c in sorted(self.data['domain'].dropna().unique())],
-                                        multi=True,
-                                        placeholder="Select Domain..."
-                                    ),
-                                    style={"flex": "3"}
-                                ),
-
-                                html.Div(
-                                    dcc.Dropdown(
-                                        id="fdb_commodity-dropdown",
+                                        id="tdb_commodity-dropdown",
                                         options=[{"label": c, "value": c}
                                                 for c in sorted(self.data['Commodity'].dropna().unique())],
                                         multi=True,
@@ -139,7 +128,7 @@ class PriceDB:
 
                                 html.Div(
                                     dcc.Dropdown(
-                                        id="fdb_commodity-group-dropdown",
+                                        id="tdb_commodity-group-dropdown",
                                         options=[{"label": c, "value": c}
                                                 for c in sorted(self.data['Commodity_Group'].dropna().unique())],
                                         multi=True,
@@ -151,7 +140,7 @@ class PriceDB:
                                 html.Div(
                                     dbc.Button(
                                         "⬇ CSV",
-                                        id="fdb_download-btn",
+                                        id="tdb_download-btn",
                                         color="primary",
                                         style={"height": "38px"}
                                     ),
@@ -165,7 +154,7 @@ class PriceDB:
                 html.Div(
                     style={
                         "display": "grid",
-                        "gridTemplateColumns": "1fr 1fr",
+                        "gridTemplateColumns": "1fr 1fr 1fr",
                         "gridTemplateRows": "1fr 1fr",
                         "gap": "15px",
                         "padding": "15px",
@@ -179,10 +168,12 @@ class PriceDB:
                     },
                     children=[
 
-                        self._graph_card("g_value"),
-                        self._graph_card("g_value_growh"),
-                        self._graph_card("g_price"),
-                        self._graph_card("g_price_growth"),
+                        self._graph_card("t_import_q"),
+                        self._graph_card("t_export_q"),
+                        self._graph_card("t_net_export_q"),
+                        self._graph_card("t_import_v"),
+                        self._graph_card("t_export_v"),
+                        self._graph_card("t_net_export_v"),
 
                     ]
                 ),
@@ -212,7 +203,7 @@ class PriceDB:
                     ]
                 ),
 
-                dcc.Download(id="fdb_download")
+                dcc.Download(id="tdb_download")
             ]
         )
     
@@ -239,50 +230,50 @@ class PriceDB:
     # ------------------------------------------------------------------
     def register_callbacks(self):
         @self.app.callback(
-            Output("g_value", "figure"),
-            Output("g_value_growh", "figure"),
-            Output("g_price", "figure"),
-            Output("g_price_growth", "figure"),
-            Input("fdb_continent-dropdown", "value"),
-            Input("fdb_country-dropdown", "value"),
-            Input("fdb_domain-dropdown", "value"),
-            Input("fdb_commodity-dropdown", "value"),
-            Input("fdb_commodity-group-dropdown", "value"),
-            Input("fdb_scenario-dropdown", "value"),
+            Output("t_import_q", "figure"),
+            Output("t_export_q", "figure"),
+            Output("t_net_export_q", "figure"),
+            Output("t_import_v", "figure"),
+            Output("t_export_v", "figure"),
+            Output("t_net_export_v", "figure"),
+            Input("tdb_continent-dropdown", "value"),
+            Input("tdb_country-dropdown", "value"),
+            Input("tdb_commodity-dropdown", "value"),
+            Input("tdb_commodity-group-dropdown", "value"),
+            Input("tdb_scenario-dropdown", "value"),
         )
-        def update_plots(continent, region, domain, commodity, commodity_group, scenario):
+        def update_plots(continent, region, commodity, commodity_group, scenario):
             df = PlotUtils.filter_data(
                 df=self.data.copy(),
                 region=region,
                 continent=continent,
-                domain=domain,
                 commodity=commodity,
                 commodity_group=commodity_group,
                 scenario=scenario,
             )
+            q_import_fig = self.plots.create_trade_line_plot(df,"Import","quantity")
+            q_export_fig = self.plots.create_trade_line_plot(df,"Export","quantity")
+            q_net_export_fig = self.plots.create_trade_bar_plot(df,"Net Exports","quantity")
+            v_import_fig = self.plots.create_trade_line_plot(df,"Import","Value")
+            v_export_fig = self.plots.create_trade_line_plot(df,"Export","Value")
+            v_net_export_fig = self.plots.create_trade_bar_plot(df,"Net Exports","Value")
 
-            value_fig = self.plots.create_value_plot(df)
-            value_growth_fig = self.plots.create_value_growth_plot(df)
-            price_fig = self.plots.create_price_plot(df)
-            price_growth_fig = self.plots.create_price_growth_plot(df)
-
-            return value_fig, value_growth_fig, price_fig, price_growth_fig
+            return q_import_fig,q_export_fig,q_net_export_fig,v_import_fig,v_export_fig,v_net_export_fig
 
         # ---------------------------
         # Download CSV
         # ---------------------------
         @self.app.callback(
-            Output("fdb_download", "data"),
-            Input("fdb_download-btn", "n_clicks"),
-            State("fdb_continent-dropdown", "value"),
-            State("fdb_country-dropdown", "value"),
-            State("fdb_domain-dropdown", "value"),
-            State("fdb_commodity-dropdown", "value"),
-            State("fdb_commodity-group-dropdown", "value"),
-            State("fdb_scenario-dropdown", "value"),
+            Output("tdb_download", "data"),
+            Input("tdb_download-btn", "n_clicks"),
+            State("tdb_continent-dropdown", "value"),
+            State("tdb_country-dropdown", "value"),
+            State("tdb_commodity-dropdown", "value"),
+            State("tdb_commodity-group-dropdown", "value"),
+            State("tdb_scenario-dropdown", "value"),
             prevent_initial_call=True
         )
-        def download_filtered_csv(n_clicks, continent, region, domain, commodity, commodity_group, scenario):
+        def download_filtered_csv(n_clicks, continent, region, commodity, commodity_group, scenario):
             if n_clicks is None:
                 return dash.no_update
 
@@ -290,7 +281,6 @@ class PriceDB:
                 df=self.data.copy(),
                 region=region,
                 continent=continent,
-                domain=domain,
                 commodity=commodity,
                 commodity_group=commodity_group,
                 scenario=scenario

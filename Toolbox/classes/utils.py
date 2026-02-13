@@ -25,14 +25,17 @@ class PlotUtils:
         return [values.min() * lower_factor, values.max() * upper_factor]
     
     @staticmethod
-    def filter_data(df:pd.DataFrame = None,region=None, continent=None, domain=None, commodity=None, commodity_group=None, scenario=None):
+    def filter_data(df:pd.DataFrame = None,region=None, 
+                    continent=None, domain=None, commodity=None, 
+                    commodity_group=None, scenario=None,year=None):
         filters = {
             "ISO3": region,
             "Continent": continent,
             "domain": domain,
             "Commodity": commodity,
             "Commodity_Group": commodity_group,
-            "Scenario": scenario
+            "Scenario": scenario,
+            "year": year,
         }
 
         for col, values in filters.items():

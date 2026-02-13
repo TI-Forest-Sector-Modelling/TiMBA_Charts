@@ -22,7 +22,7 @@ class Plots:
             fig.add_trace(go.Scatter(
                 x=subset["year"], y=subset["quantity"]*1000,
                 mode="lines", name=scenario,
-                line=dict(color=colors[scenario], dash=dash, width=plot_settings["line_witdh"])
+                line=dict(color=colors.get(scenario), dash=dash, width=plot_settings["line_witdh"])
             ))
 
         title = f"Quantity by Year and Scenario for {title_suffix}"
@@ -38,29 +38,6 @@ class Plots:
             hovermode="x unified",
             template=self.template,
             margin=dict(l=35, r=35, t=60, b=90)
-        )
-        return fig
-
-    def create_price_plot(self, df):
-        grouped = df.groupby(["year", "Scenario"]).mean().reset_index()
-        colors = PlotUtils.get_scenario_colors(scenarios=grouped["Scenario"].unique())
-
-        fig = go.Figure()
-        for i, scenario in enumerate(grouped["Scenario"].unique()):
-            subset = grouped[grouped["Scenario"] == scenario]
-            fig.add_trace(go.Bar(
-                x=subset["price"], y=subset["year"],
-                orientation="h", name=scenario,
-                marker_color=colors[scenario]
-            ))
-        fig.update_layout(
-            title="Price by Period and Scenario",
-            xaxis_title="Price",
-            yaxis_title="Year",
-            template=self.template,
-            showlegend=False,
-            margin=dict(l=35, r=60, t=50, b=5),
-            barmode="group"
         )
         return fig
 
@@ -86,6 +63,7 @@ class Plots:
                     y=scenario_df["Value"],
                     #mode="lines+markers", #only with scatter or line plot
                     name=scenario,
+                    marker=dict(color=colors.get(scenario)),
                     # line=dict(
                     #     width=2,
                     #     color=colors.get(scenario)
@@ -105,9 +83,60 @@ class Plots:
         )
 
         return fig
+    
+    def create_value_growth_plot(self, df: pd.DataFrame) -> go.Figure:
+        fig = go.Figure()
+        agg_df = (
+            df.groupby(["Scenario", "Period", "year"], as_index=False)
+            .agg({
+                "Value": "sum",
+                "quantity": "sum"
+            })
+        )
+
+        agg_df["Prev_Value"] = agg_df.groupby("Scenario")["Value"].shift(1)
+        agg_df["Prev_Year"] = agg_df.groupby("Scenario")["year"].shift(1)
+
+        agg_df["Year_Diff"] = agg_df["year"] - agg_df["Prev_Year"]
+
+        agg_df["Annual_Growth"] = (
+            (agg_df["Value"] / agg_df["Prev_Value"]) ** (1 / agg_df["Year_Diff"]) - 1
+        ) * 100
+
+        try:
+            colors = PlotUtils().get_scenario_colors(
+                agg_df["Scenario"].unique()
+            )
+        except Exception:
+            colors = {}
+
+        for scenario in agg_df["Scenario"].unique():
+            scenario_df = agg_df[agg_df["Scenario"] == scenario]
+
+            fig.add_trace(
+                go.Scatter(
+                    x=scenario_df["Period"],
+                    y=scenario_df["Annual_Growth"],
+                    name=scenario,
+                    marker_color=colors.get(scenario),
+                    mode="lines+markers", #only with scatter or line plot
+                    line=dict(width=2,color=colors.get(scenario)),
+                    )
+            )
+
+        fig.update_layout(
+            title="Value growth per year in %",
+            xaxis_title="Period",
+            yaxis_title="Growth (%)",
+            template="plotly_white",
+            margin=dict(l=40, r=20, t=40, b=40),
+            hovermode="x unified",
+            showlegend=False
+        )
+
+        return fig
 
     def create_price_plot(self, df: pd.DataFrame) -> go.Figure:
-        df["Value"] = df.price * df.quantity
         fig = go.Figure()
         agg_df = (
             df.groupby(["Scenario", "Period"], as_index=False)
@@ -153,30 +182,150 @@ class Plots:
             showlegend=False
         )
         return fig
-
-    def create_forstock_plot(self, df):
-        stock = df.drop(columns=[
-            "domain","price","quantity","CommodityCode","Commodity","Commodity_Group"
-        ]).drop_duplicates().groupby(["year", "Scenario"]).agg({"ForStock":"sum"}).reset_index()
-        stock = stock[stock["Scenario"] != "Historic Data"]
-        colors = PlotUtils.get_scenario_colors(scenarios=stock["Scenario"].unique())
+    
+    def create_price_growth_plot(self, df: pd.DataFrame) -> go.Figure:
+        df = df.copy()
 
         fig = go.Figure()
-        for i, scenario in enumerate(stock["Scenario"].unique()):
-            subset = stock[stock["Scenario"] == scenario]
-            fig.add_trace(go.Bar(
-                x=subset["year"], y=subset["ForStock"],
-                name=scenario, marker_color=colors[scenario]
-            ))
-        fig.update_layout(
-            title="Forest Stock by Year and Scenario",
-            xaxis_title="Year",
-            yaxis_title="ForStock",
-            template=self.template,
-            showlegend=False,
-            margin=dict(l=50, r=50, t=40, b=5),
-            barmode="group"
+        agg_df = (
+            df.groupby(["Scenario", "Period", "year"], as_index=False)
+            .agg({
+                "Value": "sum",
+                "quantity": "sum"
+            })
         )
+
+        agg_df["Price"] = np.where(
+            agg_df["quantity"] > 0,
+            agg_df["Value"] / agg_df["quantity"],
+            np.nan
+        )
+
+        agg_df["Prev_Price"] = agg_df.groupby("Scenario")["Price"].shift(1)
+        agg_df["Prev_Year"] = agg_df.groupby("Scenario")["year"].shift(1)
+
+        agg_df["Year_Diff"] = agg_df["year"] - agg_df["Prev_Year"]
+
+        agg_df["Annual_Growth"] = (
+            (agg_df["Price"] / agg_df["Prev_Price"]) ** (1 / agg_df["Year_Diff"]) - 1
+        ) * 100
+
+        try:
+            colors = PlotUtils().get_scenario_colors(
+                agg_df["Scenario"].unique()
+            )
+        except Exception:
+            colors = {}
+
+        for scenario in agg_df["Scenario"].unique():
+            scenario_df = agg_df[agg_df["Scenario"] == scenario]
+
+            fig.add_trace(
+                go.Bar(
+                    x=scenario_df["Period"],
+                    y=scenario_df["Annual_Growth"],
+                    name=scenario,
+                    marker=dict(
+                        color=colors.get(scenario)
+                    )
+                )
+            )
+
+        fig.update_layout(
+            title="Price growth per year in %",
+            yaxis_title="Growth (%)",
+            xaxis_title="Period",
+            barmode="group",
+            template="plotly_white",
+            margin=dict(l=40, r=20, t=40, b=40),
+            hovermode="x unified",
+            showlegend=False
+        )
+
+        return fig
+
+    def create_trade_line_plot(self, df: pd.DataFrame,
+                               trade_domain:str,
+                               unit:str) -> go.Figure:
+        df = df[df["domain"]==trade_domain]
+        fig = go.Figure()
+        plot_df = (
+            df.groupby(["Scenario", "year"], as_index=False)[unit]
+              .sum())
+
+        try:
+            colors = PlotUtils().get_scenario_colors(
+                plot_df["Scenario"].unique())
+        except Exception:
+            colors = {}
+
+        for scenario in plot_df["Scenario"].unique():
+            scenario_df = plot_df[plot_df["Scenario"] == scenario]
+            fig.add_trace(
+                go.Scatter(
+                    x=scenario_df["year"],
+                    y=scenario_df[unit],
+                    name=scenario,
+                    marker_color=colors.get(scenario),
+                    mode="lines+markers", #only with scatter or line plot
+                    line=dict(width=2,color=colors.get(scenario)),
+                )
+            )
+
+        fig.update_layout(
+            title=f"{trade_domain} {unit} per period",
+            xaxis_title="year",
+            yaxis_title=unit,
+            template="plotly_white",
+            margin=dict(l=40, r=20, t=40, b=40),
+            hovermode="x unified",
+            showlegend=False
+        )       
+
+        return fig
+    
+    def create_trade_bar_plot(self, df: pd.DataFrame, 
+                                       trade_domain:str, 
+                                       unit:str) -> go.Figure:
+        df = df[df["domain"]==trade_domain]
+        fig = go.Figure()
+        plot_df = (
+            df.groupby(["Scenario", "Period"], as_index=False)[unit]
+              .sum())
+
+        try:
+            colors = PlotUtils().get_scenario_colors(
+                plot_df["Scenario"].unique())
+        except Exception:
+            colors = {}
+
+        for scenario in plot_df["Scenario"].unique():
+            scenario_df = plot_df[plot_df["Scenario"] == scenario]
+            if scenario == "Historic Data":
+                pass
+            else:
+                fig.add_trace(
+                    go.Bar(
+                        x=scenario_df["Period"],
+                        y=scenario_df[unit],
+                        name=scenario,
+                        marker=dict(
+                            color=colors.get(scenario)
+                        )
+                    )
+                )
+
+        fig.update_layout(
+            title=f"{trade_domain} {unit} per period",
+            xaxis_title="Period",
+            yaxis_title=unit,
+            barmode="group",
+            template="plotly_white",
+            margin=dict(l=40, r=20, t=40, b=40),
+            hovermode="x unified",
+            showlegend=False
+        )
+
         return fig
 
     def create_world_map_plot(self, filtered_data, title_suffix):
