@@ -67,7 +67,7 @@ class PriceDB:
                         "backgroundColor": "#f8f9fa",
                         "border": "1px solid #dee2e6",
                         "borderRadius": "1px",
-                        "flexShrink": "0"   # ⭐ Nie schrumpfen
+                        "flexShrink": "0"
                     },
                     body=True,
                     children=[
@@ -82,7 +82,7 @@ class PriceDB:
 
                                 html.Div(
                                     dcc.Dropdown(
-                                        id="fdb_continent-dropdown",
+                                        id="pdb_continent-dropdown",
                                         options=[{"label": c, "value": c}
                                                 for c in sorted(self.data["Continent"].dropna().unique())],
                                         multi=True,
@@ -93,7 +93,7 @@ class PriceDB:
 
                                 html.Div(
                                     dcc.Dropdown(
-                                        id="fdb_country-dropdown",
+                                        id="pdb_country-dropdown",
                                         options=[{"label": c, "value": c}
                                                 for c in sorted(self.data["ISO3"].dropna().unique())],
                                         multi=True,
@@ -104,7 +104,7 @@ class PriceDB:
 
                                 html.Div(
                                     dcc.Dropdown(
-                                        id="fdb_scenario-dropdown",
+                                        id="pdb_scenario-dropdown",
                                         options=[{"label": "All", "value": "All"}] + [
                                             {"label": s, "value": s}
                                             for s in self.scenarios
@@ -117,7 +117,7 @@ class PriceDB:
 
                                 html.Div(
                                     dcc.Dropdown(
-                                        id="fdb_domain-dropdown",
+                                        id="pdb_domain-dropdown",
                                         options=[{"label": c, "value": c}
                                                 for c in sorted(self.data['domain'].dropna().unique())],
                                         multi=True,
@@ -128,7 +128,7 @@ class PriceDB:
 
                                 html.Div(
                                     dcc.Dropdown(
-                                        id="fdb_commodity-dropdown",
+                                        id="pdb_commodity-dropdown",
                                         options=[{"label": c, "value": c}
                                                 for c in sorted(self.data['Commodity'].dropna().unique())],
                                         multi=True,
@@ -139,7 +139,7 @@ class PriceDB:
 
                                 html.Div(
                                     dcc.Dropdown(
-                                        id="fdb_commodity-group-dropdown",
+                                        id="pdb_commodity-group-dropdown",
                                         options=[{"label": c, "value": c}
                                                 for c in sorted(self.data['Commodity_Group'].dropna().unique())],
                                         multi=True,
@@ -151,7 +151,7 @@ class PriceDB:
                                 html.Div(
                                     dbc.Button(
                                         "⬇ CSV",
-                                        id="fdb_download-btn",
+                                        id="pdb_download-btn",
                                         color="primary",
                                         style={"height": "38px"}
                                     ),
@@ -212,7 +212,7 @@ class PriceDB:
                     ]
                 ),
 
-                dcc.Download(id="fdb_download")
+                dcc.Download(id="pdb_download")
             ]
         )
     
@@ -243,12 +243,12 @@ class PriceDB:
             Output("g_value_growh", "figure"),
             Output("g_price", "figure"),
             Output("g_price_growth", "figure"),
-            Input("fdb_continent-dropdown", "value"),
-            Input("fdb_country-dropdown", "value"),
-            Input("fdb_domain-dropdown", "value"),
-            Input("fdb_commodity-dropdown", "value"),
-            Input("fdb_commodity-group-dropdown", "value"),
-            Input("fdb_scenario-dropdown", "value"),
+            Input("pdb_continent-dropdown", "value"),
+            Input("pdb_country-dropdown", "value"),
+            Input("pdb_domain-dropdown", "value"),
+            Input("pdb_commodity-dropdown", "value"),
+            Input("pdb_commodity-group-dropdown", "value"),
+            Input("pdb_scenario-dropdown", "value"),
         )
         def update_plots(continent, region, domain, commodity, commodity_group, scenario):
             df = PlotUtils.filter_data(
@@ -272,14 +272,14 @@ class PriceDB:
         # Download CSV
         # ---------------------------
         @self.app.callback(
-            Output("fdb_download", "data"),
-            Input("fdb_download-btn", "n_clicks"),
-            State("fdb_continent-dropdown", "value"),
-            State("fdb_country-dropdown", "value"),
-            State("fdb_domain-dropdown", "value"),
-            State("fdb_commodity-dropdown", "value"),
-            State("fdb_commodity-group-dropdown", "value"),
-            State("fdb_scenario-dropdown", "value"),
+            Output("pdb_download", "data"),
+            Input("pdb_download-btn", "n_clicks"),
+            State("pdb_continent-dropdown", "value"),
+            State("pdb_country-dropdown", "value"),
+            State("pdb_domain-dropdown", "value"),
+            State("pdb_commodity-dropdown", "value"),
+            State("pdb_commodity-group-dropdown", "value"),
+            State("pdb_scenario-dropdown", "value"),
             prevent_initial_call=True
         )
         def download_filtered_csv(n_clicks, continent, region, domain, commodity, commodity_group, scenario):

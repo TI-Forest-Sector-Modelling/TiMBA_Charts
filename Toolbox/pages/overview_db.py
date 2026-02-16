@@ -24,13 +24,14 @@ class OverviewDB:
         self.data = data[dp.overview_db]
         self.forest_df = data[dp.forest_db]
         self.plots = Plots()
+        self.plot_utils = PlotUtils()
         self.scenarios = sorted(self.data["Scenario"].dropna().unique())
         self.colors = PlotUtils().get_scenario_colors(self.scenarios)
         self.app_layout = self.create_layout()
         self.register_callbacks()
 
     # ------------------------------------------------------------------
-    # LAYOUT
+    # Layout
     # ------------------------------------------------------------------
     def create_layout(self):
 
@@ -68,7 +69,7 @@ class OverviewDB:
             children=[
 
                 # ==========================================================
-                # FILTER BAR
+                # Card for filter bar
                 # ==========================================================
                 dbc.Card(
                     className="border-1 shadow-sm",
@@ -170,7 +171,9 @@ class OverviewDB:
                         )
                     ]
                 ),
-
+                # ==========================================================
+                # Card behind all plots
+                # ==========================================================
                 html.Div(
                     style={
                         "display": "grid",
@@ -188,27 +191,28 @@ class OverviewDB:
                         "height": "100%"
                     },
                     children=[
-
-                        self._graph_card("odb_price_plot"),
+                        #-----------
+                        # Cards for the specific plots
+                        #-----------
+                        self.plot_utils._graph_card("odb_q_net_export_fig"),
                         html.Div(
-                            self._graph_card("odb_main_plot"),
+                            self.plot_utils._graph_card("odb_main_plot"),
                             style={
                                 "gridColumn": "2",
                                 "gridRow": "1 / span 2",
                                 "height": "100%", 
                                 "minHeight": "0",  
                             }
-                        ),#self._graph_card("odb_main_plot"),
-                        html.Div(),
-                        self._graph_card("odb_q_net_export_fig"),
-                        html.Div(),
-                        html.Div(),
+                        ),
+                        self.plot_utils._graph_card("odb_forstock_plot"),
+                        self.plot_utils._graph_card("odb_price_plot"),
+                        self.plot_utils._graph_card("odb_world_map"),
 
                     ]
                 ),
 
                 # ==========================================================
-                # LEGEND
+                # Card for the legend
                 # ==========================================================
                 dbc.Card(
                     className="border-1 shadow-sm",
@@ -217,7 +221,7 @@ class OverviewDB:
                         "backgroundColor": "#f8f9fa",
                         "border": "1px solid #dee2e6",
                         "borderRadius": "1px",
-                        "flexShrink": "0"   # ⭐ Immer sichtbar
+                        "flexShrink": "0"
                     },
                     body=True,
                     children=[
@@ -232,36 +236,21 @@ class OverviewDB:
                     ]
                 ),
 
-                dcc.Download(id="tdb_download")
+                dcc.Download(id="odb_download")
             ]
         )
     
-    def _graph_card(self, graph_id):
-        return html.Div(
-            dcc.Graph(
-                id=graph_id,
-                style={"height": "100%"},
-                config={"responsive": True}
-            ),
-            style={
-                "display": "flex",
-                "flexDirection": "column",
-                "backgroundColor": "white",
-                "border": "1px solid #e3e6ea",
-                "borderRadius": "6px",
-                "padding": "10px",
-                "minHeight": "0"
-            }
-        )
     
     # ------------------------------------------------------------------
-    # CALLBACKS
+    # Callbacks
     # ------------------------------------------------------------------
     def register_callbacks(self):
         @self.app.callback(
             Output("odb_main_plot", "figure"),
             Output("odb_price_plot", "figure"),
             Output("odb_q_net_export_fig", "figure"),
+            Output("odb_forstock_plot", "figure"),
+            Output("odb_world_map", "figure"),
             Input("odb_continent-dropdown", "value"),
             Input("odb_country-dropdown", "value"),
             Input("odb_domain-dropdown", "value"),
@@ -270,24 +259,53 @@ class OverviewDB:
             Input("odb_scenario-dropdown", "value"),
         )
         def update_plots(continent, region, domain, commodity, commodity_group, scenario):
+            
+            #-----------
+            # subset for net export
+            #-----------
             df = PlotUtils.filter_data(
                 df=self.data.copy(),
                 region=region,
                 continent=continent,
-                domain=domain,
                 commodity=commodity,
                 commodity_group=commodity_group,
                 scenario=scenario,
             )
+            q_net_export_fig = self.plots.create_trade_bar_plot(df,"Net Exports","quantity")
+
+            #-----------
+            # add additional filter for main and price plot
+            #-----------
+            df = PlotUtils.filter_data(
+                df=df,
+                domain=domain,
+            )
             main_plot = self.plots.create_quantity_plot(df)
             price_plot = self.plots.create_price_growth_plot(df=df)
-            # q_export_fig = self.plots.create_trade_line_plot(df,"Export","quantity")
-            q_net_export_fig = self.plots.create_trade_bar_plot(df,"Net Exports","quantity")
-            # v_import_fig = self.plots.create_trade_line_plot(df,"Import","Value")
-            # v_export_fig = self.plots.create_trade_line_plot(df,"Export","Value")
-            # v_net_export_fig = self.plots.create_trade_bar_plot(df,"Net Exports","Value")
 
-            return main_plot,price_plot,q_net_export_fig
+            #-----------
+            # add a filter world map
+            #-----------
+            df = df[df["Scenario"]=="Historic Data"]
+            max_year=df["year"].max()
+            df = PlotUtils.filter_data(
+                df=df,
+                year=[max_year],
+            )
+            world_map = self.plots.create_world_map_plot(df,max_year=max_year)
+
+            #-----------
+            # subset forest data
+            #-----------
+            forest_df = PlotUtils.filter_data(
+                df=self.forest_df.copy(),
+                region=region,
+                continent=continent,
+                scenario=scenario,
+            )
+            forstock_plot = self.plots.plot_forstock(forest_df)
+
+            return main_plot, price_plot, q_net_export_fig, forstock_plot, world_map
 
         # ---------------------------
         # Download CSV
@@ -297,6 +315,7 @@ class OverviewDB:
             Input("odb_download-btn", "n_clicks"),
             State("odb_continent-dropdown", "value"),
             State("odb_country-dropdown", "value"),
+            State("odb_domain-dropdown", "value"),
             State("odb_commodity-dropdown", "value"),
             State("odb_commodity-group-dropdown", "value"),
             State("odb_scenario-dropdown", "value"),
@@ -319,119 +338,3 @@ class OverviewDB:
             filename = f"filtered_data_{timestamp}.csv"
 
             return dcc.send_data_frame(df.to_csv, filename, index=False)
-
-    # def create_callbacks(self):
-    #     @self.app.callback(
-    #         [
-    #             Output("odb_quantity-plot", "figure"),
-    #             Output("odb_price-plot", "figure"),
-    #             Output("odb_forstock-plot", "figure"),
-    #         ],
-    #         [
-    #             Input("odb_region-dropdown", "value"),
-    #             Input("odb_continent-dropdown", "value"),
-    #             Input("odb_domain-dropdown", "value"),
-    #             Input("odb_commodity-dropdown", "value"),
-    #             Input("odb_commodity-group-dropdown", "value"),
-    #             Input("odb_scenario-filter", "value"),
-    #         ],
-    #     )
-    #     def update_plots(region, continent, domain, commodity, commodity_group, scenario):
-    #         df = PlotUtils.filter_data(
-    #             df=self.data.copy(),
-    #             region=region,
-    #             continent=continent,
-    #             domain=domain,
-    #             commodity=commodity,
-    #             commodity_group=commodity_group,
-    #             scenario=scenario,
-    #         )
-    #         df=self.remove_extreme_outliers(df, "price")
-
-    #         forest_df = PlotUtils.filter_data(
-    #             df=self.forest_data.copy(),
-    #             region=region,
-    #             continent=continent,
-    #             domain=domain,
-    #             commodity=commodity,
-    #             commodity_group=commodity_group,
-    #             scenario=scenario,
-    #         )
-
-    #         if not isinstance(df, pd.DataFrame):
-    #             raise TypeError(
-    #                 f"filter_data muss DataFrame liefern, "
-    #                 f"bekommen: {type(df)}"
-    #             )
-            
-    #         title_suffix = self.generate_title(
-    #             region,
-    #             continent,
-    #             domain,
-    #             commodity,
-    #             commodity_group,
-    #         )
-
-    #         fig_quantity = self.plots.create_quantity_plot(
-    #             df=df,
-    #             start_year=self.start,
-    #             end_year=self.end,
-    #             plot_settings=self.plot_settings,
-    #             title_suffix=title_suffix,
-    #         )
-
-    #         fig_price = self.plots.create_price_plot(df=df)
-    #         fig_forstock = self.plots.plot_forstock(df=forest_df)
-
-    #         return fig_quantity, fig_price, fig_forstock
-
-
-    #     @self.app.callback(
-    #         Output("odb_world-map", "figure"),
-    #         [
-    #             Input("odb_scenario-filter", "value"),
-    #             Input("odb_year-filter", "value"),
-    #             Input("odb_region-dropdown", "value"),
-    #             Input("odb_continent-dropdown", "value"),
-    #             Input("odb_domain-dropdown", "value"),
-    #             Input("odb_commodity-dropdown", "value"),
-    #             Input("odb_commodity-group-dropdown", "value"),
-    #         ],
-    #     )
-    #     def update_world_map(scenario, year, region, continent, domain, commodity, commodity_group):
-    #         df = PlotUtils.filter_data(
-    #             df=self.data.copy(),
-    #             region=region,
-    #             continent=continent,
-    #             domain=domain,
-    #             commodity=commodity,
-    #             commodity_group=commodity_group,
-    #             scenario=scenario,
-    #         )
-
-    #         if year:
-    #             df = df[df["year"] == year]
-
-    #         title_suffix = self.generate_title(
-    #             region, continent, domain, commodity, commodity_group
-    #         )
-
-    #         return self.plots.create_world_map_plot(df, title_suffix)
-
-        # ======================================================
-        # HELPERS
-        # ======================================================
-        def generate_title(self, region, continent, domain, commodity, commodity_group):
-            parts = []
-            for item in [region, continent, domain, commodity, commodity_group]:
-                if item:
-                    parts.append(str(item))
-            return ", ".join(parts).replace("[", "").replace("]", "").replace("'", "") or "all data"
-
-        def remove_extreme_outliers(self, df, col, threshold=50):
-            Q1 = df[col].quantile(0.25)
-            Q3 = df[col].quantile(0.75)
-            IQR = Q3 - Q1
-            limit = threshold * IQR
-            df.loc[df[col] >= limit, col] = np.nan
-            return df

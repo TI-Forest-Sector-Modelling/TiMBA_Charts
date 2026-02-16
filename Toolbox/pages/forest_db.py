@@ -82,7 +82,7 @@ class ForestDB:
 
                                 html.Div(
                                     dcc.Dropdown(
-                                        id="f_continent-dropdown",
+                                        id="fdb_continent-dropdown",
                                         options=[{"label": c, "value": c}
                                                 for c in sorted(self.data["Continent"].dropna().unique())],
                                         multi=True,
@@ -93,7 +93,7 @@ class ForestDB:
 
                                 html.Div(
                                     dcc.Dropdown(
-                                        id="f_country-dropdown",
+                                        id="fdb_country-dropdown",
                                         options=[{"label": c, "value": c}
                                                 for c in sorted(self.data["ISO3"].dropna().unique())],
                                         multi=True,
@@ -104,7 +104,7 @@ class ForestDB:
 
                                 html.Div(
                                     dcc.Dropdown(
-                                        id="f_scenario-dropdown",
+                                        id="fdb_scenario-dropdown",
                                         options=[{"label": "All", "value": "All"}] + [
                                             {"label": s, "value": s}
                                             for s in self.scenarios
@@ -118,7 +118,7 @@ class ForestDB:
                                 html.Div(
                                     dbc.Button(
                                         "⬇ CSV",
-                                        id="f_download-btn",
+                                        id="fdb_download-btn",
                                         color="primary",
                                         style={"height": "38px"}
                                     ),
@@ -166,7 +166,7 @@ class ForestDB:
                         "backgroundColor": "#f8f9fa",
                         "border": "1px solid #dee2e6",
                         "borderRadius": "1px",
-                        "flexShrink": "0"   # ⭐ Immer sichtbar
+                        "flexShrink": "0"
                     },
                     body=True,
                     children=[
@@ -181,7 +181,7 @@ class ForestDB:
                     ]
                 ),
 
-                dcc.Download(id="tdb_download")
+                dcc.Download(id="fdb_download")
             ]
         )
     
@@ -214,9 +214,9 @@ class ForestDB:
             Output("plot_stock_growth", "figure"),
             Output("plot_stock_area_ratio", "figure"),
             Output("plot_supply_from_forest", "figure"),
-            Input("f_continent-dropdown", "value"),
-            Input("f_country-dropdown", "value"),
-            Input("f_scenario-dropdown", "value"),
+            Input("fdb_continent-dropdown", "value"),
+            Input("fdb_country-dropdown", "value"),
+            Input("fdb_scenario-dropdown", "value"),
         )
         def update_plots(continent, region, scenario):
             df = PlotUtils.filter_data(
@@ -239,11 +239,11 @@ class ForestDB:
         # Download CSV
         # ---------------------------
         @self.app.callback(
-            Output("f_download", "data"),
-            Input("f_download-btn", "n_clicks"),
-            State("f_continent-dropdown", "value"),
-            State("f_country-dropdown", "value"),
-            State("f_scenario-dropdown", "value"),
+            Output("fdb_download", "data"),
+            Input("fdb_download-btn", "n_clicks"),
+            State("fdb_continent-dropdown", "value"),
+            State("fdb_country-dropdown", "value"),
+            State("fdb_scenario-dropdown", "value"),
             prevent_initial_call=True
         )
         def download_filtered_csv(n_clicks, continent, region, scenario):

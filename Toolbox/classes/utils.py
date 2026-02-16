@@ -1,6 +1,7 @@
 from plotly.colors import qualitative
 import pandas as pd
 import numpy as np
+from dash import dcc, html
 
 class PlotUtils:
     
@@ -44,3 +45,43 @@ class PlotUtils:
             if col in df.columns:
                 df = df[df[col].isin(values)]
         return df
+    
+    @staticmethod
+    def generate_title(region, continent, domain, commodity, commodity_group):
+        parts = []
+        for item in [region, continent, domain, commodity, commodity_group]:
+            if item:
+                parts.append(str(item))
+        return ", ".join(parts).replace("[", "").replace("]", "").replace("'", "") or "all data"
+
+    @staticmethod
+    def remove_extreme_outliers(df, col, threshold=50):
+        Q1 = df[col].quantile(0.25)
+        Q3 = df[col].quantile(0.75)
+        IQR = Q3 - Q1
+        limit = threshold * IQR
+        df.loc[df[col] >= limit, col] = np.nan
+        return df
+
+    @staticmethod
+    def _graph_card(graph_id):
+        '''
+        Function that builds the cards for any plot
+        '''
+        return html.Div(
+            dcc.Graph(
+                id=graph_id,
+                style={"height": "100%"},
+                config={"responsive": True}
+            ),
+            style={
+                "display": "flex",
+                "flexDirection": "column",
+                "backgroundColor": "white",
+                "border": "1px solid #e3e6ea",
+                "borderRadius": "6px",
+                "padding": "10px",
+                "height": "100%", 
+                "minHeight": "0",
+            }
+        )

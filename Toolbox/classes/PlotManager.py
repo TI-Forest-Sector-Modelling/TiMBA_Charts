@@ -52,6 +52,7 @@ class Plots:
             #             font=dict(size=plot_settings["legend_font_size"])),
             hovermode="x unified",
             template=self.template,
+            autosize = True,
             margin=dict(l=40, r=20, t=40, b=40),
         )
         return fig
@@ -343,14 +344,17 @@ class Plots:
 
         return fig
 
-    def create_world_map_plot(self, filtered_data, title_suffix):
+    def create_world_map_plot(self, 
+                              filtered_data,
+                              max_year,
+                              ):
         country_data = filtered_data.groupby("ISO3")["quantity"].sum().reset_index()
         country_data = country_data[country_data["quantity"] >= 0.001]
         fig = px.choropleth(country_data, locations="ISO3", color="quantity",
                             hover_name="ISO3", color_continuous_scale="Greens")
         
         fig.update_layout(
-            title=f"Worldmap for {title_suffix}",
+            title=f"Worldmap for historic data in the year {max_year}",
             geo=dict(
                 showcoastlines=True, 
                 coastlinecolor="LightGray",
@@ -358,7 +362,8 @@ class Plots:
                 lonaxis_range=[-360,360], 
                 lataxis_range=[-55,55]
             ),
-            margin=dict(l=1,r=1,t=1,b=1),
+            autosize=True,
+            margin=dict(l=5, r=5, t=31, b=1),
             coloraxis_showscale=False
         )
         return fig
