@@ -1,6 +1,7 @@
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 import pandas as pd
+import Toolbox.parameters.layout_styles as ls
 
 class Layout:
 
@@ -18,29 +19,14 @@ class Layout:
                 style={"height": "100%"},
                 config={"responsive": True}
             ),
-            style={
-                "display": "flex",
-                "flexDirection": "column",
-                "backgroundColor": "white",
-                "border": "1px solid #e3e6ea",
-                "borderRadius": "6px",
-                "padding": "10px",
-                "height": "100%", 
-                "minHeight": "0",
-            }
+            style=ls.plot_card
         )
     
     @staticmethod
     def _legend_card(colors, scenarios):
         return dbc.Card(
             className="border-1 shadow-sm",
-            style={
-                "padding": "5px",
-                "backgroundColor": "#f8f9fa",
-                "border": "1px solid #dee2e6",
-                "borderRadius": "1px",
-                "flexShrink": "0"
-            },
+            style=ls.legend_card_background,
             body=True,
             children=[
                 html.Div(

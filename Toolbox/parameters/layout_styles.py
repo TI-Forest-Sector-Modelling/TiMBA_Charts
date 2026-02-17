@@ -1,3 +1,5 @@
+from Toolbox.parameters.default_parameters import background_color
+
 outer_card_under_header={
     "height": "calc(100vh - 175px)",
     "display": "flex",
@@ -7,7 +9,7 @@ outer_card_under_header={
 }
 
 filter_card_background={
-    "backgroundColor": "#f8f9fa",
+    "backgroundColor": background_color,
     "border": "1px solid #dee2e6",
     "borderRadius": "1px",
     "flexShrink": "0"
@@ -26,7 +28,7 @@ plot_card_background={
     "gridTemplateRows": "1fr 1fr",
     "gap": "15px",
     "padding": "15px",
-    "backgroundColor": "#f8f9fa",
+    "backgroundColor": background_color,
     "border": "1px solid #dee2e6",
     "borderRadius": "6px",
     "marginTop": "10px",
@@ -34,6 +36,17 @@ plot_card_background={
     "flexGrow": "1",
     "minHeight": "0",
     "height": "100%"
+}
+
+plot_card={
+    "display": "flex",
+    "flexDirection": "column",
+    "backgroundColor": "white",
+    "border": "1px solid #e3e6ea",
+    "borderRadius": "6px",
+    "padding": "10px",
+    "height": "100%", 
+    "minHeight": "0",
 }
 
 #---
@@ -44,4 +57,12 @@ main_plot_card={
     "gridRow": "1 / span 2",
     "height": "100%", 
     "minHeight": "0",  
+}
+
+legend_card_background={
+    "padding": "5px",
+    "backgroundColor": background_color,
+    "border": "1px solid #dee2e6",
+    "borderRadius": "1px",
+    "flexShrink": "0"
 }

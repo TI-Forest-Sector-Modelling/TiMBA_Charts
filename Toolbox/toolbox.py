@@ -144,7 +144,7 @@ class timba_dashboard:
                         className="d-flex flex-column align-items-center"
                     )
                 ),
-                color="light",
+                color=dp.background_color,
                 dark=False,
                 className="mb-0 border-1 rounded-2 shadow-sm",
                 style={"height": "140px"} 

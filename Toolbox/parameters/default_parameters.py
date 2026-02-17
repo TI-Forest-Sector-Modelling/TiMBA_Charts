@@ -22,3 +22,5 @@ printing_plot_settings = {"line_witdh": 7,
 
 color_palette = "Paired"  # Use seaborn color palettes (https://seaborn.pydata.org/tutorial/color_palettes.html)
 
+background_color = "#eeeeee" #"#f8f9fa"
+

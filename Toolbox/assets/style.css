@@ -1,7 +1,7 @@
 /* Registerkarten Stil */
 .navbar .nav-link {
     color: #333;
-    background-color: #f8f9fa;
+    background-color: #eeeeee;
     border: 1px solid #dee2e6;
     border-bottom: none;
     border-radius: 12px 12px 0 0;
@@ -41,7 +41,7 @@
     border-radius: 12px 12px 0 0;
     border: 1px solid #dee2e6;
     border-bottom: none;
-    background-color: #f8f9fa;
+    background-color: #eeeeee;
     margin-left: -6px;       /* leichte Überlappung */
     padding: 8px 0;
     font-weight: 500;
