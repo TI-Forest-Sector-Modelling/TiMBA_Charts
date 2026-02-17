@@ -23,6 +23,21 @@ class Layout:
         )
     
     @staticmethod
+    def download_button():
+        return[
+            html.Div(
+                dbc.Button(
+                    "⬇ CSV",
+                    id="odb_download-btn",
+                    color="primary",
+                    style={"height": "38px"}
+                ),
+                style={"flex": "1"}
+            )
+        ]
+
+    
+    @staticmethod
     def _legend_card(colors, scenarios):
         return dbc.Card(
             className="border-1 shadow-sm",
