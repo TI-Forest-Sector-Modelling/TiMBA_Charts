@@ -60,7 +60,7 @@ class OverviewDB:
                 # Card behind all plots
                 # ==========================================================
                 html.Div(
-                    style=ls.plot_card_background,
+                    style=ls.plot_card_3x2_background_main,
                     children=[
                         #-----------
                         # Cards for the specific plots

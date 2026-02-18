@@ -8,7 +8,7 @@ import Toolbox.parameters.default_parameters as dp
 from Toolbox.classes.utils import PlotUtils
 from Toolbox.classes.PlotManager import Plots
 from Toolbox.classes.LayoutManager import Layout, FilterLayout
-from Toolbox.parameters.filter_config import OVERVIEW_DB_FILTERS,FOREST_DB_FILTERS
+from Toolbox.parameters.filter_config import WORLD_MAP_DB_FILTERS,FOREST_DB_FILTERS
 import Toolbox.parameters.layout_styles as ls
 from datetime import datetime
 
@@ -35,7 +35,7 @@ class WorldMapDB:
     # ------------------------------------------------------------------
     def create_layout(self):
 
-        filters = self.filter_builder.build_all(OVERVIEW_DB_FILTERS)
+        filters = self.filter_builder.build_all(WORLD_MAP_DB_FILTERS)
         button = self.layout.download_button()
 
         return dbc.Container(
@@ -60,17 +60,19 @@ class WorldMapDB:
                 # Card behind all plots
                 # ==========================================================
                 html.Div(
-                    style=ls.plot_card_background,
+                    style=ls.plot_card_3x2_background_simple,
                     children=[
                         #-----------
                         # Cards for the specific plots
                         #-----------
                         self.layout._graph_card("wmdb_world_map_supply"),
                         self.layout._graph_card("wmdb_world_map_manuf"),
+                        self.layout._graph_card("wmdb_world_map_stock"),
+                        #html.Div(),
                         self.layout._graph_card("wmdb_world_map_netexp"),
                         self.layout._graph_card("wmdb_world_map_demand"),
-                        self.layout._graph_card("wmdb_world_map_stock"),
                         self.layout._graph_card("wmdb_world_map_area"),
+                        #html.Div(),
 
                     ]
                 ),
@@ -80,7 +82,7 @@ class WorldMapDB:
                 # ==========================================================
                 self.layout._legend_card(colors= self.colors,
                                          scenarios = self.scenarios),
-                dcc.Download(id="odb_download")
+                dcc.Download(id="wmdb_download")
             ]
         )
     
@@ -89,7 +91,8 @@ class WorldMapDB:
     # Callbacks
     # ------------------------------------------------------------------
     def register_callbacks(self):
-        filter_inputs = PlotUtils().build_filter_inputs("odb", OVERVIEW_DB_FILTERS)
+        filter_inputs = PlotUtils().build_filter_inputs(self.db_prefix, WORLD_MAP_DB_FILTERS)
+        print(filter_inputs)
 
         @self.app.callback(
             Output("wmdb_world_map_supply", "figure"),
@@ -101,34 +104,72 @@ class WorldMapDB:
             *filter_inputs,
         )
         def update_plots(*filter_values):
-            filter_values_dict = dict(zip(OVERVIEW_DB_FILTERS.keys(), filter_values))
+            filter_values_dict = dict(zip(WORLD_MAP_DB_FILTERS.keys(), filter_values))
             #-----------
             # add a filter world map
             #-----------
-            df_map = PlotUtils.filter_data(
-                df=self.data.copy(),
-                **PlotUtils().get_plot_filters(
-                    filter_values_dict, 
-                    "map"
+            try:
+                df_map, ref, alt = PlotUtils.filter_data(
+                    df=self.data.copy(),
+                    **PlotUtils().get_plot_filters(
+                        filter_values_dict, 
+                        "worldmap"
+                    )
                 )
+            except ValueError:
+                df_map = PlotUtils.filter_data(
+                    df=self.data.copy(),
+                    **PlotUtils().get_plot_filters(
+                        filter_values_dict, 
+                        "worldmap"
+                    )
+                )
+
+            pivot_df = (
+                df_map.groupby(["ISO3", "Scenario", "domain","year","Commodity","Commodity_Group"])["quantity"]
+                .sum()
+                .unstack("Scenario", fill_value=0)
+                .reset_index()
             )
-            df_map = df_map[df_map["Scenario"] == "Historic Data"]
-            max_year = df_map["year"].max()
-            df_map = PlotUtils.filter_data(
-                df=df_map,
+            ref = ref[0]
+            alt=alt[0]
+            pivot_df["diff"] = pivot_df[ref] / pivot_df[alt] -1
+            pivot_df = pivot_df[["ISO3","domain","year","Commodity","Commodity_Group",ref,alt,"diff"]]
+            pivot_df = pivot_df.dropna(subset=['diff']).reset_index(drop=True)
+
+            max_year = pivot_df["year"].max()
+            pivot_df = PlotUtils.filter_data(
+                df=pivot_df,
                 year=[max_year]
             )
-            df_map_s = df_map[df_map["domain"] == "Supply"]
-            world_map_supply = self.plots.create_world_map_plot(df_map_s,max_year=max_year)
 
-            df_map_m = df_map[df_map["domain"] == "Manufacturing"]
-            world_map_manuf = self.plots.create_world_map_plot(df_map_m,max_year=max_year)
+            df_map_s = pivot_df[pivot_df["domain"] == "Supply"]
+            world_map_supply = self.plots.create_diff_world_map_plot(
+                df_map_s,
+                max_year=max_year,
+                column="diff"
+            )
 
-            df_map_n = df_map[df_map["domain"] == "Net Export"]
-            world_map_netexp = self.plots.create_world_map_plot(df_map_n,max_year=max_year)
+            df_map_m = pivot_df[pivot_df["domain"] == "Manufacturing"]
+            world_map_manuf = self.plots.create_diff_world_map_plot(
+                df_map_m,
+                max_year=max_year,
+                column="diff"
+            )
 
-            df_map_d = df_map[df_map["domain"] == "Demand"]
-            world_map_demand = self.plots.create_world_map_plot(df_map_d,max_year=max_year)
+            df_map_n = pivot_df[pivot_df["domain"] == "Net Exports"]
+            world_map_netexp = self.plots.create_diff_world_map_plot(
+                df_map_n,
+                max_year=max_year,
+                column="diff"
+            )
+
+            df_map_d = pivot_df[pivot_df["domain"] == "Demand"]
+            world_map_demand = self.plots.create_diff_world_map_plot(
+                df_map_d,
+                max_year=max_year,
+                column="diff"
+            )
 
             #-----------
             # subset forest data
@@ -142,8 +183,16 @@ class WorldMapDB:
                     "forest"
                 )
             )
-            world_map_stock = self.plots.create_world_map_plot(df_forest,max_year=max_year)
-            world_map_area = self.plots.create_world_map_plot(df_forest,max_year=max_year)
+            world_map_stock = self.plots.create_diff_world_map_plot(
+                df_forest,
+                max_year=max_year,
+                column="ForStock"
+            )
+            world_map_area = self.plots.create_diff_world_map_plot(
+                df_forest,
+                max_year=max_year,
+                column="ForArea"
+            )
 
             return (
                 world_map_supply, 

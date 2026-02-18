@@ -25,6 +25,33 @@ OVERVIEW_DB_FILTERS = {
     }
 }
 
+WORLD_MAP_DB_FILTERS = {
+    "continent": {
+        "column": "Continent",
+        "placeholder": "Select Continent..."
+    },
+    "commodity": {
+        "column": "Commodity",
+        "placeholder": "Select Commodity..."
+    },
+    "commodity_group": {
+        "column": "Commodity_Group",
+        "placeholder": "Select Commodity Group..."
+    },
+    "refscenario": {
+        "column": "Scenario",
+        "placeholder": "Select Reference Scenario..."
+    },
+    "altscenario": {
+        "column": "Scenario",
+        "placeholder": "Select Alternative Scenario..."
+    },
+    "year": {
+        "column": "year",
+        "placeholder": "Select Year..."
+    },
+}
+
 FOREST_DB_FILTERS = {
     "continent": {
         "column": "Continent",
@@ -69,5 +96,13 @@ PLOT_FILTERS = {
         "region",
         "continent",
         "scenario",
-    ]
+    ],
+    "worldmap": [
+        "continent",
+        "commodity",
+        "commodity_group",
+        "refscenario",
+        "altscenario",
+        "year",
+    ],
 }

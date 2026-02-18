@@ -368,6 +368,50 @@ class Plots:
         )
         return fig
 
+    def create_diff_world_map_plot(self, 
+                                  filtered_data,
+                                  max_year,
+                                  column:str,
+                                  ):
+        quantity_list = ["Supply","Demand","Manufacturing","Net Export"]
+        if column in quantity_list:
+            column_filter = "quantity"
+        else:
+            column_filter = column
+
+        # country_data = filtered_data.groupby("ISO3")[column_filter].sum().reset_index()
+        #country_data = country_data[country_data[column_filter] >= 0.001]
+
+        color_scale = [
+            (0.0, "red"),
+            (0.5, "white"),
+            (1.0, "green")
+        ]
+
+        fig = px.choropleth(
+            filtered_data,
+            locations="ISO3",
+            color=column_filter,
+            hover_name="ISO3",
+            color_continuous_scale=color_scale,
+            range_color=(-100, 100)
+        )
+        fig.update_layout(
+            title=f"{column} in the year {max_year}",
+            geo=dict(
+                showcoastlines=True, 
+                coastlinecolor="LightGray",
+                projection_type="natural earth", 
+                lonaxis_range=[-360,360], 
+                lataxis_range=[-55,55],
+            ),
+            autosize=True,
+            margin=dict(l=5, r=5, t=31, b=1),
+            coloraxis_showscale=False,
+            showlegend=False,
+        )
+        return fig
+
     def plot_forarea(self, df):
         periods = sorted(df["Period"].unique())
         

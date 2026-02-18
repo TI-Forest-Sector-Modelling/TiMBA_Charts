@@ -11,6 +11,7 @@ from Toolbox.pages.forest_db import ForestDB
 from Toolbox.pages.price_db import PriceDB
 from Toolbox.pages.bitrade_db import BiTradeDB
 from Toolbox.pages.validation_db import ValidationDB
+from Toolbox.pages.worldmap_db import WorldMapDB
 from Toolbox.classes.utils import PlotUtils
 import Toolbox.parameters.default_parameters as dp
 from Toolbox.parameters.paths import PACKAGEDIR,SCINPUTPATH,AIINPUTPATH,SCFOLDERPATH
@@ -113,6 +114,8 @@ class timba_dashboard:
                                 #print_settings=self.print_settings,
                                 )
         self.validation_db = ValidationDB(app=self.app, data=self.formip_data)
+        self.worldmap_db = WorldMapDB(app=self.app,
+                                      data=self.data)
 
         self.app.layout = dbc.Card([
             dcc.Location(id="url"),
@@ -134,7 +137,8 @@ class timba_dashboard:
                                     dbc.NavLink("Forest", href="/forest", active="exact"),
                                     dbc.NavLink("Price", href="/price", active="exact"),
                                     dbc.NavLink("Trade", href="/bitrade", active="exact"),
-                                    dbc.NavLink("Validation", href="/validation", active="exact")
+                                    dbc.NavLink("Validation", href="/validation", active="exact"),
+                                    dbc.NavLink("Worldmap", href="/worldmap", active="exact")
                                 ],
                                 navbar=True,
                                 className="tabs-equal justify-content-center mt-2"
@@ -168,6 +172,8 @@ class timba_dashboard:
                 return self.bitrade_db.app_layout
             elif pathname == "/validation":
                 return self.validation_db.app_layout
+            elif pathname == "/worldmap":
+                return self.worldmap_db.app_layout
             return self.overview_db.app_layout
 
 
