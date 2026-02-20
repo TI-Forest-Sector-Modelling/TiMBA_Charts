@@ -105,7 +105,9 @@ class OverviewDB:
             *filter_inputs,
         )
         def update_plots(*filter_values):
+            print(f"{self.db_prefix}_dashboard")
             filter_values_dict = dict(zip(OVERVIEW_DB_FILTERS.keys(), filter_values))
+            print(filter_values_dict)
             #-----------
             # subset for net export
             #-----------

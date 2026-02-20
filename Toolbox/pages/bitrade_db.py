@@ -10,12 +10,12 @@ from datetime import datetime
 
 class BiTradeDB:
 
-    def __init__(self, app, data: pd.DataFrame):
+    def __init__(self, app, data: pd.DataFrame,colors:dict):
         self.app = app
         self.data = data
         self.plots = Plots()
         self.scenarios = sorted(self.data["Scenario"].dropna().unique())
-        self.colors = PlotUtils().get_scenario_colors(self.scenarios)
+        self.colors = colors
 
         self.app_layout = self.create_layout()
         self.register_callbacks()
@@ -251,12 +251,42 @@ class BiTradeDB:
                 commodity_group=commodity_group,
                 scenario=scenario,
             )
-            q_import_fig = self.plots.create_trade_line_plot(df,"Import","quantity")
-            q_export_fig = self.plots.create_trade_line_plot(df,"Export","quantity")
-            q_net_export_fig = self.plots.create_trade_bar_plot(df,"Net Exports","quantity")
-            v_import_fig = self.plots.create_trade_line_plot(df,"Import","Value")
-            v_export_fig = self.plots.create_trade_line_plot(df,"Export","Value")
-            v_net_export_fig = self.plots.create_trade_bar_plot(df,"Net Exports","Value")
+            q_import_fig = self.plots.create_trade_line_plot(
+                df,
+                "Import",
+                "quantity",
+                colors=self.colors
+            )
+            q_export_fig = self.plots.create_trade_line_plot(
+                df,
+                "Export",
+                "quantity",
+                colors=self.colors
+            )
+            q_net_export_fig = self.plots.create_trade_bar_plot(
+                df,
+                "Net Exports",
+                "quantity",
+                colors=self.colors
+            )
+            v_import_fig = self.plots.create_trade_line_plot(
+                df,
+                "Import",
+                "Value",
+                colors=self.colors
+            )
+            v_export_fig = self.plots.create_trade_line_plot(
+                df,
+                "Export",
+                "Value",
+                colors=self.colors
+            )
+            v_net_export_fig = self.plots.create_trade_bar_plot(
+                df,
+                "Net Exports",
+                "Value",
+                colors=self.colors
+            )
 
             return q_import_fig,q_export_fig,q_net_export_fig,v_import_fig,v_export_fig,v_net_export_fig
 

@@ -102,7 +102,6 @@ class timba_dashboard:
     def _build_layout(self):
         self.scenarios = sorted(self.data[dp.overview_db]["Scenario"].dropna().unique())
         colors = PlotUtils().get_scenario_colors(self.scenarios)
-        print(colors)
 
         self.overview_db = OverviewDB(app=self.app,
                                       data=self.data,
@@ -121,6 +120,7 @@ class timba_dashboard:
                                 )
         self.bitrade_db = BiTradeDB(app=self.app,
                                 data=self.data[dp.overview_db],
+                                colors=colors
                                 #print_settings=self.print_settings,
                                 )
         self.validation_db = ValidationDB(app=self.app, data=self.formip_data)

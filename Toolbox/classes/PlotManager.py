@@ -205,18 +205,13 @@ class Plots:
 
     def create_trade_line_plot(self, df: pd.DataFrame,
                                trade_domain:str,
-                               unit:str) -> go.Figure:
+                               unit:str,
+                               colors:dict) -> go.Figure:
         df = df[df["domain"]==trade_domain]
         fig = go.Figure()
         plot_df = (
             df.groupby(["Scenario", "year"], as_index=False)[unit]
               .sum())
-
-        try:
-            colors = PlotUtils().get_scenario_colors(
-                plot_df["Scenario"].unique())
-        except Exception:
-            colors = {}
 
         for scenario in plot_df["Scenario"].unique():
             scenario_df = plot_df[plot_df["Scenario"] == scenario]

@@ -147,10 +147,10 @@ class ForestDB:
                     children=[
 
                         self._graph_card("plot_forarea"),
-                        self._graph_card("plot_forstock"),
                         self._graph_card("plot_area_growth"),
-                        self._graph_card("plot_stock_growth"),
                         self._graph_card("plot_stock_area_ratio"),
+                        self._graph_card("plot_forstock"),
+                        self._graph_card("plot_stock_growth"),
                         self._graph_card("plot_supply_from_forest"),
 
                     ]
@@ -209,10 +209,10 @@ class ForestDB:
     def register_callbacks(self):
         @self.app.callback(
             Output("plot_forarea", "figure"),
-            Output("plot_forstock", "figure"),
             Output("plot_area_growth", "figure"),
-            Output("plot_stock_growth", "figure"),
             Output("plot_stock_area_ratio", "figure"),
+            Output("plot_forstock", "figure"),
+            Output("plot_stock_growth", "figure"),
             Output("plot_supply_from_forest", "figure"),
             Input("fdb_continent-dropdown", "value"),
             Input("fdb_country-dropdown", "value"),
@@ -232,8 +232,8 @@ class ForestDB:
             plot_stock_area_ratio=self.plots.plot_stock_area_ratio(df,colors=self.colors)
             plot_supply_from_forest=self.plots.plot_supply_from_forest(df,colors=self.colors)
 
-            return (plot_forarea,plot_forstock,plot_area_growth,
-                    plot_stock_growth,plot_stock_area_ratio,plot_supply_from_forest)
+            return (plot_forarea, plot_area_growth, plot_stock_area_ratio,
+                    plot_forstock, plot_stock_growth, plot_supply_from_forest)
 
         # ---------------------------
         # Download CSV
