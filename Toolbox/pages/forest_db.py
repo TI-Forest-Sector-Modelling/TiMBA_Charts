@@ -10,12 +10,12 @@ from datetime import datetime
 
 class ForestDB:
 
-    def __init__(self, app, data: pd.DataFrame):
+    def __init__(self, app, data: pd.DataFrame,colors:dict):
         self.app = app
         self.data = data
         self.plots = Plots()
         self.scenarios = sorted(self.data["Scenario"].dropna().unique())
-        self.colors = PlotUtils().get_scenario_colors(self.scenarios)
+        self.colors = colors
 
         self.app_layout = self.create_layout()
         self.register_callbacks()
@@ -225,12 +225,12 @@ class ForestDB:
                 continent=continent,
                 scenario=scenario,
             )
-            plot_forarea=self.plots.plot_forarea(df)
-            plot_forstock=self.plots.plot_forstock(df)
-            plot_area_growth=self.plots.plot_area_growth(df)
-            plot_stock_growth=self.plots.plot_stock_growth(df)
-            plot_stock_area_ratio=self.plots.plot_stock_area_ratio(df)
-            plot_supply_from_forest=self.plots.plot_supply_from_forest(df)
+            plot_forarea=self.plots.plot_forarea(df,colors=self.colors)
+            plot_forstock=self.plots.plot_forstock(df,colors=self.colors)
+            plot_area_growth=self.plots.plot_area_growth(df,colors=self.colors)
+            plot_stock_growth=self.plots.plot_stock_growth(df,colors=self.colors)
+            plot_stock_area_ratio=self.plots.plot_stock_area_ratio(df,colors=self.colors)
+            plot_supply_from_forest=self.plots.plot_supply_from_forest(df,colors=self.colors)
 
             return (plot_forarea,plot_forstock,plot_area_growth,
                     plot_stock_growth,plot_stock_area_ratio,plot_supply_from_forest)

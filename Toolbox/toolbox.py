@@ -111,6 +111,7 @@ class timba_dashboard:
                                       )
         self.forest_db = ForestDB(app=self.app,
                                   data=self.data[dp.forest_db],
+                                  colors=colors
                                   #print_settings=self.print_settings,
                                   )
         self.price_db = PriceDB(app=self.app,

@@ -393,14 +393,8 @@ class Plots:
 
         return fig
 
-    def plot_forarea(self, df):
+    def plot_forarea(self, df,colors:dict):
         periods = sorted(df["Period"].unique())
-        
-        try:
-            colors = PlotUtils().get_scenario_colors(
-                df["Scenario"].unique())
-        except Exception:
-            colors = {}
 
         fig = go.Figure()
         all_values = []
@@ -454,15 +448,9 @@ class Plots:
         )
         return fig
 
-    def plot_area_growth(self, df):
+    def plot_area_growth(self, df,colors:dict):
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
-        
-        try:
-            colors = PlotUtils().get_scenario_colors(
-                df["Scenario"].unique())
-        except Exception:
-            colors = {}
 
         for s in df["Scenario"].unique():
             area = df[df["Scenario"]==s].groupby("Period")["ForArea"].sum().reindex(periods)
@@ -485,15 +473,9 @@ class Plots:
 
         return fig
 
-    def plot_stock_growth(self, df):
+    def plot_stock_growth(self, df,colors:dict):
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
-        
-        try:
-            colors = PlotUtils().get_scenario_colors(
-                df["Scenario"].unique())
-        except Exception:
-            colors = {}
 
         for s in df["Scenario"].unique():
             stock = df[df["Scenario"]==s].groupby("Period")["ForStock"].sum().reindex(periods)
@@ -516,15 +498,9 @@ class Plots:
 
         return fig
 
-    def plot_stock_area_ratio(self, df):
+    def plot_stock_area_ratio(self, df,colors:dict):
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
-
-        try:
-            colors = PlotUtils().get_scenario_colors(
-                df["Scenario"].unique())
-        except Exception:
-            colors = {}
 
         for s in df["Scenario"].unique():
             g = df[df["Scenario"]==s].groupby("Period")[["ForStock","ForArea"]].sum().replace(0,np.nan)
@@ -548,15 +524,9 @@ class Plots:
 
         return fig
 
-    def plot_supply_from_forest(self, df):
+    def plot_supply_from_forest(self, df,colors:dict):
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
-        
-        try:
-            colors = PlotUtils().get_scenario_colors(
-                df["Scenario"].unique())
-        except Exception:
-            colors = {}
 
         for s in df["Scenario"].unique():
             sub = df[df["Scenario"]==s].sort_values("Period").groupby("Period")[["supply_from_forest","year"]].sum().reindex(periods)
