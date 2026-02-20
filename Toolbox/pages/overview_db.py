@@ -134,7 +134,15 @@ class OverviewDB:
                 )
             )
             main_plot = self.plots.create_quantity_plot(df_main,colors=self.colors)
-            price_plot = self.plots.create_price_growth_plot(df_main,colors=self.colors)
+
+            agg_df = (
+                df_main.groupby(["Scenario", "Period", "year"], as_index=False)
+                .agg({
+                    "Value": "sum",
+                    "quantity": "sum"
+                })
+            )
+            price_plot = self.plots.create_price_growth_plot(agg_df,colors=self.colors)
 
             #-----------
             # add a filter world map

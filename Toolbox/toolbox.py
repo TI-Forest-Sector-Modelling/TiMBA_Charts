@@ -116,6 +116,7 @@ class timba_dashboard:
                                   )
         self.price_db = PriceDB(app=self.app,
                                 data=self.data[dp.overview_db],
+                                colors=colors
                                 #print_settings=self.print_settings,
                                 )
         self.bitrade_db = BiTradeDB(app=self.app,

@@ -10,12 +10,12 @@ from datetime import datetime
 
 class PriceDB:
 
-    def __init__(self, app, data: pd.DataFrame):
+    def __init__(self, app, data: pd.DataFrame,colors:dict):
         self.app = app
         self.data = data
         self.plots = Plots()
         self.scenarios = sorted(self.data["Scenario"].dropna().unique())
-        self.colors = PlotUtils().get_scenario_colors(self.scenarios)
+        self.colors = colors
 
         self.app_layout = self.create_layout()
         self.register_callbacks()
@@ -261,10 +261,18 @@ class PriceDB:
                 scenario=scenario,
             )
 
-            value_fig = self.plots.create_value_plot(df)
-            value_growth_fig = self.plots.create_value_growth_plot(df)
-            price_fig = self.plots.create_price_plot(df)
-            price_growth_fig = self.plots.create_price_growth_plot(df)
+            agg_df = (
+                df.groupby(["Scenario", "Period", "year"], as_index=False)
+                .agg({
+                    "Value": "sum",
+                    "quantity": "sum"
+                })
+            )
+
+            value_fig = self.plots.create_value_plot(df, colors=self.colors)
+            value_growth_fig = self.plots.create_value_growth_plot(agg_df, colors=self.colors)
+            price_fig = self.plots.create_price_plot(agg_df, colors=self.colors)
+            price_growth_fig = self.plots.create_price_growth_plot(agg_df, colors=self.colors)
 
             return value_fig, value_growth_fig, price_fig, price_growth_fig
 

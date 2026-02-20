@@ -25,29 +25,23 @@ class Plots:
                     mode="lines", 
                     name=scenario,
                     line=dict(color=colors.get(scenario), 
-                              #dash=dash, width=plot_settings["line_witdh"]
                     )
                 )
             )
 
-        title = f"Quantity by Year and Scenario for"# {title_suffix}"
+        title = f"Quantity by Year and Scenario for"
         fig.update_layout(
             showlegend=False,
             title=dict(
                 text="<br>".join(textwrap.wrap(title, 90)),
-                #font=dict(size=plot_settings["title_font_size"])
             ),
             xaxis=dict(
                 title="Year", 
-                #tickfont=dict(size=plot_settings["tick_font_size"])
             ),
             yaxis=dict(
                 title="Quantity", 
                 rangemode="nonnegative",
-                #tickfont=dict(size=plot_settings["tick_font_size"])
             ),
-            # legend=dict(orientation="h", y=-0.1, x=0.5, xanchor="center",
-            #             font=dict(size=plot_settings["legend_font_size"])),
             hovermode="x unified",
             template=self.template,
             autosize = True,
@@ -55,18 +49,11 @@ class Plots:
         )
         return fig
 
-    def create_value_plot(self, df: pd.DataFrame) -> go.Figure:
-        df["Value"] = df.price * df.quantity
+    def create_value_plot(self, df: pd.DataFrame,colors:dict) -> go.Figure:
         fig = go.Figure()
         plot_df = (
             df.groupby(["Scenario", "Period"], as_index=False)["Value"]
               .sum())
-
-        try:
-            colors = PlotUtils().get_scenario_colors(
-                plot_df["Scenario"].unique())
-        except Exception:
-            colors = {}
 
         for scenario in plot_df["Scenario"].unique():
             scenario_df = plot_df[plot_df["Scenario"] == scenario]
@@ -75,13 +62,8 @@ class Plots:
                 go.Bar(
                     x=scenario_df["Period"],
                     y=scenario_df["Value"],
-                    #mode="lines+markers", #only with scatter or line plot
                     name=scenario,
                     marker=dict(color=colors.get(scenario)),
-                    # line=dict(
-                    #     width=2,
-                    #     color=colors.get(scenario)
-                    # )
                 )
             )
 
@@ -98,34 +80,20 @@ class Plots:
 
         return fig
     
-    def create_value_growth_plot(self, df: pd.DataFrame) -> go.Figure:
+    def create_value_growth_plot(self, df: pd.DataFrame,colors:dict) -> go.Figure:
         fig = go.Figure()
-        agg_df = (
-            df.groupby(["Scenario", "Period", "year"], as_index=False)
-            .agg({
-                "Value": "sum",
-                "quantity": "sum"
-            })
-        )
 
-        agg_df["Prev_Value"] = agg_df.groupby("Scenario")["Value"].shift(1)
-        agg_df["Prev_Year"] = agg_df.groupby("Scenario")["year"].shift(1)
+        df["Prev_Value"] = df.groupby("Scenario")["Value"].shift(1)
+        df["Prev_Year"] = df.groupby("Scenario")["year"].shift(1)
 
-        agg_df["Year_Diff"] = agg_df["year"] - agg_df["Prev_Year"]
+        df["Year_Diff"] = df["year"] - df["Prev_Year"]
 
-        agg_df["Annual_Growth"] = (
-            (agg_df["Value"] / agg_df["Prev_Value"]) ** (1 / agg_df["Year_Diff"]) - 1
+        df["Annual_Growth"] = (
+            (df["Value"] / df["Prev_Value"]) ** (1 / df["Year_Diff"]) - 1
         ) * 100
 
-        try:
-            colors = PlotUtils().get_scenario_colors(
-                agg_df["Scenario"].unique()
-            )
-        except Exception:
-            colors = {}
-
-        for scenario in agg_df["Scenario"].unique():
-            scenario_df = agg_df[agg_df["Scenario"] == scenario]
+        for scenario in df["Scenario"].unique():
+            scenario_df = df[df["Scenario"] == scenario]
 
             fig.add_trace(
                 go.Scatter(
@@ -150,30 +118,23 @@ class Plots:
 
         return fig
 
-    def create_price_plot(self, df: pd.DataFrame) -> go.Figure:
+    def create_price_plot(self, df: pd.DataFrame,colors:dict) -> go.Figure:
         fig = go.Figure()
-        agg_df = (
+        df = (
             df.groupby(["Scenario", "Period"], as_index=False)
               .agg({
                   "Value": "sum",
                   "quantity": "sum"
               })
         )
-        agg_df["Price"] = np.where(
-            agg_df["quantity"] > 0,
-            agg_df["Value"] / agg_df["quantity"],
+        df["Price"] = np.where(
+            df["quantity"] > 0,
+            df["Value"] / df["quantity"],
             np.nan
         )
 
-        try:
-            colors = PlotUtils().get_scenario_colors(
-                agg_df["Scenario"].unique()
-            )
-        except Exception:
-            colors = {}
-
-        for scenario in agg_df["Scenario"].unique():
-            scenario_df = agg_df[agg_df["Scenario"] == scenario]
+        for scenario in df["Scenario"].unique():
+            scenario_df = df[df["Scenario"] == scenario]
 
             fig.add_trace(
                 go.Scatter(
@@ -198,34 +159,25 @@ class Plots:
         return fig
     
     def create_price_growth_plot(self, df: pd.DataFrame, colors:dict) -> go.Figure:
-        df = df.copy()
-
         fig = go.Figure()
-        agg_df = (
-            df.groupby(["Scenario", "Period", "year"], as_index=False)
-            .agg({
-                "Value": "sum",
-                "quantity": "sum"
-            })
-        )
 
-        agg_df["Price"] = np.where(
-            agg_df["quantity"] > 0,
-            agg_df["Value"] / agg_df["quantity"],
+        df["Price"] = np.where(
+            df["quantity"] > 0,
+            df["Value"] / df["quantity"],
             np.nan
         )
 
-        agg_df["Prev_Price"] = agg_df.groupby("Scenario")["Price"].shift(1)
-        agg_df["Prev_Year"] = agg_df.groupby("Scenario")["year"].shift(1)
+        df["Prev_Price"] = df.groupby("Scenario")["Price"].shift(1)
+        df["Prev_Year"] = df.groupby("Scenario")["year"].shift(1)
 
-        agg_df["Year_Diff"] = agg_df["year"] - agg_df["Prev_Year"]
+        df["Year_Diff"] = df["year"] - df["Prev_Year"]
 
-        agg_df["Annual_Growth"] = (
-            (agg_df["Price"] / agg_df["Prev_Price"]) ** (1 / agg_df["Year_Diff"]) - 1
+        df["Annual_Growth"] = (
+            (df["Price"] / df["Prev_Price"]) ** (1 / df["Year_Diff"]) - 1
         ) * 100
 
-        for scenario in agg_df["Scenario"].unique():
-            scenario_df = agg_df[agg_df["Scenario"] == scenario]
+        for scenario in df["Scenario"].unique():
+            scenario_df = df[df["Scenario"] == scenario]
 
             fig.add_trace(
                 go.Bar(
