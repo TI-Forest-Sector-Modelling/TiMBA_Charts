@@ -4,6 +4,7 @@ import dash_bootstrap_components as dbc
 import webbrowser
 from threading import Timer
 from pathlib import Path
+import pandas as pd
 from Toolbox.classes.InputManager import import_pkl_data, import_formip_data, download_input_data
 from Toolbox.classes.ProcessManager import DataProcessor
 from Toolbox.pages.overview_db import OverviewDB
@@ -99,8 +100,13 @@ class timba_dashboard:
         self.formip_data = importer.load_formip_data()
 
     def _build_layout(self):
+        self.scenarios = sorted(self.data[dp.overview_db]["Scenario"].dropna().unique())
+        colors = PlotUtils().get_scenario_colors(self.scenarios)
+        print(colors)
+
         self.overview_db = OverviewDB(app=self.app,
                                       data=self.data,
+                                      colors=colors
                                       #print_settings=self.print_settings,
                                       )
         self.forest_db = ForestDB(app=self.app,

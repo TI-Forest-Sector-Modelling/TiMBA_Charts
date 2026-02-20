@@ -10,11 +10,9 @@ class Plots:
     def __init__(self, template="plotly_white"):
         self.template = template
 
-    def create_quantity_plot(self, df,# start_year, end_year, plot_settings, title_suffix
+    def create_quantity_plot(self, df,colors
                              ):
         grouped_df = df.groupby(["year", "Scenario"]).sum().reset_index()
-        #grouped_df = grouped_df[(grouped_df["year"] >= start_year) & (grouped_df["year"] <= end_year)]
-        colors = PlotUtils.get_scenario_colors(scenarios=grouped_df["Scenario"].unique())
 
         fig = go.Figure()
         for i, scenario in enumerate(grouped_df["Scenario"].unique()):
@@ -199,7 +197,7 @@ class Plots:
         )
         return fig
     
-    def create_price_growth_plot(self, df: pd.DataFrame) -> go.Figure:
+    def create_price_growth_plot(self, df: pd.DataFrame, colors:dict) -> go.Figure:
         df = df.copy()
 
         fig = go.Figure()
@@ -225,13 +223,6 @@ class Plots:
         agg_df["Annual_Growth"] = (
             (agg_df["Price"] / agg_df["Prev_Price"]) ** (1 / agg_df["Year_Diff"]) - 1
         ) * 100
-
-        try:
-            colors = PlotUtils().get_scenario_colors(
-                agg_df["Scenario"].unique()
-            )
-        except Exception:
-            colors = {}
 
         for scenario in agg_df["Scenario"].unique():
             scenario_df = agg_df[agg_df["Scenario"] == scenario]
@@ -300,20 +291,15 @@ class Plots:
 
         return fig
     
-    def create_trade_bar_plot(self, df: pd.DataFrame, 
-                                       trade_domain:str, 
-                                       unit:str) -> go.Figure:
+    def create_trade_bar_plot(self, df: pd.DataFrame,
+                              trade_domain:str,
+                              unit:str,
+                              colors:dict) -> go.Figure:
         df = df[df["domain"]==trade_domain]
         fig = go.Figure()
         plot_df = (
             df.groupby(["Scenario", "Period"], as_index=False)[unit]
               .sum())
-
-        try:
-            colors = PlotUtils().get_scenario_colors(
-                plot_df["Scenario"].unique())
-        except Exception:
-            colors = {}
 
         for scenario in plot_df["Scenario"].unique():
             scenario_df = plot_df[plot_df["Scenario"] == scenario]
@@ -441,16 +427,10 @@ class Plots:
         )
         return fig
 
-    def plot_forstock(self, df):
+    def plot_forstock(self, df:pd.DataFrame,colors:dict):
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
         all_values = []
-        
-        try:
-            colors = PlotUtils().get_scenario_colors(
-                df["Scenario"].unique())
-        except Exception:
-            colors = {}
 
         for s in df["Scenario"].unique():
             stock = df[df["Scenario"]==s].groupby("Period")["ForStock"].sum()

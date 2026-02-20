@@ -17,7 +17,10 @@ PACKAGEDIR = Path(__file__).parent.parent.absolute()
 
 class OverviewDB:
      
-    def __init__(self, app, data: pd.DataFrame):
+    def __init__(self, 
+                 app, 
+                 data: pd.DataFrame,
+                 colors):
         self.app = app
         self.db_prefix = "odb"
         self.data = data[dp.overview_db]
@@ -26,7 +29,7 @@ class OverviewDB:
         self.layout = Layout()
         self.filter_builder = FilterLayout(self.data, prefix=self.db_prefix)
         self.scenarios = sorted(self.data["Scenario"].dropna().unique())
-        self.colors = PlotUtils().get_scenario_colors(self.scenarios)
+        self.colors = colors
         self.app_layout = self.create_layout()
         self.register_callbacks()
 
@@ -116,7 +119,8 @@ class OverviewDB:
             q_net_export_fig = self.plots.create_trade_bar_plot(
                 df_trade,
                 "Net Exports",
-                "quantity"
+                "quantity",
+                colors=self.colors
             )
 
             #-----------
@@ -129,8 +133,8 @@ class OverviewDB:
                     "main"
                 )
             )
-            main_plot = self.plots.create_quantity_plot(df_main)
-            price_plot = self.plots.create_price_growth_plot(df_main)
+            main_plot = self.plots.create_quantity_plot(df_main,colors=self.colors)
+            price_plot = self.plots.create_price_growth_plot(df_main,colors=self.colors)
 
             #-----------
             # add a filter world map
@@ -147,7 +151,7 @@ class OverviewDB:
 
             world_map = self.plots.create_world_map_plot(
                 df_map,
-                max_year=df_map["year"].max()
+                max_year=df_map["year"].max(),
             )
 
             #-----------
@@ -162,7 +166,7 @@ class OverviewDB:
                     "forest"
                 )
             )
-            forstock_plot = self.plots.plot_forstock(df_forest)
+            forstock_plot = self.plots.plot_forstock(df_forest,colors=self.colors)
 
             return main_plot, price_plot, q_net_export_fig, forstock_plot, world_map
 
