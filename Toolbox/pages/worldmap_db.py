@@ -131,12 +131,6 @@ class WorldMapDB:
             ref = ref[0]
             alt = alt[0]
 
-            max_year = pivot_df["year"].max()
-
-            pivot_df= PlotUtils.filter_data(
-                df=pivot_df,
-                year=[max_year]
-            )
             print("REF:", ref)
             print("ALT:", alt)
 
@@ -149,28 +143,24 @@ class WorldMapDB:
             df_map_s = pivot_df[pivot_df["domain"] == "Supply"]
             world_map_supply = self.plots.create_diff_world_map_plot(
                 df_map_s,
-                max_year=max_year,
                 title="Supply"
             )
 
             df_map_m = pivot_df[pivot_df["domain"] == "Manufacturing"]
             world_map_manuf = self.plots.create_diff_world_map_plot(
                 df_map_m,
-                max_year=max_year,
                 title="Manufacturing"
             )
 
             df_map_n = pivot_df[pivot_df["domain"] == "Net Exports"]
             world_map_netexp = self.plots.create_diff_world_map_plot(
                 df_map_n,
-                max_year=max_year,
                 title="Net Exports"
             )
 
             df_map_d = pivot_df[pivot_df["domain"] == "Demand"]
             world_map_demand = self.plots.create_diff_world_map_plot(
                 df_map_d,
-                max_year=max_year,
                 title="Demand"
             )
 
@@ -191,7 +181,6 @@ class WorldMapDB:
 
             world_map_stock = self.plots.create_diff_world_map_plot(
                 df_stock,
-                max_year=max_year,
                 title="Forest Stock"
             )
 
@@ -212,7 +201,6 @@ class WorldMapDB:
 
             world_map_area = self.plots.create_diff_world_map_plot(
                 df_area,
-                max_year=max_year,
                 title="Forest Area"
             )
 

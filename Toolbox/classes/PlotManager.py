@@ -301,7 +301,7 @@ class Plots:
         )
         return fig
 
-    def create_diff_world_map_plot(self, data, max_year, title: str):
+    def create_diff_world_map_plot(self, data, title: str):
 
         data = data.groupby("ISO3")["diff"].sum().reset_index()
         max_abs = max(abs(data["diff"].min()), abs(data["diff"].max()))
@@ -322,7 +322,8 @@ class Plots:
         )
 
         fig.update_layout(
-            title=f"{title} in the year {max_year}",
+            title=f"{title}",
+            title_x=0.5,
             geo=dict(
                 showcoastlines=True,
                 coastlinecolor="LightGray",

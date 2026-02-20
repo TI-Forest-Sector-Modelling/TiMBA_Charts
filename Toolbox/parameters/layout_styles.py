@@ -54,6 +54,22 @@ plot_card_3x2_background_simple={
     "height": "100%"
 }
 
+plot_card_2x2_background_simple={
+    "display": "grid",
+    "gridTemplateColumns": "1fr 1fr",
+    "gridTemplateRows": "1fr 1fr",
+    "gap": "15px",
+    "padding": "15px",
+    "backgroundColor": background_color,
+    "border": "1px solid #dee2e6",
+    "borderRadius": "6px",
+    "marginTop": "10px",
+    "marginBottom": "10px",
+    "flexGrow": "1",
+    "minHeight": "0",
+    "height": "100%"
+}
+
 plot_card={
     "display": "flex",
     "flexDirection": "column",
