@@ -121,3 +121,87 @@ class DataProcessor:
         self.data[dp.forest_db] = self.forest_data
         
         return self.data
+
+    def pivot_map_data(self):
+        df = self.data[dp.overview_db]
+        cols = [
+            "Continent",
+            "ISO3",
+            "Scenario",
+            "domain",
+            "year",
+            "Commodity",
+            "Commodity_Group"
+        ]
+
+        df_small = df[cols + ["quantity"]].copy()
+
+        for c in cols:
+            df_small[c] = df_small[c].astype("category")
+
+        df_small["year"] = df_small["year"].astype("int32")
+
+        pivot_df = df_small.pivot_table(
+            index=[
+                "Continent",
+                "ISO3",
+                "domain",
+                "year",
+                "Commodity",
+                "Commodity_Group"
+            ],
+            columns="Scenario",
+            values="quantity",
+            aggfunc="sum",
+            fill_value=0,
+            observed=True
+        ).reset_index()
+
+        return pivot_df
+    
+    def pivot_map_forest_data(self):
+        df = self.data[dp.forest_db]
+        cols = [
+            "Continent",
+            "ISO3",
+            "Scenario",
+            "year",
+        ]
+
+        df_small = df[cols + ["ForArea","ForStock"]].copy()
+
+        for c in cols:
+            df_small[c] = df_small[c].astype("category")
+
+        df_small["year"] = df_small["year"].astype("int32")
+
+        pivot_df_stock = df_small.pivot_table(
+            index=[
+                "Continent",
+                "ISO3",
+                "year",
+            ],
+            columns="Scenario",
+            values="ForStock",
+            aggfunc="sum",
+            fill_value=0,
+            observed=True
+        ).reset_index()
+
+        pivot_df_area = df_small.pivot_table(
+            index=[
+                "Continent",
+                "ISO3",
+                "year",
+            ],
+            columns="Scenario",
+            values="ForArea",
+            aggfunc="sum",
+            fill_value=0,
+            observed=True
+        ).reset_index()
+
+        pivot_df_stock["Historic Data"] = 0
+        pivot_df_area["Historic Data"] = 0
+
+        return pivot_df_stock, pivot_df_area

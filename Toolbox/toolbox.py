@@ -86,6 +86,8 @@ class timba_dashboard:
                                 commodity_data=commodity_data,
                                 data_hist=hist_data)
         self.data = process.combined_data()
+        self.pivot_map_data = process.pivot_map_data()
+        self.pivot_df_stock, self.pivot_df_area = process.pivot_map_forest_data()
         print("TiMBA data is fully loaded!\n")
 
     def _import_formip(self):
@@ -115,7 +117,10 @@ class timba_dashboard:
                                 )
         self.validation_db = ValidationDB(app=self.app, data=self.formip_data)
         self.worldmap_db = WorldMapDB(app=self.app,
-                                      data=self.data)
+                                      data=self.pivot_map_data,
+                                      df_stock=self.pivot_df_stock,
+                                      df_area=self.pivot_df_area,
+                                      )
 
         self.app.layout = dbc.Card([
             dcc.Location(id="url"),

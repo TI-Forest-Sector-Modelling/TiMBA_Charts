@@ -101,8 +101,10 @@ PLOT_FILTERS = {
         "continent",
         "commodity",
         "commodity_group",
-        "refscenario",
-        "altscenario",
+        "year",
+    ],
+        "worldmap_forest": [
+        "continent",
         "year",
     ],
 }

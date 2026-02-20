@@ -28,10 +28,14 @@ class PlotUtils:
         return [values.min() * lower_factor, values.max() * upper_factor]
     
     @staticmethod
-    def filter_data(df:pd.DataFrame = None,region=None, 
-                    continent=None, domain=None, commodity=None, 
-                    commodity_group=None, scenario=None,year=None,
-                    refscenario=None, altscenario=None):
+    def filter_data(df:pd.DataFrame = None,
+                    region=None, 
+                    continent=None, 
+                    domain=None, 
+                    commodity=None, 
+                    commodity_group=None, 
+                    scenario=None,year=None,
+                    ):
         filters = {
             "ISO3": region,
             "Continent": continent,
@@ -40,8 +44,6 @@ class PlotUtils:
             "Commodity_Group": commodity_group,
             "Scenario": scenario,
             "year": year,
-            "refsc":refscenario,
-            "altsc":altscenario,
         }
 
         for col, values in filters.items():
@@ -49,10 +51,8 @@ class PlotUtils:
                 continue
             if col in df.columns:
                 df = df[df[col].isin(values)]
-        if refscenario==None:
-            return df
-        else:
-            return df,refscenario,altscenario
+        
+        return df
     
     @staticmethod
     def generate_title(region, continent, domain, commodity, commodity_group):

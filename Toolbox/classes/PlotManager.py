@@ -369,19 +369,12 @@ class Plots:
         return fig
 
     def create_diff_world_map_plot(self, 
-                                  filtered_data,
+                                  data,
                                   max_year,
-                                  column:str,
+                                  title:str,
                                   ):
-        quantity_list = ["Supply","Demand","Manufacturing","Net Export"]
-        if column in quantity_list:
-            column_filter = "quantity"
-        else:
-            column_filter = column
-
-        # country_data = filtered_data.groupby("ISO3")[column_filter].sum().reset_index()
-        #country_data = country_data[country_data[column_filter] >= 0.001]
-
+        
+        data = data.groupby("ISO3")["diff"].sum().reset_index()
         color_scale = [
             (0.0, "red"),
             (0.5, "white"),
@@ -389,15 +382,16 @@ class Plots:
         ]
 
         fig = px.choropleth(
-            filtered_data,
+            data,
             locations="ISO3",
-            color=column_filter,
+            color="diff",
             hover_name="ISO3",
             color_continuous_scale=color_scale,
-            range_color=(-100, 100)
+            range_color=(data["diff"].min(), data["diff"].max())
         )
+
         fig.update_layout(
-            title=f"{column} in the year {max_year}",
+            title=f"{title} in the year {max_year}",
             geo=dict(
                 showcoastlines=True, 
                 coastlinecolor="LightGray",
@@ -410,6 +404,7 @@ class Plots:
             coloraxis_showscale=False,
             showlegend=False,
         )
+
         return fig
 
     def plot_forarea(self, df):

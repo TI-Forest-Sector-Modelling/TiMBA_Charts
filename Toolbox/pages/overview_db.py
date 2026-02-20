@@ -143,12 +143,12 @@ class OverviewDB:
                 )
             )
             df_map = df_map[df_map["Scenario"] == "Historic Data"]
-            max_year = df_map["year"].max()
-            df_map = PlotUtils.filter_data(
-                df=df_map,
-                year=[max_year]
+            df_map = df_map[df_map["year"] == df_map["year"].max()]
+
+            world_map = self.plots.create_world_map_plot(
+                df_map,
+                max_year=df_map["year"].max()
             )
-            world_map = self.plots.create_world_map_plot(df_map,max_year=max_year)
 
             #-----------
             # subset forest data

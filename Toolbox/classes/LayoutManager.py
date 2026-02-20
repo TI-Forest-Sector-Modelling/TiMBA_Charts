@@ -91,10 +91,16 @@ class FilterLayout:
         column = config["column"]
         placeholder = config["placeholder"]
 
-        options = [
-            {"label": c, "value": c}
-            for c in sorted(self.data[column].dropna().unique())
-        ]
+        if column in self.data.columns:
+            options = [
+                {"label": c, "value": c}
+                for c in sorted(self.data[column].dropna().unique())
+            ]
+        else:
+            options = [
+                {"label": c, "value": c}
+                for c in sorted(self.data.columns[6:])
+            ]
 
         return html.Div(
             dcc.Dropdown(
