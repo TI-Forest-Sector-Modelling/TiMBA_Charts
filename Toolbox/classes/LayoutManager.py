@@ -56,6 +56,84 @@ class Layout:
         )
     
     @staticmethod
+    def _legend_card_world_map():
+        return dbc.Card(
+            className="border-1 shadow-sm",
+            style=ls.legend_card_background,
+            body=True,
+            children=[
+
+                html.Div([
+                    html.Div(
+                        style={
+                            "display": "flex",
+                            "alignItems": "center",
+                            "justifyContent": "space-between",
+                        },
+                        children=[
+                            # ---------- FIXED TEXT COLUMN ----------
+                            html.Div(
+                                "Alternative minus Reference scenario.",
+                                style={
+                                    "fontSize": "18px",
+                                    "marginRight": "15px",
+                                    "whiteSpace": "nowrap",
+                                }
+                            ),
+                            html.Div(
+                                style={
+                                    "display": "flex",
+                                    "flexDirection": "column",
+                                    "width": "500px"   # <- kontrolliert Größe
+                                },
+                                children=[
+
+                                    # Gradient Bar
+                                    html.Div(
+                                        style={
+                                            "display": "flex",
+                                            "height": "13px",
+                                            "borderRadius": "4px",
+                                            "background": "linear-gradient(to right, red, white, green)",
+                                            "marginBottom": "2px",
+                                            "marginLeft": "45px"
+                                        }
+                                    ),
+
+                                    # Labels
+                                    html.Div(
+                                        style={
+                                            "display": "flex",
+                                            "justifyContent": "space-between",
+                                            "fontSize": "12px",
+                                            "marginLeft": "55px"
+                                        },
+                                        children=[
+                                            html.Span("- (decrease compared to refernce)"),
+                                            html.Span("0"),
+                                            html.Span("(increase compared to refernce) +")
+                                        ]
+                                    )
+                                ]
+                            ),
+
+                            # -------- Scenario Text --------
+                            html.Div(
+                                id="wmdb_legend_scenario_text",
+                                children="REF: - | ALT: -",
+                                style={
+                                    "fontSize": "18x",
+                                    "marginLeft": "15px",
+                                    "whiteSpace": "nowrap"
+                                }
+                            )
+                        ]
+                    )
+                ])
+            ]
+        )
+    
+    @staticmethod
     def ledgend_items(colors, scenarios):
         return[
             html.Div(

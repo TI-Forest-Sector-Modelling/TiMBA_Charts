@@ -85,9 +85,7 @@ class WorldMapDB:
                 # ==========================================================
                 # Card for the legend
                 # ==========================================================
-                self.layout._legend_card(colors= self.colors,
-                                         scenarios = self.scenarios),
-                dcc.Download(id="wmdb_download")
+                self.layout._legend_card_world_map(),
             ]
         )
     
@@ -106,9 +104,11 @@ class WorldMapDB:
             Output("wmdb_world_map_demand", "figure"),
             Output("wmdb_world_map_stock", "figure"),
             Output("wmdb_world_map_area", "figure"),
+            Output("wmdb_legend_scenario_text", "children"),
             *filter_inputs,
         )
         def update_plots(*filter_values):
+            print(f"{self.db_prefix}_dashboard")
             filter_values_dict = dict(zip(WORLD_MAP_DB_FILTERS.keys(), filter_values))
             print(filter_values_dict)
             #-----------
@@ -124,8 +124,6 @@ class WorldMapDB:
 
             ref = filter_values_dict["refscenario"]
             alt = filter_values_dict["altscenario"]
-            print("REF:", ref)
-            print("ALT:", alt)
             if not alt:
                 alt = self.scenarios[0:1]
             if not ref:
@@ -208,7 +206,7 @@ class WorldMapDB:
                 )
             )
 
-            df_area["diff"] = df_area[alt]-df_area[ref]
+            df_area["diff"] = df_area[alt] - df_area[ref]
             df_area["diff"]= df_area["diff"].replace([np.inf, -np.inf, -1], np.nan)
             df_area = df_area.dropna(subset=['diff']).reset_index(drop=True)
 
@@ -218,11 +216,14 @@ class WorldMapDB:
                 title="Forest Area"
             )
 
+            legend_text = f"Reference: {ref} | Alternative: {alt}"
+
             return (
-                world_map_supply, 
-                world_map_manuf, 
-                world_map_netexp, 
-                world_map_demand, 
-                world_map_stock, 
-                world_map_area
+                world_map_supply,
+                world_map_manuf,
+                world_map_netexp,
+                world_map_demand,
+                world_map_stock,
+                world_map_area,
+                legend_text
             )

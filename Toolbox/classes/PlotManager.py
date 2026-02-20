@@ -301,13 +301,11 @@ class Plots:
         )
         return fig
 
-    def create_diff_world_map_plot(self, 
-                                  data,
-                                  max_year,
-                                  title:str,
-                                  ):
-        
+    def create_diff_world_map_plot(self, data, max_year, title: str):
+
         data = data.groupby("ISO3")["diff"].sum().reset_index()
+        max_abs = max(abs(data["diff"].min()), abs(data["diff"].max()))
+
         color_scale = [
             (0.0, "red"),
             (0.5, "white"),
@@ -320,17 +318,17 @@ class Plots:
             color="diff",
             hover_name="ISO3",
             color_continuous_scale=color_scale,
-            range_color=(data["diff"].min(), data["diff"].max())
+            range_color=(-max_abs, max_abs)
         )
 
         fig.update_layout(
             title=f"{title} in the year {max_year}",
             geo=dict(
-                showcoastlines=True, 
+                showcoastlines=True,
                 coastlinecolor="LightGray",
-                projection_type="natural earth", 
-                lonaxis_range=[-360,360], 
-                lataxis_range=[-55,55],
+                projection_type="natural earth",
+                lonaxis_range=[-360, 360],
+                lataxis_range=[-55, 55],
             ),
             autosize=True,
             margin=dict(l=5, r=5, t=31, b=1),
