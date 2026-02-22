@@ -36,11 +36,14 @@ Navigate into the project folder on your local machine.
 It is recommended to set up a virtual environment for TiMBA Charts to manage dependencies. If you are using only a single version of Python on your computer:
    >python -m venv .venv
    >
-1. Activate the virtual environment  
+4. Activate the virtual environment  
 Enable the virtual environment to isolate TiMBA Charts dependencies. 
    >.venv\Scripts\activate
    >
-1. Install TiMBA Charts in the editable mode  
+   macOS / Linus:
+   >source .venv/bin/activate
+
+5. Install TiMBA Charts in the editable mode  
    >pip install -e .
 
 If the following error occurs: "ERROR: File "setup.py" or "setup.cfg" not found."
@@ -71,28 +74,131 @@ To change the folder path the user can type, e.g.:
 > show_dashboard -FP='E:\P_TiMBA\TiMBA\data\output'
 
 ### Description of the figures
-The interactive dashboard provides a flexible interface for exploring model outputs across multiple dimensions. Users can apply filters by region (country or continent), scenario, domain (e.g. Demand, Supply, Trade, Net Trade, and Manufacturing), commodity (ranging from 16 to 20, depending on the input scenario), and commodity group via a control panel. 
-
-Please note that certain filter combinations are interdependent and may not return any results. For instance, selecting Roundwood under demand domain will yield no output, as roundwood is a primary good for which only supply is modeled. Likewise, applying both the commodity and commodity group filters simultaneously will not narrow the selection further, as these categories are not hierarchically structured.
-
-Based on the selected inputs, four visualizations are updated dynamically to support intuitive analysis and comparison of model results:  
-
-1. The central time series plot displays the development of selected quantities over time. Historical data are represented by solid lines, while scenario-based projections appear as dashed lines. This visualization facilitates an understanding of long-term trends and the dynamics of different scenarios across commodities or commodity groups.  
-
-2. The bar chart in the bottom left presents world market prices by year and scenario. It offers a concise overview of price developments across time periods and enables straightforward temporal comparisons.  
-
-3. The top-right chart depicts changes in forest stock over time and across scenarios. Each bar represents a specific year or period, illustrating how stock levels evolve under different assumptions.  
-
-4. The world map in the bottom right provides a spatial representation of the selected indicator for a given year. Countries are color-coded using a gradient scale (with deeper green indicating higher values). Users can explore different domain–product combinations, such as the product Roundwood and the domain Supply, which reveal which countries exhibit the highest levels of roundwood production. This logic applies to any domain–product selection. A specific year can also be chosen within the map filter to examine spatial patterns in more detail. Please note that this map will always show an aggregate over all scenarios. If the user wanted to show only historical data or a specific scenario this can be chosen by the scenario filter.
-   
-For any combination of filters users will have the option to export the filtered dataset as a csv file or the different graphs as png files for further analysis or documentation.  
 
 ## Start the validation dashbord
 After installing the package, the user can start the dashboard board with the following CLI command:
 > show_validation
 
-### Description of the figures
+## Description of the figures
+The interactive dashboard provides a structured and flexible interface for exploring [TiMBA](https://github.com/TI-Forest-Sector-Modelling/TiMBA) model outputs across multiple dimensions. It is designed to support the visualization and validation of at least one TiMBA scenario run.
 
+Historical data ([FAOSTAT](https://www.fao.org/faostat/en/#data/FO)) are integrated into all visualizations.
+
+Users can apply filters via dropdown menus and selection panels, including:
+
+- Region (continent or country)  
+- Scenario  
+- Domain (Demand, Supply, Trade, Manufacturing)  
+- Single commodity  
+- Commodity group  
+
+Please note that certain filter combinations are interdependent and may not return results.  
+For example, selecting *Roundwood* under the Demand domain yields no output, as roundwood is modeled only on the supply side. Similarly, applying both the commodity and commodity group filters simultaneously does not further restrict the selection, as these categories are not hierarchically structured.
+
+Depending on the selected inputs, different visualizations are updated dynamically to enable intuitive comparison of model results.
+
+---
+
+### i.) Overview
+
+The **Overview page** enables cross-scenario comparison of selected key indicators.
+
+Displayed elements may include:
+
+- Time series of production quantities  
+- Net export quantities
+- Forest stock development
+
+Historical data are represented by solid lines, while scenario projections appear as dashed lines.
+
+---
+
+### ii.) Forest
+
+The **Forest page** focuses exclusively on forest-specific indicators.
+
+Different available filters compared with *Overview* page:
+
+- Region  
+- Scenario  
+
+Displayed indicators include:
+
+- Forest area development  
+- Forest stock growth  
+
+This page supports the assessment of structural forest and forest area dynamics under alternative scenarios.
+
+---
+
+### iii.) Price Overview
+
+The **Price** dahsboard presents price development indicators across time and scenarios.
+
+Examples include:
+
+- Total value over time  
+- Price development by period  
+- Scenario-based price developments  
+
+This enables temporal and cross-scenario price comparisons.
+
+---
+
+### iv.) Trade Overview
+
+The **Trade** dashboard displays international trade dynamics.
+
+It includes:
+
+- Import quantities  
+- Export quantities  
+- Corresponding trade values  
+
+This page allows the evaluation of trade shifts across regions and scenarios.
+
+---
+
+### v.) Validation
+
+The **Validation** dashboard compares results from different forest sector models, including:
+
+- Global Forest Products Model (GFPM)  
+- Global Biosphere Management Model (GLOBIOM)  
+- Global Timber Model  (GTM)  
+- TiMBA  
+
+The validation is based on publicly available open-access data sources.  
+Model outputs are compared for selected products, and deviations across models are displayed to validate modeling approaches and projected outcomes.
+
+---
+
+### vi.) World Map
+
+The **World Map** dasboard visualizes spatial changes in quantities between the Reference and Alternative scenarios.
+
+Six domain-specific maps are available:
+
+- Supply  
+- Manufacturing  
+- Forest Stock  
+- Net Exports  
+- Demand  
+- Forest Area  
+
+Countries are color-coded using a gradient scale, allowing geographic comparison of scenario-induced changes.  
+A specific year can be selected via the map filter to analyze spatial patterns in more detail.
+
+---
+
+### Export Functionality
+
+For any filter combination, users can export:
+
+- The filtered dataset as a `.csv` file  
+- Individual graphs as `.png` files  
+
+This supports further analysis and documentation.
 ## Authors
 - [Christian Morland](https://www.thuenen.de/de/fachinstitute/waldwirtschaft/personal/wissenschaftliches-personal/ehemalige-liste/christian-morland-msc) [(ORCID 0000-0001-6600-570X)](https://orcid.org/0000-0001-6600-570X),
 - [Julia Tandetzki](https://www.thuenen.de/de/fachinstitute/waldwirtschaft/personal/wissenschaftliches-personal/julia-tandetzki-msc) [(ORCID 0000-0002-0630-9434)](https://orcid.org/0000-0002-0630-9434) and 
