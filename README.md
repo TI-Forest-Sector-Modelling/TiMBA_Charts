@@ -40,7 +40,7 @@ It is recommended to set up a virtual environment for TiMBA Charts to manage dep
 Enable the virtual environment to isolate TiMBA Charts dependencies. 
    >.venv\Scripts\activate
    >
-   macOS / Linus:
+   macOS / Linux:
    >source .venv/bin/activate
 
 5. Install TiMBA Charts in the editable mode  
