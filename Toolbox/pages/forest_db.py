@@ -1,262 +1,170 @@
 import dash
-import pandas as pd
-import numpy as np
-from dash import dcc, html, Input, Output, State, ctx
 import dash_bootstrap_components as dbc
-import plotly.graph_objects as go
-from Toolbox.classes.PlotManager import Plots, PlotUtils
+from dash import dcc, html
+from dash.dependencies import Input, Output, State
+import pandas as pd
+from pathlib import Path
+import Toolbox.parameters.default_parameters as dp
+from Toolbox.classes.utils import PlotUtils
+from Toolbox.classes.PlotManager import Plots
+from Toolbox.classes.LayoutManager import Layout, FilterLayout
+from Toolbox.parameters.filter_config import FOREST_DB_FILTERS
+import Toolbox.parameters.layout_styles as ls
 from datetime import datetime
+
+PACKAGEDIR = Path(__file__).parent.parent.absolute()
 
 
 class ForestDB:
-
-    def __init__(self, app, data: pd.DataFrame,colors:dict):
+     
+    def __init__(self,app,data: pd.DataFrame,colors):
         self.app = app
+        self.db_prefix = "fdb"
         self.data = data
         self.plots = Plots()
+        self.layout = Layout()
+        self.filter_builder = FilterLayout(self.data, prefix=self.db_prefix)
+        self.filters = FOREST_DB_FILTERS
         self.scenarios = sorted(self.data["Scenario"].dropna().unique())
         self.colors = colors
-
         self.app_layout = self.create_layout()
         self.register_callbacks()
 
     # ------------------------------------------------------------------
-    # LAYOUT
+    # Layout
     # ------------------------------------------------------------------
     def create_layout(self):
 
-        legend_items = [
-            html.Div(
-                style={
-                    "display": "flex",
-                    "alignItems": "center",
-                    "margin": "0 14px",
-                },
-                children=[
-                    html.Div(
-                        style={
-                            "width": "14px",
-                            "height": "14px",
-                            "backgroundColor": self.colors[s],
-                            "marginRight": "6px"
-                        }
-                    ),
-                    html.Span(s)
-                ]
-            )
-            for s in self.scenarios
-        ]
+        filters = self.filter_builder.build_all(self.filters)
+        button = self.layout.download_button()
 
         return dbc.Container(
             fluid=True,
-            style={
-                "height": "calc(100vh - 175px)",   #header = 140 pxl, dazu etwas spielraum
-                "display": "flex",
-                "flexDirection": "column",
-                "padding": "0px",
-                "overflow": "hidden"
-            },
+            style=ls.outer_card_under_header,
+            # ==========================================================
+            # Card for filter bar
+            # ==========================================================
             children=[
-
-                # ==========================================================
-                # FILTER BAR
-                # ==========================================================
                 dbc.Card(
                     className="border-1 shadow-sm",
-                    style={
-                        "backgroundColor": "#f8f9fa",
-                        "border": "1px solid #dee2e6",
-                        "borderRadius": "1px",
-                        "flexShrink": "0"   # ⭐ Nie schrumpfen
-                    },
+                    style=ls.filter_card_background,
                     body=True,
                     children=[
                         html.Div(
-                            style={
-                                "display": "flex",
-                                "gap": "10px",
-                                "alignItems": "flex-end",
-                                "width": "100%",
-                            },
-                            children=[
-
-                                html.Div(
-                                    dcc.Dropdown(
-                                        id="fdb_continent-dropdown",
-                                        options=[{"label": c, "value": c}
-                                                for c in sorted(self.data["Continent"].dropna().unique())],
-                                        multi=True,
-                                        placeholder="Select Continent..."
-                                    ),
-                                    style={"flex": "3"}
-                                ),
-
-                                html.Div(
-                                    dcc.Dropdown(
-                                        id="fdb_country-dropdown",
-                                        options=[{"label": c, "value": c}
-                                                for c in sorted(self.data["ISO3"].dropna().unique())],
-                                        multi=True,
-                                        placeholder="Select Country..."
-                                    ),
-                                    style={"flex": "3"}
-                                ),
-
-                                html.Div(
-                                    dcc.Dropdown(
-                                        id="fdb_scenario-dropdown",
-                                        options=[{"label": "All", "value": "All"}] + [
-                                            {"label": s, "value": s}
-                                            for s in self.scenarios
-                                        ],
-                                        multi=True,
-                                        placeholder="Select Scenario..."
-                                    ),
-                                    style={"flex": "3"}
-                                ),
-
-                                html.Div(
-                                    dbc.Button(
-                                        "⬇ CSV",
-                                        id="fdb_download-btn",
-                                        color="primary",
-                                        style={"height": "38px"}
-                                    ),
-                                    style={"flex": "1"}
-                                ),
-                            ]
+                            style=ls.filter_inner_card,
+                            children = filters + button
                         )
                     ]
                 ),
-
+                # ==========================================================
+                # Card behind all plots
+                # ==========================================================
                 html.Div(
-                    style={
-                        "display": "grid",
-                        "gridTemplateColumns": "1fr 1fr 1fr",
-                        "gridTemplateRows": "1fr 1fr",
-                        "gap": "15px",
-                        "padding": "15px",
-                        "backgroundColor": "#f8f9fa",
-                        "border": "1px solid #dee2e6",
-                        "borderRadius": "6px",
-                        "marginTop": "10px",
-                        "marginBottom": "10px",
-                        "flexGrow": "1",
-                        "minHeight": "0"
-                    },
+                    style=ls.plot_card_3x2_background_simple,
                     children=[
+                        #-----------
+                        # Cards for the specific plots
+                        #-----------
 
-                        self._graph_card("plot_forarea"),
-                        self._graph_card("plot_area_growth"),
-                        self._graph_card("plot_stock_area_ratio"),
-                        self._graph_card("plot_forstock"),
-                        self._graph_card("plot_stock_growth"),
-                        self._graph_card("plot_supply_from_forest"),
+                        self.layout._graph_card("fdb_forarea_plot"),
+                        self.layout._graph_card("fdb_area_growth_plot"),
+                        self.layout._graph_card("fdb_stock_area_ratio_plot"),
+                        self.layout._graph_card("fdb_forstock_plot"),
+                        self.layout._graph_card("fdb_stock_growth_plot"),
+                        self.layout._graph_card("fdb_supply_from_forest_plot"),
 
                     ]
                 ),
 
                 # ==========================================================
-                # LEGEND
+                # Card for the legend
                 # ==========================================================
-                dbc.Card(
-                    className="border-1 shadow-sm",
-                    style={
-                        "padding": "5px",
-                        "backgroundColor": "#f8f9fa",
-                        "border": "1px solid #dee2e6",
-                        "borderRadius": "1px",
-                        "flexShrink": "0"
-                    },
-                    body=True,
-                    children=[
-                        html.Div(
-                            legend_items,
-                            style={
-                                "display": "flex",
-                                "justifyContent": "center",
-                                "flexWrap": "wrap"
-                            }
-                        )
-                    ]
-                ),
-
-                dcc.Download(id="fdb_download")
+                self.layout._legend_card(colors= self.colors,
+                                         scenarios = self.scenarios),
+                dcc.Download(id=f"{self.db_prefix}_download")
             ]
         )
     
-    def _graph_card(self, graph_id):
-        return html.Div(
-            dcc.Graph(
-                id=graph_id,
-                style={"height": "100%"},
-                config={"responsive": True}
-            ),
-            style={
-                "display": "flex",
-                "flexDirection": "column",
-                "backgroundColor": "white",
-                "border": "1px solid #e3e6ea",
-                "borderRadius": "6px",
-                "padding": "10px",
-                "minHeight": "0"
-            }
-        )
     
     # ------------------------------------------------------------------
-    # CALLBACKS
+    # Callbacks
     # ------------------------------------------------------------------
     def register_callbacks(self):
-        @self.app.callback(
-            Output("plot_forarea", "figure"),
-            Output("plot_area_growth", "figure"),
-            Output("plot_stock_area_ratio", "figure"),
-            Output("plot_forstock", "figure"),
-            Output("plot_stock_growth", "figure"),
-            Output("plot_supply_from_forest", "figure"),
-            Input("fdb_continent-dropdown", "value"),
-            Input("fdb_country-dropdown", "value"),
-            Input("fdb_scenario-dropdown", "value"),
+        filter_inputs = PlotUtils().build_filter_inputs(
+            self.db_prefix, 
+            self.filters
         )
-        def update_plots(continent, region, scenario):
+
+        @self.app.callback(
+            Output("fdb_forarea_plot", "figure"),
+            Output("fdb_area_growth_plot", "figure"),
+            Output("fdb_stock_area_ratio_plot", "figure"),
+            Output("fdb_forstock_plot", "figure"),
+            Output("fdb_stock_growth_plot", "figure"),
+            Output("fdb_supply_from_forest_plot", "figure"),
+            *filter_inputs,
+        )
+        def update_plots(*filter_values):
+            print(f"{self.db_prefix}_dashboard")
+            filter_values_dict = dict(zip(self.filters.keys(), filter_values))
+            print(filter_values_dict)
+            #-----------
+            # subset forest data
+            #-----------
+            forest_filter_values_dict = dict(zip(
+                self.filters.keys(), 
+                filter_values
+                )
+            )
+
             df = PlotUtils.filter_data(
                 df=self.data.copy(),
-                region=region,
-                continent=continent,
-                scenario=scenario,
+                **PlotUtils().get_plot_filters(
+                    forest_filter_values_dict, 
+                    "forest"
+                )
             )
-            plot_forarea=self.plots.plot_forarea(df,colors=self.colors)
-            plot_forstock=self.plots.plot_forstock(df,colors=self.colors)
-            plot_area_growth=self.plots.plot_area_growth(df,colors=self.colors)
-            plot_stock_growth=self.plots.plot_stock_growth(df,colors=self.colors)
-            plot_stock_area_ratio=self.plots.plot_stock_area_ratio(df,colors=self.colors)
-            plot_supply_from_forest=self.plots.plot_supply_from_forest(df,colors=self.colors)
 
-            return (plot_forarea, plot_area_growth, plot_stock_area_ratio,
-                    plot_forstock, plot_stock_growth, plot_supply_from_forest)
+            f_forarea=self.plots.plot_forarea(df,colors=self.colors)
+            f_forstock=self.plots.plot_forstock(df,colors=self.colors)
+            f_area_growth=self.plots.plot_area_growth(df,colors=self.colors)
+            f_stock_growth=self.plots.plot_stock_growth(df,colors=self.colors)
+            f_stock_area_ratio=self.plots.plot_stock_area_ratio(df,colors=self.colors)
+            f_supply_from_forest=self.plots.plot_supply_from_forest(df,colors=self.colors)
 
+            return (f_forarea, f_area_growth, f_stock_area_ratio,
+                    f_forstock, f_stock_growth, f_supply_from_forest)
         # ---------------------------
         # Download CSV
         # ---------------------------
+        filter_states = [
+            State(f"{self.db_prefix}_{key}-dropdown", "value")
+            for key in self.filters.keys()
+        ]
+
         @self.app.callback(
-            Output("fdb_download", "data"),
-            Input("fdb_download-btn", "n_clicks"),
-            State("fdb_continent-dropdown", "value"),
-            State("fdb_country-dropdown", "value"),
-            State("fdb_scenario-dropdown", "value"),
+            Output(f"{self.db_prefix}_download", "data"),
+            Input(f"{self.db_prefix}_download-btn", "n_clicks"),
+            *filter_states,
             prevent_initial_call=True
         )
-        def download_filtered_csv(n_clicks, continent, region, scenario):
+
+        def download_filtered_csv(n_clicks, *filter_values):
             if n_clicks is None:
                 return dash.no_update
+            
+            filter_values_dict = dict(zip(self.filters.keys(), filter_values))
 
             df = PlotUtils.filter_data(
                 df=self.data.copy(),
-                region=region,
-                continent=continent,
-                scenario=scenario
+                **filter_values_dict
             )
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"filtered_data_{timestamp}.csv"
 
-            return dcc.send_data_frame(df.to_csv, filename, index=False)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+            return dcc.send_data_frame(
+                df.to_csv,
+                f"filtered_data_{timestamp}.csv",
+                index=False
+            )
+        

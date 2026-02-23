@@ -57,7 +57,7 @@ FOREST_DB_FILTERS = {
         "column": "Continent",
         "placeholder": "Select Continent..."
     },
-    "country": {
+    "region": {
         "column": "ISO3",
         "placeholder": "Select Country..."
     },
@@ -68,6 +68,29 @@ FOREST_DB_FILTERS = {
 }
 
 PRICE_DB_FILTERS = OVERVIEW_DB_FILTERS.copy()
+
+TRADE_DB_FILTERS = {
+    "continent": {
+        "column": "Continent",
+        "placeholder": "Select Continent..."
+    },
+    "region": {
+        "column": "ISO3",
+        "placeholder": "Select Country..."
+    },
+    "commodity": {
+        "column": "Commodity",
+        "placeholder": "Select Commodity..."
+    },
+    "commodity_group": {
+        "column": "Commodity_Group",
+        "placeholder": "Select Commodity Group..."
+    },
+    "scenario": {
+        "column": "Scenario",
+        "placeholder": "Select Scenario..."
+    }
+}
 
 PLOT_FILTERS = {
     "trade": [
