@@ -32,7 +32,7 @@ class ForestDB:
     def create_layout(self):
 
         filters = self.filter_builder.build_all(self.filters)
-        button = self.layout.download_button()
+        button = self.layout.download_button(f"{self.db_prefix}_download-btn")
 
         return dbc.Container(
             fluid=True,

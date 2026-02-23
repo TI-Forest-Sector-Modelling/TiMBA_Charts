@@ -23,12 +23,12 @@ class Layout:
         )
     
     @staticmethod
-    def download_button():
+    def download_button(button_id):
         return[
             html.Div(
                 dbc.Button(
                     "⬇ CSV",
-                    id="odb_download-btn",
+                    id=button_id,
                     color="primary",
                     style={"height": "38px"}
                 ),
