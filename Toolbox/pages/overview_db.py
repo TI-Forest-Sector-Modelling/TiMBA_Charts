@@ -111,6 +111,23 @@ class OverviewDB:
             filter_values_dict = dict(zip(self.filters.keys(), filter_values))
             print(filter_values_dict)
             #-----------
+            # subset forest data
+            #-----------
+            forest_filter_values_dict = dict(zip(
+                FOREST_DB_FILTERS.keys(), 
+                filter_values
+                )
+            )
+
+            df_forest = PlotUtils.filter_data(
+                df=self.forest_df.copy(),
+                **PlotUtils().get_plot_filters(
+                    forest_filter_values_dict, 
+                    "forest"
+                )
+            )
+            forstock_plot = self.plots.plot_forstock(df_forest,colors=self.colors)
+            #-----------
             # subset for net export
             #-----------
             df_trade = PlotUtils.filter_data(
@@ -165,24 +182,6 @@ class OverviewDB:
                 df_map,
                 max_year=df_map["year"].max(),
             )
-
-            #-----------
-            # subset forest data
-            #-----------
-            forest_filter_values_dict = dict(zip(
-                FOREST_DB_FILTERS.keys(), 
-                filter_values
-                )
-            )
-
-            df_forest = PlotUtils.filter_data(
-                df=self.forest_df.copy(),
-                **PlotUtils().get_plot_filters(
-                    forest_filter_values_dict, 
-                    "forest"
-                )
-            )
-            forstock_plot = self.plots.plot_forstock(df_forest,colors=self.colors)
 
             return main_plot, price_plot, q_net_export_fig, forstock_plot, world_map
 

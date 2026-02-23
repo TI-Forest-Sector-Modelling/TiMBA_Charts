@@ -39,7 +39,7 @@ class Plots:
                 title="Year", 
             ),
             yaxis=dict(
-                title="Quantity", 
+                title="Quantity in 1000 m³ or 1000 t", 
                 rangemode="nonnegative",
             ),
             hovermode="x unified",
@@ -70,7 +70,7 @@ class Plots:
         fig.update_layout(
             title="Total Value over Time",
             xaxis_title="Period",
-            yaxis_title="Value",
+            yaxis_title="Value in 1000 US$",
             template="plotly_white",
             barmode="group",
             margin=dict(l=40, r=20, t=40, b=40),
@@ -107,9 +107,9 @@ class Plots:
             )
 
         fig.update_layout(
-            title="Value growth per year in %",
+            title="Value growth per year",
             xaxis_title="Period",
-            yaxis_title="Growth (%)",
+            yaxis_title="Growth in %",
             template="plotly_white",
             margin=dict(l=40, r=20, t=40, b=40),
             hovermode="x unified",
@@ -150,7 +150,7 @@ class Plots:
         fig.update_layout(
             title="Price by Period",
             xaxis_title="Period",
-            yaxis_title="Price",
+            yaxis_title="Price in US$",
             template="plotly_white",
             margin=dict(l=40, r=20, t=40, b=40),
             hovermode="x unified",
@@ -191,8 +191,8 @@ class Plots:
             )
 
         fig.update_layout(
-            title="Price growth per year in %",
-            yaxis_title="Growth (%)",
+            title="Price growth per year",
+            yaxis_title="Growth in %",
             xaxis_title="Period",
             barmode="group",
             template="plotly_white",
@@ -346,6 +346,7 @@ class Plots:
         all_values = []
         for s in df["Scenario"].unique():
             area = df[df["Scenario"]==s].groupby("Period")["ForArea"].sum()
+            area=area/1000
             y_vals = [area.get(p,0) for p in periods]
             all_values.extend(y_vals)
 
@@ -359,7 +360,7 @@ class Plots:
         fig.update_layout(
             title="Forest Area", 
             xaxis_title="Period", 
-            yaxis_title="Sum of ForArea",
+            yaxis_title="in million ha",
             barmode="group", 
             template=self.template, 
             yaxis=dict(range=PlotUtils.dynamic_y_range(all_values)),
@@ -386,7 +387,7 @@ class Plots:
         fig.update_layout(
             title="Forest Stock", 
             xaxis_title="Period", 
-            yaxis_title="Sum of ForStock",
+            yaxis_title="in million m³",
             barmode="group", 
             template=self.template, 
             yaxis=dict(range=PlotUtils.dynamic_y_range(all_values)),
@@ -399,45 +400,97 @@ class Plots:
         fig = go.Figure()
 
         for s in df["Scenario"].unique():
-            area = df[df["Scenario"]==s].groupby("Period")["ForArea"].sum().reindex(periods)
+            df_s = df[df["Scenario"] == s]
+
+            area = (
+                df_s.groupby("Period")["ForArea"]
+                .sum()
+                .reindex(periods)
+            )
+
+            years = (
+                df_s.groupby("Period")["year"]
+                .mean()
+                .reindex(periods)
+            )
+
+            delta_years = years.diff()
+
+            area_change = (area / area.shift(1)) ** (1 / delta_years) - 1
+
             fig.add_scatter(
                 x=periods, 
-                y=area.pct_change(), 
+                y=area_change, 
                 mode="lines+markers",
                 line=dict(color=colors[s]), 
                 showlegend=False
             )
 
         fig.update_layout(
-            title="Forest Area Growth",
+            title="Annualized Forest Area Growth",
             xaxis_title="Period", 
-            yaxis_title="Growth rate",
-            yaxis_tickformat=".1%", 
+            yaxis_title="Growth rate in %",
+            yaxis_tickformat=".2%", 
             margin=dict(l=40, r=20, t=40, b=40),
             template=self.template
         )
 
         return fig
 
-    def plot_stock_growth(self, df,colors:dict):
+    def plot_stock_growth(self, df, colors: dict, calc: str):
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
 
         for s in df["Scenario"].unique():
-            stock = df[df["Scenario"]==s].groupby("Period")["ForStock"].sum().reindex(periods)
+
+            df_s = df[df["Scenario"] == s]
+
+            agg = (
+                df_s.groupby("Period")
+                .agg({
+                    "ForStock": "sum",
+                    "supply_from_forest": "sum",
+                    "year": "mean"
+                })
+                .reindex(periods)
+            )
+
+            delta_years = agg["year"].diff()
+            stock = agg["ForStock"]
+
+            nai = agg["ForStock"].diff() / delta_years
+
+            if calc == "pct_change":
+                stock_change = (stock / stock.shift(1)) ** (1 / delta_years) - 1
+                title = "Annualized Forest Stock Growth"
+                yaxis_title = "Growth rate in %"
+                yaxis_tickformat = ".2%"
+
+            elif calc == "sustainable_supply":
+                stock_change = nai 
+                title = "NAI minus total removals"
+                yaxis_title = "in million m³"
+                yaxis_tickformat = ".1f"
+
+            else:
+                stock_change = nai + (agg["supply_from_forest"]*1.2)
+                title = "Net Annual Increment (NAI) per year"
+                yaxis_title = "in million m³"
+                yaxis_tickformat = ".1f"
+
             fig.add_scatter(
-                x=periods, 
-                y=stock.pct_change(), 
+                x=periods,
+                y=stock_change,
                 mode="lines+markers",
-                line=dict(color=colors[s]), 
-                showlegend=False
+                line=dict(color=colors[s]),
+                showlegend=False,
             )
 
         fig.update_layout(
-            title="Forest Stock Growth",
-            xaxis_title="Period", 
-            yaxis_title="Growth rate",
-            yaxis_tickformat=".1%", 
+            title=title,
+            xaxis_title="Period",
+            yaxis_title=yaxis_title,
+            yaxis_tickformat=yaxis_tickformat,
             template=self.template,
             margin=dict(l=40, r=20, t=40, b=40),
         )
@@ -450,7 +503,7 @@ class Plots:
 
         for s in df["Scenario"].unique():
             g = df[df["Scenario"]==s].groupby("Period")[["ForStock","ForArea"]].sum().replace(0,np.nan)
-            ratio = g["ForStock"]/g["ForArea"]
+            ratio = g["ForStock"]/(g["ForArea"]/1000)
 
             fig.add_scatter(
                 x=periods, 
@@ -461,9 +514,9 @@ class Plots:
             )
 
         fig.update_layout(
-            title="Stock / Area", 
+            title="Forest density (Stock per Area)", 
             xaxis_title="Period", 
-            yaxis_title="Stock per Area",
+            yaxis_title="in 1 000 m³ per ha",
             template=self.template,
             margin=dict(l=40, r=20, t=40, b=40),
         )
@@ -476,22 +529,23 @@ class Plots:
 
         for s in df["Scenario"].unique():
             sub = df[df["Scenario"]==s].sort_values("Period").groupby("Period")[["supply_from_forest","year"]].sum().reindex(periods)
-            delta_year = sub["year"].diff()
-            normalized_supply = sub["supply_from_forest"]/delta_year
+            normalized_supply = sub["supply_from_forest"]
+            supply_range = normalized_supply[normalized_supply > 0]
 
-            fig.add_scatter(
+            fig.add_bar(
                 x=periods, 
                 y=normalized_supply, 
-                mode="lines+markers",
-                line=dict(color=colors[s]), 
+                marker_color=colors[s], 
                 showlegend=False
             )
 
         fig.update_layout(
             title="Supply from Forest (per year change)", 
             xaxis_title="Period",
-            yaxis_title="Supply / ΔYear", 
+            yaxis_title="in million m³", 
+            barmode="group", 
             template=self.template,
+            yaxis=dict(range=PlotUtils.dynamic_y_range(supply_range)),
             margin=dict(l=40, r=20, t=40, b=40),
         )
 

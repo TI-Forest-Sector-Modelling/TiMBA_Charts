@@ -56,18 +56,20 @@ class ForestDB:
                 # Card behind all plots
                 # ==========================================================
                 html.Div(
-                    style=ls.plot_card_3x2_background_simple,
+                    style=ls.plot_card_4x2_background_simple,
                     children=[
                         #-----------
                         # Cards for the specific plots
                         #-----------
 
                         self.layout._graph_card("fdb_forarea_plot"),
-                        self.layout._graph_card("fdb_area_growth_plot"),
-                        self.layout._graph_card("fdb_stock_area_ratio_plot"),
                         self.layout._graph_card("fdb_forstock_plot"),
+                        self.layout._graph_card("fdb_stock_area_ratio_plot"),
+                        self.layout._graph_card("fdb_NAI_plot"),
+                        self.layout._graph_card("fdb_area_growth_plot"),
                         self.layout._graph_card("fdb_stock_growth_plot"),
                         self.layout._graph_card("fdb_supply_from_forest_plot"),
+                        self.layout._graph_card("fdb_sustainable_supply_plot"),
 
                     ]
                 ),
@@ -93,11 +95,13 @@ class ForestDB:
 
         @self.app.callback(
             Output("fdb_forarea_plot", "figure"),
-            Output("fdb_area_growth_plot", "figure"),
-            Output("fdb_stock_area_ratio_plot", "figure"),
             Output("fdb_forstock_plot", "figure"),
+            Output("fdb_stock_area_ratio_plot", "figure"),
+            Output("fdb_NAI_plot", "figure"),
+            Output("fdb_area_growth_plot", "figure"),
             Output("fdb_stock_growth_plot", "figure"),
             Output("fdb_supply_from_forest_plot", "figure"),
+            Output("fdb_sustainable_supply_plot", "figure"),
             *filter_inputs,
         )
         def update_plots(*filter_values):
@@ -120,16 +124,32 @@ class ForestDB:
                     "forest"
                 )
             )
+            print(df)
 
             f_forarea=self.plots.plot_forarea(df,colors=self.colors)
             f_forstock=self.plots.plot_forstock(df,colors=self.colors)
             f_area_growth=self.plots.plot_area_growth(df,colors=self.colors)
-            f_stock_growth=self.plots.plot_stock_growth(df,colors=self.colors)
+            f_stock_growth=self.plots.plot_stock_growth(
+                df,
+                colors=self.colors,
+                calc="pct_change",
+            )
             f_stock_area_ratio=self.plots.plot_stock_area_ratio(df,colors=self.colors)
             f_supply_from_forest=self.plots.plot_supply_from_forest(df,colors=self.colors)
+            f_nai=self.plots.plot_stock_growth(
+                df,
+                colors=self.colors,
+                calc=""
+            )
+            f_sustainable_supply=self.plots.plot_stock_growth(
+                df,
+                colors=self.colors,
+                calc="sustainable_supply",
+            )
 
-            return (f_forarea, f_area_growth, f_stock_area_ratio,
-                    f_forstock, f_stock_growth, f_supply_from_forest)
+            return (f_forarea, f_forstock, f_stock_area_ratio, f_nai,
+                    f_area_growth, f_stock_growth, f_supply_from_forest, f_sustainable_supply)
+        
         # ---------------------------
         # Download CSV
         # ---------------------------
