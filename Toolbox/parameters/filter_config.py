@@ -126,7 +126,7 @@ PLOT_FILTERS = {
         "commodity_group",
         "year",
     ],
-        "worldmap_forest": [
+    "worldmap_forest": [
         "continent",
         "year",
     ],
