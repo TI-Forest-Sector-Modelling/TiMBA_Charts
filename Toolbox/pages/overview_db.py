@@ -12,8 +12,6 @@ from Toolbox.parameters.filter_config import OVERVIEW_DB_FILTERS,FOREST_DB_FILTE
 import Toolbox.parameters.layout_styles as ls
 from datetime import datetime
 
-PACKAGEDIR = Path(__file__).parent.parent.absolute()
-
 
 class OverviewDB:
      
@@ -25,6 +23,7 @@ class OverviewDB:
         self.db_prefix = "odb"
         self.data = data[dp.overview_db]
         self.forest_df = data[dp.forest_db]
+        self.filters = OVERVIEW_DB_FILTERS
         self.plots = Plots()
         self.layout = Layout()
         self.filter_builder = FilterLayout(self.data, prefix=self.db_prefix)
@@ -38,7 +37,7 @@ class OverviewDB:
     # ------------------------------------------------------------------
     def create_layout(self):
 
-        filters = self.filter_builder.build_all(OVERVIEW_DB_FILTERS)
+        filters = self.filter_builder.build_all(self.filters)
         button = self.layout.download_button()
 
         return dbc.Container(
@@ -85,7 +84,7 @@ class OverviewDB:
                 # ==========================================================
                 self.layout._legend_card(colors= self.colors,
                                          scenarios = self.scenarios),
-                dcc.Download(id="odb_download")
+                dcc.Download(id=f"{self.db_prefix}_download")
             ]
         )
     
@@ -94,7 +93,10 @@ class OverviewDB:
     # Callbacks
     # ------------------------------------------------------------------
     def register_callbacks(self):
-        filter_inputs = PlotUtils().build_filter_inputs("odb", OVERVIEW_DB_FILTERS)
+        filter_inputs = PlotUtils().build_filter_inputs(
+            self.db_prefix, 
+            self.filters
+        )
 
         @self.app.callback(
             Output("odb_main_plot", "figure"),
@@ -106,7 +108,7 @@ class OverviewDB:
         )
         def update_plots(*filter_values):
             print(f"{self.db_prefix}_dashboard")
-            filter_values_dict = dict(zip(OVERVIEW_DB_FILTERS.keys(), filter_values))
+            filter_values_dict = dict(zip(self.filters.keys(), filter_values))
             print(filter_values_dict)
             #-----------
             # subset for net export
@@ -167,7 +169,11 @@ class OverviewDB:
             #-----------
             # subset forest data
             #-----------
-            forest_filter_values_dict = dict(zip(FOREST_DB_FILTERS.keys(), filter_values))
+            forest_filter_values_dict = dict(zip(
+                FOREST_DB_FILTERS.keys(), 
+                filter_values
+                )
+            )
 
             df_forest = PlotUtils.filter_data(
                 df=self.forest_df.copy(),
@@ -184,13 +190,13 @@ class OverviewDB:
         # Download CSV
         # ---------------------------
         filter_states = [
-            State(f"odb_{key}-dropdown", "value")
+            State(f"{self.db_prefix}_{key}-dropdown", "value")
             for key in OVERVIEW_DB_FILTERS.keys()
         ]
 
         @self.app.callback(
-            Output("odb_download", "data"),
-            Input("odb_download-btn", "n_clicks"),
+            Output(f"{self.db_prefix}_download", "data"),
+            Input(f"{self.db_prefix}_download-btn", "n_clicks"),
             *filter_states,
             prevent_initial_call=True
         )
@@ -199,7 +205,7 @@ class OverviewDB:
             if n_clicks is None:
                 return dash.no_update
             
-            filter_values_dict = dict(zip(OVERVIEW_DB_FILTERS.keys(), filter_values))
+            filter_values_dict = dict(zip(self.filters.keys(), filter_values))
 
             df = PlotUtils.filter_data(
                 df=self.data.copy(),

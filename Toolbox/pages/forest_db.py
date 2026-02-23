@@ -3,16 +3,12 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
 import pandas as pd
-from pathlib import Path
-import Toolbox.parameters.default_parameters as dp
 from Toolbox.classes.utils import PlotUtils
 from Toolbox.classes.PlotManager import Plots
 from Toolbox.classes.LayoutManager import Layout, FilterLayout
 from Toolbox.parameters.filter_config import FOREST_DB_FILTERS
 import Toolbox.parameters.layout_styles as ls
 from datetime import datetime
-
-PACKAGEDIR = Path(__file__).parent.parent.absolute()
 
 
 class ForestDB:
