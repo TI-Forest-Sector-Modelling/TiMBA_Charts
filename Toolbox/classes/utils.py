@@ -59,11 +59,16 @@ class PlotUtils:
     def generate_title(filter_dict: dict, ignore_keys=None) -> str:
         ignore_keys = set(ignore_keys or [])
 
-        parts = [
-            str(v[0])
-            for k, v in filter_dict.items()
-            if k not in ignore_keys and v
-        ]
+        parts = []
+
+        for k, v in filter_dict.items():
+            if k in ignore_keys or not v:
+                continue
+
+            if isinstance(v, (list, tuple, set)):
+                parts.append(", ".join(map(str, v)))
+            else:
+                parts.append(str(v))
 
         return ", ".join(parts) if parts else "sum of all data"
 
