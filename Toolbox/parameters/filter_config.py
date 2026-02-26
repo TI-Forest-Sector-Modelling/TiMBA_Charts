@@ -1,4 +1,8 @@
 OVERVIEW_DB_FILTERS = {
+    "scenario": {
+        "column": "Scenario",
+        "placeholder": "Select Scenario..."
+    },
     "continent": {
         "column": "Continent",
         "placeholder": "Select Continent..."
@@ -19,16 +23,16 @@ OVERVIEW_DB_FILTERS = {
         "column": "Commodity_Group",
         "placeholder": "Select Commodity Group..."
     },
-    "scenario": {
-        "column": "Scenario",
-        "placeholder": "Select Scenario..."
-    }
 }
 
 WORLD_MAP_DB_FILTERS = {
     "continent": {
         "column": "Continent",
         "placeholder": "Select Continent..."
+    },
+    "year": {
+        "column": "year",
+        "placeholder": "Select Year..."
     },
     "commodity": {
         "column": "Commodity",
@@ -46,13 +50,13 @@ WORLD_MAP_DB_FILTERS = {
         "column": "Scenario",
         "placeholder": "Select Alternative Scenario..."
     },
-    "year": {
-        "column": "year",
-        "placeholder": "Select Year..."
-    },
 }
 
 FOREST_DB_FILTERS = {
+    "scenario": {
+        "column": "Scenario",
+        "placeholder": "Select Scenario..."
+    },
     "continent": {
         "column": "Continent",
         "placeholder": "Select Continent..."
@@ -61,15 +65,15 @@ FOREST_DB_FILTERS = {
         "column": "ISO3",
         "placeholder": "Select Country..."
     },
-    "scenario": {
-        "column": "Scenario",
-        "placeholder": "Select Scenario..."
-    }
 }
 
 PRICE_DB_FILTERS = OVERVIEW_DB_FILTERS.copy()
 
 TRADE_DB_FILTERS = {
+    "scenario": {
+        "column": "Scenario",
+        "placeholder": "Select Scenario..."
+    },
     "continent": {
         "column": "Continent",
         "placeholder": "Select Continent..."
@@ -86,45 +90,42 @@ TRADE_DB_FILTERS = {
         "column": "Commodity_Group",
         "placeholder": "Select Commodity Group..."
     },
-    "scenario": {
-        "column": "Scenario",
-        "placeholder": "Select Scenario..."
-    }
 }
 
 PLOT_FILTERS = {
     "trade": [
-        "region",
+        "scenario",
         "continent",
+        "region",
         "commodity",
         "commodity_group",
-        "scenario",
     ],
     "main": [
-        "region",
+        "scenario",
         "continent",
+        "region",
         "commodity",
         "commodity_group",
-        "scenario",
         "domain",
     ],
     "map": [
-        "region",
+        "scenario",
         "continent",
+        "region",
         "commodity",
         "commodity_group",
         "domain",
     ],
     "forest": [
-        "region",
-        "continent",
         "scenario",
+        "continent",
+        "region",
     ],
     "worldmap": [
         "continent",
+        "year",
         "commodity",
         "commodity_group",
-        "year",
     ],
     "worldmap_forest": [
         "continent",

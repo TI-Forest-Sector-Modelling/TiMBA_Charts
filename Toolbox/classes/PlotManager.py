@@ -9,9 +9,17 @@ class Plots:
 
     def __init__(self, template="plotly_white"):
         self.template = template
+        self.pad_down = 150
+        self.margin_top = 60
 
-    def create_quantity_plot(self, df,colors
-                             ):
+    def create_quantity_plot(
+            self, 
+            df: pd.DataFrame,
+            colors: dict,
+            filter_dict: dict
+            ):
+        
+        title = PlotUtils.generate_title(filter_dict=filter_dict)
         grouped_df = df.groupby(["year", "Scenario"]).sum().reset_index()
 
         fig = go.Figure()
@@ -29,12 +37,14 @@ class Plots:
                 )
             )
 
-        title = f"Quantity by Year and Scenario for"
         fig.update_layout(
             showlegend=False,
-            title=dict(
-                text="<br>".join(textwrap.wrap(title, 90)),
-            ),
+            title={
+                "text": f"Quantity in m³ or t for <br>{title}",
+                "x": 0.5,
+                "xanchor": "center",
+                "pad": {"b": self.pad_down}
+            },
             xaxis=dict(
                 title="Year", 
             ),
@@ -45,7 +55,7 @@ class Plots:
             hovermode="x unified",
             template=self.template,
             autosize = True,
-            margin=dict(l=40, r=20, t=40, b=40),
+            margin=dict(l=40, r=20, t=self.margin_top, b=40),
         )
         return fig
 
@@ -158,7 +168,14 @@ class Plots:
         )
         return fig
     
-    def create_price_growth_plot(self, df: pd.DataFrame, colors:dict) -> go.Figure:
+    def create_price_growth_plot(
+            self, 
+            df: pd.DataFrame, 
+            colors:dict,
+            filter_dict: dict,
+            ) -> go.Figure:
+        
+        title = PlotUtils.generate_title(filter_dict=filter_dict)
         fig = go.Figure()
 
         df["Price"] = np.where(
@@ -191,12 +208,17 @@ class Plots:
             )
 
         fig.update_layout(
-            title="Price growth per year",
+            title={
+                "text": f"Annual price growth for <br>{title}",
+                "x": 0.5,
+                "xanchor": "center",
+                "pad": {"b": self.pad_down}
+            },
             yaxis_title="Growth in %",
             xaxis_title="Period",
             barmode="group",
             template="plotly_white",
-            margin=dict(l=40, r=20, t=40, b=40),
+            margin=dict(l=40, r=20, t=self.margin_top, b=40),
             hovermode="x unified",
             showlegend=False
         )
@@ -241,7 +263,12 @@ class Plots:
     def create_trade_bar_plot(self, df: pd.DataFrame,
                               trade_domain:str,
                               unit:str,
-                              colors:dict) -> go.Figure:
+                              colors:dict,
+                              filter_dict:dict={}) -> go.Figure:
+        title = PlotUtils.generate_title(
+            filter_dict=filter_dict,
+            ignore_keys=["domain"]
+        )
         df = df[df["domain"]==trade_domain]
         fig = go.Figure()
         plot_df = (
@@ -265,12 +292,17 @@ class Plots:
                 )
 
         fig.update_layout(
-            title=f"{trade_domain} {unit} per period",
+            title={
+                "text": f"{trade_domain} {unit} per period for <br>{title}",
+                "x": 0.5,
+                "xanchor": "center",
+                "pad": {"b": self.pad_down}   # Abstand nach unten (bottom)
+            },
             xaxis_title="Period",
             yaxis_title=unit,
             barmode="group",
             template="plotly_white",
-            margin=dict(l=40, r=20, t=40, b=40),
+            margin=dict(l=40, r=20, t=self.margin_top, b=40),
             hovermode="x unified",
             showlegend=False
         )
@@ -287,7 +319,12 @@ class Plots:
                             hover_name="ISO3", color_continuous_scale="Greens")
         
         fig.update_layout(
-            title=f"Worldmap for historic data in the year {max_year}",
+            title={
+                "text": f"Worldmap for historic data in {max_year} for <br>",
+                "x": 0.5,
+                "xanchor": "center",
+                "pad": {"b": self.pad_down}
+            },
             geo=dict(
                 showcoastlines=True, 
                 coastlinecolor="LightGray",
@@ -296,7 +333,7 @@ class Plots:
                 lataxis_range=[-55,55]
             ),
             autosize=True,
-            margin=dict(l=5, r=5, t=31, b=1),
+            margin=dict(l=5, r=5, t=self.margin_top, b=1),
             coloraxis_showscale=False
         )
         return fig
@@ -368,10 +405,16 @@ class Plots:
         )
         return fig
 
-    def plot_forstock(self, df:pd.DataFrame,colors:dict):
+    def plot_forstock(self, 
+                      df:pd.DataFrame,
+                      colors:dict,
+                      filter_dict:dict={}):
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
         all_values = []
+        title = PlotUtils.generate_title(
+            filter_dict=filter_dict,
+            ignore_keys=["commodity","commodity_group"])
 
         for s in df["Scenario"].unique():
             stock = df[df["Scenario"]==s].groupby("Period")["ForStock"].sum()
@@ -385,13 +428,18 @@ class Plots:
             )
 
         fig.update_layout(
-            title="Forest Stock", 
+            title={
+                "text": f"Forest Stock for <br>{title}", 
+                "x": 0.5,
+                "xanchor": "center",
+                "pad": {"b": self.pad_down}
+            },
             xaxis_title="Period", 
             yaxis_title="in million m³",
             barmode="group", 
             template=self.template, 
             yaxis=dict(range=PlotUtils.dynamic_y_range(all_values)),
-            margin=dict(l=40, r=20, t=40, b=40),
+            margin=dict(l=40, r=20, t=self.margin_top, b=40),
         )
         return fig
 

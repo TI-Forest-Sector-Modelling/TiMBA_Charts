@@ -89,6 +89,11 @@ class timba_dashboard:
         self.data = process.combined_data()
         self.pivot_map_data = process.pivot_map_data()
         self.pivot_df_stock, self.pivot_df_area = process.pivot_map_forest_data()
+        # self.data[dp.overview_db].to_pickle("data_overview.pkl")
+        # self.data[dp.forest_db].to_pickle("data_forest.pkl")
+        # self.pivot_map_data.to_pickle("pivot_map_data.pkl")
+        # self.pivot_df_stock.to_pickle("pivot_df_stock.pkl")
+        # self.pivot_df_area.to_pickle("pivot_df_area.pkl")
         print("TiMBA data is fully loaded!\n")
 
     def _import_formip(self):

@@ -108,7 +108,11 @@ class OverviewDB:
         )
         def update_plots(*filter_values):
             print(f"{self.db_prefix}_dashboard")
-            filter_values_dict = dict(zip(self.filters.keys(), filter_values))
+            filter_values_dict = dict(zip(
+                self.filters.keys(), 
+                filter_values
+                )
+            )
             print(filter_values_dict)
             #-----------
             # subset forest data
@@ -118,6 +122,7 @@ class OverviewDB:
                 filter_values
                 )
             )
+            print(forest_filter_values_dict)
 
             df_forest = PlotUtils.filter_data(
                 df=self.forest_df.copy(),
@@ -126,7 +131,13 @@ class OverviewDB:
                     "forest"
                 )
             )
-            forstock_plot = self.plots.plot_forstock(df_forest,colors=self.colors)
+            # create forest stock plot
+            forstock_plot = self.plots.plot_forstock(
+                df_forest,
+                colors=self.colors,
+                filter_dict=forest_filter_values_dict
+            )
+
             #-----------
             # subset for net export
             #-----------
@@ -137,11 +148,13 @@ class OverviewDB:
                     "trade"
                 )
             )
+            # create net export plot
             q_net_export_fig = self.plots.create_trade_bar_plot(
                 df_trade,
                 "Net Exports",
                 "quantity",
-                colors=self.colors
+                colors=self.colors,
+                filter_dict=filter_values_dict
             )
 
             #-----------
@@ -154,7 +167,13 @@ class OverviewDB:
                     "main"
                 )
             )
-            main_plot = self.plots.create_quantity_plot(df_main,colors=self.colors)
+
+            # create main plot          
+            main_plot = self.plots.create_quantity_plot(
+                df_main,
+                colors=self.colors,
+                filter_dict=filter_values_dict,#
+            )
 
             agg_df = (
                 df_main.groupby(["Scenario", "Period", "year"], as_index=False)
@@ -163,7 +182,13 @@ class OverviewDB:
                     "quantity": "sum"
                 })
             )
-            price_plot = self.plots.create_price_growth_plot(agg_df,colors=self.colors)
+            
+            # create price plot 
+            price_plot = self.plots.create_price_growth_plot(
+                agg_df,
+                colors=self.colors,
+                filter_dict=filter_values_dict
+            )
 
             #-----------
             # add a filter world map
@@ -178,6 +203,7 @@ class OverviewDB:
             df_map = df_map[df_map["Scenario"] == "Historic Data"]
             df_map = df_map[df_map["year"] == df_map["year"].max()]
 
+            # create world map plot 
             world_map = self.plots.create_world_map_plot(
                 df_map,
                 max_year=df_map["year"].max(),

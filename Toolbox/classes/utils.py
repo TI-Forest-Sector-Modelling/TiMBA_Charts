@@ -34,7 +34,8 @@ class PlotUtils:
                     domain=None, 
                     commodity=None, 
                     commodity_group=None, 
-                    scenario=None,year=None,
+                    scenario=None,
+                    year=None,
                     ):
         filters = {
             "ISO3": region,
@@ -55,12 +56,16 @@ class PlotUtils:
         return df
     
     @staticmethod
-    def generate_title(region, continent, domain, commodity, commodity_group):
-        parts = []
-        for item in [region, continent, domain, commodity, commodity_group]:
-            if item:
-                parts.append(str(item))
-        return ", ".join(parts).replace("[", "").replace("]", "").replace("'", "") or "all data"
+    def generate_title(filter_dict: dict, ignore_keys=None) -> str:
+        ignore_keys = set(ignore_keys or [])
+
+        parts = [
+            str(v[0])
+            for k, v in filter_dict.items()
+            if k not in ignore_keys and v
+        ]
+
+        return ", ".join(parts) if parts else "sum of all data"
 
     @staticmethod
     def remove_extreme_outliers(df, col, threshold=50):
