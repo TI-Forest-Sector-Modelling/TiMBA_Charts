@@ -124,6 +124,8 @@ class ForestDB:
                 filter_dict=filter_values_dict,
             )
 
+            print(df)
+
             f_forarea=self.plots.plot_forarea(
                 df,
                 colors=self.colors,
@@ -134,16 +136,17 @@ class ForestDB:
                 colors=self.colors,
                 title=title,
             )
-            f_area_growth=self.plots.plot_area_growth(
+            f_area_growth=self.plots.plot_forest_growth(
                 df,
                 colors=self.colors,
                 title=title,
+                domain="ForArea"
             )
-            f_stock_growth=self.plots.plot_stock_growth(
+            f_stock_growth=self.plots.plot_forest_growth(
                 df,
                 colors=self.colors,
-                calc="pct_change",
-                title=title
+                title=title,
+                domain="ForStock"
             )
             f_stock_area_ratio=self.plots.plot_stock_area_ratio(
                 df,
@@ -155,13 +158,13 @@ class ForestDB:
                 colors=self.colors,
                 title=title,
             )
-            f_nai=self.plots.plot_stock_growth(
+            f_nai=self.plots.plot_nai(
                 df,
                 colors=self.colors,
                 calc="",
                 title=title,
             )
-            f_sustainable_supply=self.plots.plot_stock_growth(
+            f_sustainable_supply=self.plots.plot_nai(
                 df,
                 colors=self.colors,
                 calc="sustainable_supply",

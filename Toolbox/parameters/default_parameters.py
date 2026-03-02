@@ -24,3 +24,5 @@ color_palette = "Paired"  # Use seaborn color palettes (https://seaborn.pydata.o
 
 background_color = "#f5f5f5" # green: "#ebf8ed" #blue gray: "#f8f9fa",gray: "#eeeeee", white:"#ffffff"
 
+under_to_over_bark = 1.2
+
