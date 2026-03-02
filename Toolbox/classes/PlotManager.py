@@ -103,7 +103,7 @@ class Plots:
 
         df["Annual_Growth"] = (
             (df["Value"] / df["Prev_Value"]) ** (1 / df["Year_Diff"]) - 1
-        ) * 100
+        )# * 100
 
         for scenario in df["Scenario"].unique():
             scenario_df = df[df["Scenario"] == scenario]
@@ -123,6 +123,7 @@ class Plots:
             title="Value growth per year",
             xaxis_title="Period",
             yaxis_title="Growth in %",
+            yaxis_tickformat=".1%",
             template="plotly_white",
             margin=dict(l=40, r=20, t=self.margin_top, b=40),
             hovermode="x unified",
@@ -193,7 +194,7 @@ class Plots:
 
         df["Annual_Growth"] = (
             (df["Price"] / df["Prev_Price"]) ** (1 / df["Year_Diff"]) - 1
-        ) * 100
+        )# * 100
 
         for scenario in df["Scenario"].unique():
             scenario_df = df[df["Scenario"] == scenario]
@@ -218,6 +219,7 @@ class Plots:
                 "pad": {"b": self.pad_down}
             },
             yaxis_title="Growth in %",
+            yaxis_tickformat=".1%",
             xaxis=dict(
                 tickmode="array",
                 tickvals=df["Period"],
@@ -542,7 +544,7 @@ class Plots:
                 title="Year"
             ), 
             yaxis_title="Growth rate in %",
-            yaxis_tickformat=".2%", 
+            yaxis_tickformat=".1%", 
             margin=dict(l=40, r=20, t=self.margin_top, b=40),
             template=self.template
         )
@@ -556,6 +558,11 @@ class Plots:
             calc: str,
             title:str,
         ):
+
+        
+        plot_title = ""
+        yaxis_title = ""
+        yaxis_tickformat = ""
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
 
@@ -576,29 +583,32 @@ class Plots:
             delta_years = agg["year"].diff()
             stock = agg["ForStock"]
 
-            nai = agg["ForStock"].diff() / delta_years
+            nai_without_removals = agg["ForStock"].diff() / delta_years
+            nai = nai_without_removals + (agg["supply_from_forest"]*1.2)
 
             if calc == "pct_change":
-                stock_change = (stock / stock.shift(1)) ** (1 / delta_years) - 1
+                value = (stock / stock.shift(1)) ** (1 / delta_years) - 1
                 plot_title = f"Annual Forest Stock Growth for<br>{title}"
                 yaxis_title = "Growth rate in %"
-                yaxis_tickformat = ".2%"
+                yaxis_tickformat = ".1%"
 
             elif calc == "sustainable_supply":
-                stock_change = nai 
-                plot_title = f"NAI minus total removals for<br>{title}"
-                yaxis_title = "in million m³"
-                yaxis_tickformat = ".1f"
+                supply_from_forest = agg["supply_from_forest"] * 1.2
+                value = supply_from_forest / nai.replace(0, np.nan)
+                print(value)
+                plot_title = f"Total Removals as a Share of NAI for<br>{title}"
+                yaxis_title = "in %"
+                yaxis_tickformat = ".1%"
 
             else:
-                stock_change = nai + (agg["supply_from_forest"]*1.2)
+                value = nai
                 plot_title = f"Net Annual Increment (NAI) for<br>{title}"
                 yaxis_title = "in million m³"
                 yaxis_tickformat = ".1f"
 
             fig.add_scatter(
                 x=periods,
-                y=stock_change,
+                y=value,
                 mode="lines+markers",
                 line=dict(color=colors[s]),
                 showlegend=False,
@@ -677,6 +687,7 @@ class Plots:
         ):
 
         periods = sorted(df["Period"].unique())
+        supply_range=0
         fig = go.Figure()
 
         for s in df["Scenario"].unique():
