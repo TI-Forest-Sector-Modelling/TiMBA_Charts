@@ -101,7 +101,6 @@ class import_pkl_data:
             sep=";",   
             encoding = "ISO-8859-1",
         )
-        print(commodity_data)
         commodity_data = commodity_data[["Commodity","CommodityCode","Commodity_Group","Unit"]]
         commodity_data.Commodity = commodity_data.Commodity.astype("category")
         commodity_data.CommodityCode = commodity_data.CommodityCode.astype("category")

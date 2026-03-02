@@ -123,6 +123,10 @@ class OverviewDB:
                 )
             )
             print(forest_filter_values_dict)
+            for_title = PlotUtils.generate_title(
+                filter_dict=forest_filter_values_dict,
+                ignore_keys=["commodity","commodity_group"]
+            )
 
             df_forest = PlotUtils.filter_data(
                 df=self.forest_df.copy(),
@@ -135,7 +139,7 @@ class OverviewDB:
             forstock_plot = self.plots.plot_forstock(
                 df_forest,
                 colors=self.colors,
-                filter_dict=forest_filter_values_dict
+                title=for_title
             )
 
             #-----------
@@ -148,13 +152,20 @@ class OverviewDB:
                     "trade"
                 )
             )
+            y_label = PlotUtils.dynamic_y_label(df=df_trade)
+
+            trade_title = PlotUtils.generate_title(
+                filter_dict=filter_values_dict,
+                ignore_keys=["domain"],
+            )
             # create net export plot
             q_net_export_fig = self.plots.create_trade_bar_plot(
                 df_trade,
                 "Net Exports",
                 "quantity",
                 colors=self.colors,
-                filter_dict=filter_values_dict
+                title=trade_title,
+                y_label=y_label
             )
 
             #-----------
@@ -168,11 +179,14 @@ class OverviewDB:
                 )
             )
 
+            title = PlotUtils.generate_title(filter_dict=filter_values_dict)
+
             # create main plot          
             main_plot = self.plots.create_quantity_plot(
                 df_main,
                 colors=self.colors,
-                filter_dict=filter_values_dict,#
+                title=title,
+                y_label=y_label,
             )
 
             agg_df = (
@@ -187,7 +201,7 @@ class OverviewDB:
             price_plot = self.plots.create_price_growth_plot(
                 agg_df,
                 colors=self.colors,
-                filter_dict=filter_values_dict
+                title=title
             )
 
             #-----------
@@ -200,6 +214,7 @@ class OverviewDB:
                     "map"
                 )
             )
+
             df_map = df_map[df_map["Scenario"] == "Historic Data"]
             df_map = df_map[df_map["year"] == df_map["year"].max()]
 
@@ -207,6 +222,8 @@ class OverviewDB:
             world_map = self.plots.create_world_map_plot(
                 df_map,
                 max_year=df_map["year"].max(),
+                title=title,
+                colorbar_label=y_label
             )
 
             return main_plot, price_plot, q_net_export_fig, forstock_plot, world_map

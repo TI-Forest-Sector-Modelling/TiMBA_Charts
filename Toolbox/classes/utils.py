@@ -98,4 +98,4 @@ class PlotUtils:
     @staticmethod
     def dynamic_y_label(df):
         units = sorted(df["Unit"].dropna().unique())
-        return f"Quantity in {' and '.join(units)}"
+        return f"{' and '.join(units)}"
