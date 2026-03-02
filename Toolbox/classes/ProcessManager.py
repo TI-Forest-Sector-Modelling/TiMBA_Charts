@@ -106,6 +106,7 @@ class DataProcessor:
             'CommodityCode',
             'Commodity',
             'Commodity_Group',
+            'Unit',
             'Period',
             'year',
             'domain',

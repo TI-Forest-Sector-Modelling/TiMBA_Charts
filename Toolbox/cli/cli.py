@@ -26,7 +26,8 @@ def dashboard_cli(num_files,folderpath,print_settings):
     click.echo("Dashboard is started")
     td = timba_dashboard(num_files_to_read=num_files,
                          FOLDER_PATH=folderpath,
-                         print_settings=print_settings)
+                         #print_settings=print_settings
+                         )
     td.run()
 
 cli.add_command(dashboard_cli, name="dashboard")

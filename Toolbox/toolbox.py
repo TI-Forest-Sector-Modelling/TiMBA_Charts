@@ -82,10 +82,15 @@ class timba_dashboard:
             SCENARIOPATH=self.SCENARIO_PATH,
             ADDINFOPATH=self.ADDINFO_PATH
         )
+
         data, country_data, commodity_data, hist_data = importer.main()
-        process = DataProcessor(data=data,country_data=country_data,
-                                commodity_data=commodity_data,
-                                data_hist=hist_data)
+        
+        process = DataProcessor(
+            data=data,country_data=country_data,
+            commodity_data=commodity_data,
+            data_hist=hist_data
+        )
+
         self.data = process.combined_data()
         self.pivot_map_data = process.pivot_map_data()
         self.pivot_df_stock, self.pivot_df_area = process.pivot_map_forest_data()

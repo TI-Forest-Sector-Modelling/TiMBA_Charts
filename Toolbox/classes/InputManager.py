@@ -81,7 +81,10 @@ class import_pkl_data:
         """read data additional information for country data
         :return: country data
         """
-        country_data = pd.read_csv(self.ADDINFOPATH / toolbox_paths.COUNTRYINFO, encoding = "ISO-8859-1")
+        country_data = pd.read_csv(
+            self.ADDINFOPATH / toolbox_paths.COUNTRYINFO,  
+            encoding = "ISO-8859-1",
+        )
         country_data = country_data[["Country-Code", "ContinentNew", "Country","ISO-Code"]]
         country_data.columns = ["RegionCode","Continent", "Country","ISO3"]
         country_data.Country = country_data.Country.astype("category")
@@ -93,11 +96,17 @@ class import_pkl_data:
         """read data additional information for commodity data
         :return: commodity data
         """
-        commodity_data = pd.read_csv(self.ADDINFOPATH / toolbox_paths.COMMODITYINFO , encoding = "ISO-8859-1")
-        commodity_data = commodity_data[["Commodity","CommodityCode","Commodity_Group"]]
+        commodity_data = pd.read_csv(
+            self.ADDINFOPATH / toolbox_paths.COMMODITYINFO,
+            sep=";",   
+            encoding = "ISO-8859-1",
+        )
+        print(commodity_data)
+        commodity_data = commodity_data[["Commodity","CommodityCode","Commodity_Group","Unit"]]
         commodity_data.Commodity = commodity_data.Commodity.astype("category")
         commodity_data.CommodityCode = commodity_data.CommodityCode.astype("category")
         commodity_data.Commodity_Group = commodity_data.Commodity_Group.astype("category")
+        commodity_data.Unit = commodity_data.Unit.astype("category")
         return commodity_data
     
     def read_historic_data(self):

@@ -20,6 +20,7 @@ class Plots:
             ):
         
         title = PlotUtils.generate_title(filter_dict=filter_dict)
+        y_label = PlotUtils.dynamic_y_label(df=df)
         grouped_df = df.groupby(["year", "Scenario"]).sum().reset_index()
 
         fig = go.Figure()
@@ -40,7 +41,7 @@ class Plots:
         fig.update_layout(
             showlegend=False,
             title={
-                "text": f"Quantity in m³ or t for <br>{title}",
+                "text": f"Quantity for <br>{title}",
                 "x": 0.5,
                 "xanchor": "center",
                 "pad": {"b": self.pad_down}
@@ -49,7 +50,7 @@ class Plots:
                 title="Year", 
             ),
             yaxis=dict(
-                title="Quantity in 1000 m³ or 1000 t", 
+                title=y_label, 
                 rangemode="nonnegative",
             ),
             hovermode="x unified",
@@ -270,10 +271,12 @@ class Plots:
             ignore_keys=["domain"]
         )
         df = df[df["domain"]==trade_domain]
+        y_label = PlotUtils.dynamic_y_label(df=df)
         fig = go.Figure()
         plot_df = (
             df.groupby(["Scenario", "Period"], as_index=False)[unit]
-              .sum())
+              .sum()
+        )
 
         for scenario in plot_df["Scenario"].unique():
             scenario_df = plot_df[plot_df["Scenario"] == scenario]
@@ -299,7 +302,7 @@ class Plots:
                 "pad": {"b": self.pad_down}   # Abstand nach unten (bottom)
             },
             xaxis_title="Period",
-            yaxis_title=unit,
+            yaxis_title=y_label,
             barmode="group",
             template="plotly_white",
             margin=dict(l=40, r=20, t=self.margin_top, b=40),

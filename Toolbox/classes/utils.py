@@ -94,3 +94,8 @@ class PlotUtils:
             k: filter_values_dict.get(k)
             for k in PLOT_FILTERS[plot_name]
         }
+    
+    @staticmethod
+    def dynamic_y_label(df):
+        units = sorted(df["Unit"].dropna().unique())
+        return f"Quantity in {' and '.join(units)}"
