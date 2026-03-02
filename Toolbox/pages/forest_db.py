@@ -106,45 +106,66 @@ class ForestDB:
         )
         def update_plots(*filter_values):
             print(f"{self.db_prefix}_dashboard")
-            filter_values_dict = dict(zip(self.filters.keys(), filter_values))
-            print(filter_values_dict)
-            #-----------
-            # subset forest data
-            #-----------
-            forest_filter_values_dict = dict(zip(
+            filter_values_dict = dict(zip(
                 self.filters.keys(), 
                 filter_values
                 )
             )
+            print(filter_values_dict)
 
             df = PlotUtils.filter_data(
                 df=self.data.copy(),
                 **PlotUtils().get_plot_filters(
-                    forest_filter_values_dict, 
+                    filter_values_dict, 
                     "forest"
                 )
             )
-            print(df)
+            title = PlotUtils.generate_title(
+                filter_dict=filter_values_dict,
+            )
 
-            f_forarea=self.plots.plot_forarea(df,colors=self.colors)
-            f_forstock=self.plots.plot_forstock(df,colors=self.colors)
-            f_area_growth=self.plots.plot_area_growth(df,colors=self.colors)
+            f_forarea=self.plots.plot_forarea(
+                df,
+                colors=self.colors,
+                title=title,
+            )
+            f_forstock=self.plots.plot_forstock(
+                df,
+                colors=self.colors,
+                title=title,
+            )
+            f_area_growth=self.plots.plot_area_growth(
+                df,
+                colors=self.colors,
+                title=title,
+            )
             f_stock_growth=self.plots.plot_stock_growth(
                 df,
                 colors=self.colors,
                 calc="pct_change",
+                title=title
             )
-            f_stock_area_ratio=self.plots.plot_stock_area_ratio(df,colors=self.colors)
-            f_supply_from_forest=self.plots.plot_supply_from_forest(df,colors=self.colors)
+            f_stock_area_ratio=self.plots.plot_stock_area_ratio(
+                df,
+                colors=self.colors,
+                title=title,
+            )
+            f_supply_from_forest=self.plots.plot_supply_from_forest(
+                df,
+                colors=self.colors,
+                title=title,
+            )
             f_nai=self.plots.plot_stock_growth(
                 df,
                 colors=self.colors,
-                calc=""
+                calc="",
+                title=title,
             )
             f_sustainable_supply=self.plots.plot_stock_growth(
                 df,
                 colors=self.colors,
                 calc="sustainable_supply",
+                title=title,
             )
 
             return (f_forarea, f_forstock, f_stock_area_ratio, f_nai,

@@ -86,7 +86,7 @@ class Plots:
             yaxis_title="Value in 1000 US$",
             template="plotly_white",
             barmode="group",
-            margin=dict(l=40, r=20, t=40, b=40),
+            margin=dict(l=40, r=20, t=self.margin_top, b=40),
             hovermode="x unified",
             showlegend=False
         )
@@ -124,7 +124,7 @@ class Plots:
             xaxis_title="Period",
             yaxis_title="Growth in %",
             template="plotly_white",
-            margin=dict(l=40, r=20, t=40, b=40),
+            margin=dict(l=40, r=20, t=self.margin_top, b=40),
             hovermode="x unified",
             showlegend=False
         )
@@ -165,7 +165,7 @@ class Plots:
             xaxis_title="Period",
             yaxis_title="Price in US$",
             template="plotly_white",
-            margin=dict(l=40, r=20, t=40, b=40),
+            margin=dict(l=40, r=20, t=self.margin_top, b=40),
             hovermode="x unified",
             showlegend=False
         )
@@ -261,7 +261,7 @@ class Plots:
             xaxis_title="year",
             yaxis_title=unit,
             template="plotly_white",
-            margin=dict(l=40, r=20, t=40, b=40),
+            margin=dict(l=40, r=20, t=self.margin_top, b=40),
             hovermode="x unified",
             showlegend=False
         )       
@@ -403,7 +403,13 @@ class Plots:
 
         return fig
 
-    def plot_forarea(self, df,colors:dict):
+    def plot_forarea(
+            self,
+            df,
+            colors:dict,
+            title:str,
+        ):
+
         periods = sorted(df["Period"].unique())
 
         fig = go.Figure()
@@ -422,13 +428,24 @@ class Plots:
             )
 
         fig.update_layout(
-            title="Forest Area", 
-            xaxis_title="Period", 
+            title={
+                "text": f"Forest Area for <br>{title}", 
+                "x": self.title_x,
+                "y": self.title_y,
+                "xanchor": "center",
+                "pad": {"b": self.pad_down}
+            },
+            xaxis=dict(
+                tickmode="array",
+                tickvals=df["Period"],
+                ticktext=df["year"], 
+                title="Year"
+            ),  
             yaxis_title="in million ha",
             barmode="group", 
             template=self.template, 
             yaxis=dict(range=PlotUtils.dynamic_y_range(all_values)),
-            margin=dict(l=40, r=20, t=40, b=40),
+            margin=dict(l=40, r=20, t=self.margin_top, b=40),
         )
         return fig
 
@@ -474,7 +491,12 @@ class Plots:
         )
         return fig
 
-    def plot_area_growth(self, df,colors:dict):
+    def plot_area_growth(
+            self,
+            df,
+            colors:dict,
+            title:str
+        ):
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
 
@@ -506,17 +528,34 @@ class Plots:
             )
 
         fig.update_layout(
-            title="Annualized Forest Area Growth",
-            xaxis_title="Period", 
+            title={
+                "text": f"Annual Forest Area Growth for<br>{title}", 
+                "x": self.title_x,
+                "y": self.title_y,
+                "xanchor": "center",
+                "pad": {"b": self.pad_down}
+            },
+            xaxis=dict(
+                tickmode="array",
+                tickvals=df["Period"],
+                ticktext=df["year"], 
+                title="Year"
+            ), 
             yaxis_title="Growth rate in %",
             yaxis_tickformat=".2%", 
-            margin=dict(l=40, r=20, t=40, b=40),
+            margin=dict(l=40, r=20, t=self.margin_top, b=40),
             template=self.template
         )
 
         return fig
 
-    def plot_stock_growth(self, df, colors: dict, calc: str):
+    def plot_stock_growth(
+            self, 
+            df, 
+            colors: dict, 
+            calc: str,
+            title:str,
+        ):
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
 
@@ -541,19 +580,19 @@ class Plots:
 
             if calc == "pct_change":
                 stock_change = (stock / stock.shift(1)) ** (1 / delta_years) - 1
-                title = "Annualized Forest Stock Growth"
+                plot_title = f"Annual Forest Stock Growth for<br>{title}"
                 yaxis_title = "Growth rate in %"
                 yaxis_tickformat = ".2%"
 
             elif calc == "sustainable_supply":
                 stock_change = nai 
-                title = "NAI minus total removals"
+                plot_title = f"NAI minus total removals for<br>{title}"
                 yaxis_title = "in million m³"
                 yaxis_tickformat = ".1f"
 
             else:
                 stock_change = nai + (agg["supply_from_forest"]*1.2)
-                title = "Net Annual Increment (NAI) per year"
+                plot_title = f"Net Annual Increment (NAI) for<br>{title}"
                 yaxis_title = "in million m³"
                 yaxis_tickformat = ".1f"
 
@@ -566,17 +605,34 @@ class Plots:
             )
 
         fig.update_layout(
-            title=title,
-            xaxis_title="Period",
+            title={
+                "text": plot_title, 
+                "x": self.title_x,
+                "y": self.title_y,
+                "xanchor": "center",
+                "pad": {"b": self.pad_down}
+            },
+            xaxis=dict(
+                tickmode="array",
+                tickvals=df["Period"],
+                ticktext=df["year"], 
+                title="Year"
+            ), 
             yaxis_title=yaxis_title,
             yaxis_tickformat=yaxis_tickformat,
             template=self.template,
-            margin=dict(l=40, r=20, t=40, b=40),
+            margin=dict(l=40, r=20, t=self.margin_top, b=40),
         )
 
         return fig
 
-    def plot_stock_area_ratio(self, df,colors:dict):
+    def plot_stock_area_ratio(
+            self,
+            df,
+            colors:dict,
+            title:str,
+        ):
+
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
 
@@ -593,16 +649,33 @@ class Plots:
             )
 
         fig.update_layout(
-            title="Forest density (Stock per Area)", 
-            xaxis_title="Period", 
+            title={
+                "text": f"Forest density (Stock per Area) for<br>{title}", 
+                "x": self.title_x,
+                "y": self.title_y,
+                "xanchor": "center",
+                "pad": {"b": self.pad_down}
+            },
+            xaxis=dict(
+                tickmode="array",
+                tickvals=df["Period"],
+                ticktext=df["year"], 
+                title="Year"
+            ), 
             yaxis_title="in 1 000 m³ per ha",
             template=self.template,
-            margin=dict(l=40, r=20, t=40, b=40),
+            margin=dict(l=40, r=20, t=self.margin_top, b=40),
         )
 
         return fig
 
-    def plot_supply_from_forest(self, df,colors:dict):
+    def plot_supply_from_forest(
+            self,
+            df,
+            colors:dict,
+            title:str,
+        ):
+
         periods = sorted(df["Period"].unique())
         fig = go.Figure()
 
@@ -619,13 +692,24 @@ class Plots:
             )
 
         fig.update_layout(
-            title="Supply from Forest (per year change)", 
-            xaxis_title="Period",
+            title={
+                "text": f"Supply from Forest (per year change) for<br>{title}", 
+                "x": self.title_x,
+                "y": self.title_y,
+                "xanchor": "center",
+                "pad": {"b": self.pad_down}
+            },
+            xaxis=dict(
+                tickmode="array",
+                tickvals=df["Period"],
+                ticktext=df["year"], 
+                title="Year"
+            ), 
             yaxis_title="in million m³", 
             barmode="group", 
             template=self.template,
             yaxis=dict(range=PlotUtils.dynamic_y_range(supply_range)),
-            margin=dict(l=40, r=20, t=40, b=40),
+            margin=dict(l=40, r=20, t=self.margin_top, b=40),
         )
 
         return fig
