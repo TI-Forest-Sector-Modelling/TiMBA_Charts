@@ -117,41 +117,60 @@ class BiTradeDB:
                     "trade"
                 )
             )
+
+            title = PlotUtils.generate_title(
+                filter_dict=filter_values_dict,
+            )
+
+            y_label = PlotUtils.dynamic_y_label(df=df)
+
             q_import_fig = self.plots.create_trade_line_plot(
-                df,
-                "Import",
-                "quantity",
-                colors=self.colors
+                df=df,
+                trade_domain="Import",
+                unit="quantity",
+                colors=self.colors,
+                title=title,
+                y_label=y_label,
             )
             q_export_fig = self.plots.create_trade_line_plot(
-                df,
-                "Export",
-                "quantity",
-                colors=self.colors
+                df=df,
+                trade_domain="Export",
+                unit="quantity",
+                colors=self.colors,
+                title=title,
+                y_label=y_label,
             )
             q_net_export_fig = self.plots.create_trade_bar_plot(
-                df,
-                "Net Exports",
-                "quantity",
-                colors=self.colors
+                df=df,
+                trade_domain="Net Exports",
+                unit="quantity",
+                colors=self.colors,
+                title=title,
+                y_label=y_label,
             )
             v_import_fig = self.plots.create_trade_line_plot(
-                df,
-                "Import",
-                "Value",
-                colors=self.colors
+                df=df,
+                trade_domain="Import",
+                unit="Value",
+                colors=self.colors,
+                title=title,
+                y_label=y_label,
             )
             v_export_fig = self.plots.create_trade_line_plot(
-                df,
-                "Export",
-                "Value",
-                colors=self.colors
+                df=df,
+                trade_domain="Export",
+                unit="Value",
+                colors=self.colors,
+                title=title,
+                y_label=y_label,
             )
             v_net_export_fig = self.plots.create_trade_bar_plot(
-                df,
-                "Net Exports",
-                "Value",
-                colors=self.colors
+                df=df,
+                trade_domain="Net Exports",
+                unit="Value",
+                colors=self.colors,
+                title=title,
+                y_label=y_label,
             )
 
             return q_import_fig,q_export_fig,q_net_export_fig,v_import_fig,v_export_fig,v_net_export_fig

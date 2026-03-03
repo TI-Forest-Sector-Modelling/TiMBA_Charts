@@ -21,7 +21,7 @@ class Plots:
             colors: dict,
             title: str,
             y_label:str,
-            ):
+        ):
         
         grouped_df = df.groupby(["year", "Scenario"]).sum().reset_index()
 
@@ -32,7 +32,7 @@ class Plots:
             fig.add_trace(
                 go.Scatter(
                     x=subset["year"], 
-                    y=subset["quantity"]*1000,
+                    y=subset["quantity"] / 1000,
                     mode="lines", 
                     name=scenario,
                     line=dict(color=colors.get(scenario), 
@@ -53,7 +53,7 @@ class Plots:
                 title="Year", 
             ),
             yaxis=dict(
-                title=f"Quantity in {y_label}", 
+                title=f"Quantity in million {y_label}", 
                 rangemode="nonnegative",
             ),
             hovermode="x unified",
@@ -81,7 +81,7 @@ class Plots:
             .reindex(periods)
         )
 
-        all_values = grouped.replace(0, np.nan).values.flatten()
+        all_values = grouped.replace(0, np.nan).values.flatten() 
 
         for s in grouped.columns:
             if s == "Historic Data":
@@ -89,7 +89,7 @@ class Plots:
             else:
                 fig.add_scatter(
                     x=periods,
-                    y=grouped[s],
+                    y=grouped[s] / 1000000,
                     mode="lines+markers",
                     name=s,
                     line=dict(width=2, color=colors.get(s)),
@@ -112,9 +112,8 @@ class Plots:
                 title="Year"
             ),
             yaxis=dict(
-                title="1000 US$",
-                #rangemode="nonnegative",
-                range=PlotUtils.dynamic_y_range(all_values)
+                title="in billion US$",
+                range=PlotUtils.dynamic_y_range(all_values / 1000000)
             ),
             template="plotly_white",
             barmode="group",
@@ -323,75 +322,105 @@ class Plots:
         )
 
         return fig
-
+    
     def create_trade_line_plot(
             self, 
             df: pd.DataFrame,
-            trade_domain:str,
-            unit:str,
-            colors:dict
+            trade_domain: str,
+            unit: str,
+            colors: dict,
+            title: str,
+            y_label:str
         ) -> go.Figure:
 
-        df = df[df["domain"]==trade_domain]
-        fig = go.Figure()
-        plot_df = (
-            df.groupby(["Scenario", "year"], as_index=False)[unit]
-              .sum())
+        df = df[df["domain"] == trade_domain]
 
-        for scenario in plot_df["Scenario"].unique():
-            scenario_df = plot_df[plot_df["Scenario"] == scenario]
-            fig.add_trace(
-                go.Scatter(
-                    x=scenario_df["year"],
-                    y=scenario_df[unit],
-                    name=scenario,
-                    marker_color=colors.get(scenario),
-                    mode="lines+markers",
-                    line=dict(width=2,color=colors.get(scenario)),
-                )
+        fig = go.Figure()
+
+        grouped = (
+            df.groupby(["Scenario", "year"])[unit]
+            .sum()
+            .unstack("Scenario")
+            .sort_index()
+        )
+
+        y_label="million " + y_label
+        for s in grouped.columns:
+            y=grouped[s] / 1000
+            
+            if unit=="Value":
+                y_label="billion US$"
+                y=grouped[s] / 1000000
+
+            fig.add_scatter(
+                x=grouped.index,
+                y=y,
+                mode="lines+markers",
+                name=s,
+                line=dict(width=2, color=colors.get(s)),
             )
 
         fig.update_layout(
-            title=f"{trade_domain} {unit} per period",
-            xaxis_title="year",
-            yaxis_title=unit,
+            title={
+                "text": f"{trade_domain} {unit} for <br>{title}",
+                "x": self.title_x,
+                "y": self.title_y,
+                "xanchor": "center",
+                "pad": {"b": self.pad_down}
+            },
+            xaxis=dict(title="Year"),
+            yaxis_title=f"{trade_domain} in {y_label}",
             template="plotly_white",
             margin=dict(l=40, r=20, t=self.margin_top, b=40),
             hovermode="x unified",
-            showlegend=False
-        )       
+            showlegend=False,
+        )
 
         return fig
     
-    def create_trade_bar_plot(self, df: pd.DataFrame,
-                              trade_domain:str,
-                              unit:str,
-                              colors:dict,
-                              title:str,
-                              y_label: str) -> go.Figure:
-        
-        df = df[df["domain"]==trade_domain]
+    def create_trade_bar_plot(
+            self,
+            df: pd.DataFrame,
+            trade_domain: str,
+            unit: str,
+            colors: dict,
+            title: str,
+            y_label: str,
+        ) -> go.Figure:
+
+        df = df[df["domain"] == trade_domain]
+
+        periods = sorted(df["Period"].unique())
         fig = go.Figure()
-        plot_df = (
-            df.groupby(["Scenario", "Period"], as_index=False)[unit]
-              .sum()
+
+        grouped = (
+            df[df["Scenario"] != "Historic Data"]
+            .groupby(["Scenario", "Period"])[unit]
+            .sum()
+            .unstack("Scenario")
+            .reindex(periods)
         )
 
-        for scenario in plot_df["Scenario"].unique():
-            scenario_df = plot_df[plot_df["Scenario"] == scenario]
-            if scenario == "Historic Data":
-                pass
-            else:
-                fig.add_trace(
-                    go.Bar(
-                        x=scenario_df["Period"],
-                        y=scenario_df[unit]*1000,
-                        name=scenario,
-                        marker=dict(
-                            color=colors.get(scenario)
-                        )
-                    )
-                )
+        y_label="million " + y_label
+        for s in grouped.columns:
+            y=grouped[s] / 1000
+            
+            if unit=="Value":
+                y_label="billion US$"
+                y=grouped[s] / 1000000
+
+            fig.add_bar(
+                x=periods,
+                y=y,
+                name=s,
+                marker_color=colors.get(s)
+            )
+
+        years_map = (
+            df.groupby("Period")["year"]
+            .max()
+            .reindex(periods)
+        )
 
         fig.update_layout(
             title={
@@ -403,16 +432,16 @@ class Plots:
             },
             xaxis=dict(
                 tickmode="array",
-                tickvals=df["Period"],
-                ticktext=df["year"], 
+                tickvals=periods,
+                ticktext=years_map,
                 title="Year"
             ),
-            yaxis_title=f"Quantity in {y_label}",
+            yaxis_title=f"{trade_domain} in {y_label}",
             barmode="group",
             template="plotly_white",
             margin=dict(l=40, r=20, t=self.margin_top, b=40),
             hovermode="x unified",
-            showlegend=False
+            showlegend=False,
         )
 
         return fig
@@ -426,7 +455,7 @@ class Plots:
         
         country_data = filtered_data.groupby("ISO3")["quantity"].sum().reset_index()
         country_data = country_data[country_data["quantity"] >= 0.001]
-        country_data["quantity"] = country_data["quantity"]*1000
+        country_data["quantity"] = country_data["quantity"] / 1000
         fig = px.choropleth(country_data, locations="ISO3", color="quantity",
                             hover_name="ISO3", color_continuous_scale="Greens")
         
@@ -451,7 +480,7 @@ class Plots:
             coloraxis=dict(
                 colorbar=dict(
                     title=dict(
-                        text=f"Quantity in<br>{colorbar_label}",
+                        text=f"Quantity<br>in million<br>{colorbar_label}",
                         font=dict(size=12)
                     ),
                     tickformat=".2s"
@@ -620,10 +649,10 @@ class Plots:
             domain:list,
         ):
 
-        if domain==...:
-            domain_name = "Area"
-        else:
+        if domain=="ForStock":
             domain_name = "Stock"
+        else:
+            domain_name = "Area"
 
         periods = sorted(df["Period"].unique())
         fig = go.Figure()

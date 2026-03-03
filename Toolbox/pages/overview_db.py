@@ -165,7 +165,7 @@ class OverviewDB:
                 "quantity",
                 colors=self.colors,
                 title=trade_title,
-                y_label=y_label
+                y_label=y_label,
             )
 
             #-----------
