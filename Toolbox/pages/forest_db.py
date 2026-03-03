@@ -124,8 +124,6 @@ class ForestDB:
                 filter_dict=filter_values_dict,
             )
 
-            print(df)
-
             f_forarea=self.plots.plot_forarea(
                 df,
                 colors=self.colors,

@@ -79,7 +79,7 @@ class PriceDB:
                 # ==========================================================
                 self.layout._legend_card(colors= self.colors,
                                          scenarios = self.scenarios),
-                dcc.Download(id="pdb_download")
+                dcc.Download(id=f"{self.db_prefix}_download")
             ]
         )
     
@@ -111,6 +111,11 @@ class PriceDB:
                     "main"
                 )
             )
+
+            title = PlotUtils.generate_title(
+                filter_dict=filter_values_dict,
+            )
+
             agg_df = (
                 df.groupby(["Scenario", "Period", "year"], as_index=False)
                 .agg({
@@ -119,10 +124,26 @@ class PriceDB:
                 })
             )
 
-            value_fig = self.plots.create_value_plot(df, colors=self.colors)
-            value_growth_fig = self.plots.create_value_growth_plot(agg_df, colors=self.colors)
-            price_fig = self.plots.create_price_plot(agg_df, colors=self.colors)
-            price_growth_fig = self.plots.create_price_growth_plot(agg_df, colors=self.colors)
+            value_fig = self.plots.create_value_plot(
+                df, 
+                colors=self.colors,
+                title=title,
+            )
+            value_growth_fig = self.plots.create_value_growth_plot(
+                agg_df, 
+                colors=self.colors,
+                title=title,
+            )
+            price_fig = self.plots.create_price_plot(
+                agg_df, 
+                colors=self.colors,
+                title=title,
+            )
+            price_growth_fig = self.plots.create_price_growth_plot(
+                agg_df, 
+                colors=self.colors,
+                title=title,
+            )
 
             return value_fig, value_growth_fig, price_fig, price_growth_fig
         # ---------------------------
@@ -134,8 +155,8 @@ class PriceDB:
         ]
 
         @self.app.callback(
-            Output("pdb_download", "data"),
-            Input("pdb_download-btn", "n_clicks"),
+            Output(f"{self.db_prefix}_download", "data"),
+            Input(f"{self.db_prefix}_download-btn", "n_clicks"),
             *filter_states,
             prevent_initial_call=True
         )

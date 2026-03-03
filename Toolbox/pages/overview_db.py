@@ -122,7 +122,7 @@ class OverviewDB:
                 filter_values
                 )
             )
-            print(forest_filter_values_dict)
+            #print(forest_filter_values_dict)
             for_title = PlotUtils.generate_title(
                 filter_dict=forest_filter_values_dict,
                 ignore_keys=["commodity","commodity_group"]

@@ -63,67 +63,121 @@ class Plots:
         )
         return fig
 
-    def create_value_plot(self, df: pd.DataFrame,colors:dict) -> go.Figure:
+    def create_value_plot(
+            self, 
+            df: pd.DataFrame, 
+            colors: dict, 
+            title: str
+        ) -> go.Figure:
+
+        periods = sorted(df["Period"].unique())
+
         fig = go.Figure()
-        plot_df = (
-            df.groupby(["Scenario", "Period"], as_index=False)["Value"]
-              .sum())
 
-        for scenario in plot_df["Scenario"].unique():
-            scenario_df = plot_df[plot_df["Scenario"] == scenario]
+        grouped = (
+            df.groupby(["Scenario", "Period"])["Value"]
+            .sum()
+            .unstack("Scenario")
+            .reindex(periods)
+        )
 
-            fig.add_trace(
-                go.Bar(
-                    x=scenario_df["Period"],
-                    y=scenario_df["Value"],
-                    name=scenario,
-                    marker=dict(color=colors.get(scenario)),
+        all_values = grouped.replace(0, np.nan).values.flatten()
+
+        for s in grouped.columns:
+            if s == "Historic Data":
+                pass
+            else:
+                fig.add_scatter(
+                    x=periods,
+                    y=grouped[s],
+                    mode="lines+markers",
+                    name=s,
+                    line=dict(width=2, color=colors.get(s)),
                 )
-            )
+
+        years_map = df.groupby("Period")["year"].max().reindex(periods)
 
         fig.update_layout(
-            title="Total Value over Time",
-            xaxis_title="Period",
-            yaxis_title="Value in 1000 US$",
+            title={
+                "text": f"Value for <br>{title}",
+                "x": self.title_x,
+                "y": self.title_y,
+                "xanchor": "center",
+                "pad": {"b": self.pad_down}
+            },
+            xaxis=dict(
+                tickmode="array",
+                tickvals=periods,
+                ticktext=years_map,
+                title="Year"
+            ),
+            yaxis=dict(
+                title="1000 US$",
+                #rangemode="nonnegative",
+                range=PlotUtils.dynamic_y_range(all_values)
+            ),
             template="plotly_white",
             barmode="group",
             margin=dict(l=40, r=20, t=self.margin_top, b=40),
             hovermode="x unified",
-            showlegend=False
+            showlegend=False,
         )
 
         return fig
     
-    def create_value_growth_plot(self, df: pd.DataFrame,colors:dict) -> go.Figure:
+    def create_value_growth_plot(
+            self, 
+            df: pd.DataFrame, 
+            colors: dict, 
+            title: str
+        ) -> go.Figure:
+
+        periods = sorted(df["Period"].unique())
+
         fig = go.Figure()
 
-        df["Prev_Value"] = df.groupby("Scenario")["Value"].shift(1)
-        df["Prev_Year"] = df.groupby("Scenario")["year"].shift(1)
+        grouped = (
+            df.groupby(["Scenario", "Period"])
+            .agg({"Value": "sum", "year": "mean"})
+            .unstack("Scenario")
+            .reindex(periods)
+        )
 
-        df["Year_Diff"] = df["year"] - df["Prev_Year"]
+        delta_years = grouped["year"].diff().replace(0, np.nan)
 
-        df["Annual_Growth"] = (
-            (df["Value"] / df["Prev_Value"]) ** (1 / df["Year_Diff"]) - 1
-        )# * 100
+        for s in grouped["Value"].columns:
+            if s == "Historic Data":
+                pass
+            else:
+                value = grouped["Value"][s]
+                growth = (value / value.shift(1)) ** (1 / delta_years[s]) - 1
 
-        for scenario in df["Scenario"].unique():
-            scenario_df = df[df["Scenario"] == scenario]
+                fig.add_bar(
+                    x=periods,
+                    y=growth,
+                    name=s,
+                    marker_color=colors.get(s),
+                )
 
-            fig.add_trace(
-                go.Scatter(
-                    x=scenario_df["Period"],
-                    y=scenario_df["Annual_Growth"],
-                    name=scenario,
-                    marker_color=colors.get(scenario),
-                    mode="lines+markers", #only with scatter or line plot
-                    line=dict(width=2,color=colors.get(scenario)),
-                    )
-            )
+        years_map = df.groupby("Period")["year"].max().reindex(periods)
 
         fig.update_layout(
-            title="Value growth per year",
-            xaxis_title="Period",
-            yaxis_title="Growth in %",
+            title={
+                "text": f"Growth in value for <br>{title}",
+                "x": self.title_x,
+                "y": self.title_y,
+                "xanchor": "center",
+                "pad": {"b": self.pad_down}
+            },
+            xaxis=dict(
+                tickmode="array",
+                tickvals=periods,
+                ticktext=years_map,
+                title="Year"
+            ),
+            yaxis=dict(
+                title="Growth in %",
+            ),
             yaxis_tickformat=".1%",
             template="plotly_white",
             margin=dict(l=40, r=20, t=self.margin_top, b=40),
@@ -133,83 +187,117 @@ class Plots:
 
         return fig
 
-    def create_price_plot(self, df: pd.DataFrame,colors:dict) -> go.Figure:
+    def create_price_plot(
+            self, 
+            df: pd.DataFrame, 
+            colors: dict, 
+            title: str
+        ) -> go.Figure:
+
+        periods = sorted(df["Period"].unique())
         fig = go.Figure()
-        df = (
-            df.groupby(["Scenario", "Period"], as_index=False)
-              .agg({
-                  "Value": "sum",
-                  "quantity": "sum"
-              })
-        )
-        df["Price"] = np.where(
-            df["quantity"] > 0,
-            df["Value"] / df["quantity"],
-            np.nan
+
+        grouped = (
+            df.groupby(["Scenario", "Period"])
+            .agg({
+                "Value": "sum",
+                "quantity": "sum",
+                "year": "mean"
+            })
+            .reindex(pd.MultiIndex.from_product(
+                [df["Scenario"].unique(), periods],
+                names=["Scenario", "Period"]
+            ))
         )
 
-        for scenario in df["Scenario"].unique():
-            scenario_df = df[df["Scenario"] == scenario]
+        grouped["Price"] = grouped["Value"] / grouped["quantity"].replace(0, np.nan)
 
-            fig.add_trace(
-                go.Scatter(
-                    x=scenario_df["Period"],
-                    y=scenario_df["Price"],
-                    name=scenario,
-                    marker_color=colors.get(scenario),
-                    mode="lines+markers", #only with scatter or line plot
-                    line=dict(width=2,color=colors.get(scenario)),
-                    )
-            )
+        price_df = PlotUtils.remove_extreme_outliers(grouped, "Price")
+        all_values = price_df["Price"].replace(0, np.nan).values.flatten()
+
+        price_table = grouped["Price"].unstack("Scenario")
+
+        for s in price_table.columns:
+            if s == "Historic Data":
+                pass
+            else:
+                fig.add_scatter(
+                    x=periods,
+                    y=price_table[s],
+                    mode="lines+markers",
+                    name=s,
+                    line=dict(width=2, color=colors.get(s)),
+                )
+
+        years_map = (df.groupby("Period")["year"].max().reindex(periods))
 
         fig.update_layout(
-            title="Price by Period",
-            xaxis_title="Period",
-            yaxis_title="Price in US$",
+            title={
+                "text": f"Price (unit value) for <br>{title}",
+                "x": self.title_x,
+                "y": self.title_y,
+                "xanchor": "center",
+                "pad": {"b": self.pad_down}
+            },
+            xaxis=dict(
+                tickmode="array",
+                tickvals=periods,
+                ticktext=years_map,
+                title="Year"
+            ),
+            yaxis=dict(
+                title="Unit Value in US$",
+                range=PlotUtils.dynamic_y_range(all_values),
+            ),
             template="plotly_white",
             margin=dict(l=40, r=20, t=self.margin_top, b=40),
             hovermode="x unified",
             showlegend=False
         )
+
         return fig
     
     def create_price_growth_plot(
             self, 
             df: pd.DataFrame, 
-            colors:dict,
+            colors: dict,
             title: str,
-            ) -> go.Figure:
-        
+        ) -> go.Figure:
+
+        periods = sorted(df["Period"].unique())
+
         fig = go.Figure()
 
-        df["Price"] = np.where(
-            df["quantity"] > 0,
-            df["Value"] / df["quantity"],
-            np.nan
+        grouped = (
+            df.groupby(["Scenario", "Period"])
+            .agg({
+                "Value": "sum",
+                "quantity": "sum",
+                "year": "mean"
+            })
+            .unstack("Scenario")
+            .reindex(periods)
         )
 
-        df["Prev_Price"] = df.groupby("Scenario")["Price"].shift(1)
-        df["Prev_Year"] = df.groupby("Scenario")["year"].shift(1)
+        price = grouped["Value"] / grouped["quantity"].replace(0, np.nan)
 
-        df["Year_Diff"] = df["year"] - df["Prev_Year"]
+        delta_years = grouped["year"].diff().replace(0, np.nan)
 
-        df["Annual_Growth"] = (
-            (df["Price"] / df["Prev_Price"]) ** (1 / df["Year_Diff"]) - 1
-        )# * 100
+        for s in price.columns:
+            if s == "Historic Data":
+                pass
+            else:
+                p = price[s]
+                growth = (p / p.shift(1)) ** (1 / delta_years[s]) - 1
 
-        for scenario in df["Scenario"].unique():
-            scenario_df = df[df["Scenario"] == scenario]
-
-            fig.add_trace(
-                go.Bar(
-                    x=scenario_df["Period"],
-                    y=scenario_df["Annual_Growth"],
-                    name=scenario,
-                    marker=dict(
-                        color=colors.get(scenario)
-                    )
+                fig.add_bar(
+                    x=periods,
+                    y=growth,
+                    name=s,
+                    marker_color=colors.get(s),
                 )
-            )
+
+        years_map = df.groupby("Period")["year"].max().reindex(periods)
 
         fig.update_layout(
             title={
@@ -223,8 +311,8 @@ class Plots:
             yaxis_tickformat=".1%",
             xaxis=dict(
                 tickmode="array",
-                tickvals=df["Period"],
-                ticktext=df["year"], 
+                tickvals=periods,
+                ticktext=years_map,
                 title="Year"
             ),
             barmode="group",
@@ -236,10 +324,14 @@ class Plots:
 
         return fig
 
-    def create_trade_line_plot(self, df: pd.DataFrame,
-                               trade_domain:str,
-                               unit:str,
-                               colors:dict) -> go.Figure:
+    def create_trade_line_plot(
+            self, 
+            df: pd.DataFrame,
+            trade_domain:str,
+            unit:str,
+            colors:dict
+        ) -> go.Figure:
+
         df = df[df["domain"]==trade_domain]
         fig = go.Figure()
         plot_df = (
@@ -254,7 +346,7 @@ class Plots:
                     y=scenario_df[unit],
                     name=scenario,
                     marker_color=colors.get(scenario),
-                    mode="lines+markers", #only with scatter or line plot
+                    mode="lines+markers",
                     line=dict(width=2,color=colors.get(scenario)),
                 )
             )
