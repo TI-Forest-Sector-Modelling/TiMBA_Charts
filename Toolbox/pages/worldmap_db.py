@@ -122,6 +122,17 @@ class WorldMapDB:
                 )
             )
 
+            title = PlotUtils.generate_title(
+                filter_dict=filter_values_dict,
+                ignore_keys=["refscenario","altscenario"]
+            )
+
+            
+            year = filter_values_dict['year']
+            if not year:
+                year_title = f"{min(pivot_df['year'])}-{max(pivot_df['year'])}, "
+                title = year_title + title
+
             ref = filter_values_dict["refscenario"]
             alt = filter_values_dict["altscenario"]
             if not alt:
@@ -143,25 +154,25 @@ class WorldMapDB:
             df_map_s = pivot_df[pivot_df["domain"] == "Supply"]
             world_map_supply = self.plots.create_diff_world_map_plot(
                 df_map_s,
-                title="Supply"
+                title="Supply for " + title
             )
 
             df_map_m = pivot_df[pivot_df["domain"] == "Manufacturing"]
             world_map_manuf = self.plots.create_diff_world_map_plot(
                 df_map_m,
-                title="Manufacturing"
+                title="Manufacturing for " + title
             )
 
             df_map_n = pivot_df[pivot_df["domain"] == "Net Exports"]
             world_map_netexp = self.plots.create_diff_world_map_plot(
                 df_map_n,
-                title="Net Exports"
+                title="Net Exports for " + title
             )
 
             df_map_d = pivot_df[pivot_df["domain"] == "Demand"]
             world_map_demand = self.plots.create_diff_world_map_plot(
                 df_map_d,
-                title="Demand"
+                title="Demand for " + title
             )
 
             #-----------
@@ -175,13 +186,18 @@ class WorldMapDB:
                 )
             )
 
+            title_forest = PlotUtils.generate_title(
+                filter_dict=filter_values_dict,
+                ignore_keys=["refscenario","altscenario"]
+            )
+
             df_stock["diff"] = df_stock[alt]-df_stock[ref]
             df_stock["diff"]= df_stock["diff"].replace([np.inf, -np.inf, -1], np.nan)
             df_stock = df_stock.dropna(subset=['diff']).reset_index(drop=True)
 
             world_map_stock = self.plots.create_diff_world_map_plot(
                 df_stock,
-                title="Forest Stock"
+                title="Forest Stock for " + title_forest
             )
 
             #-----------
@@ -201,7 +217,7 @@ class WorldMapDB:
 
             world_map_area = self.plots.create_diff_world_map_plot(
                 df_area,
-                title="Forest Area"
+                title="Forest Area for " + title_forest
             )
 
             legend_text = f"Reference: {ref} | Alternative: {alt}"
