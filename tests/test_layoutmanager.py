@@ -10,13 +10,9 @@ from Toolbox.classes.LayoutManager import Layout, FilterLayout
 
 def test_graph_card():
     graph = Layout._graph_card("test-graph")
-    # Prüfen, ob es ein html.Div ist
     assert isinstance(graph, html.Div)
-    # Prüfen, ob das Child ein dcc.Graph ist
     assert isinstance(graph.children, dcc.Graph)
-    # Prüfen, ob die ID korrekt gesetzt ist
     assert graph.children.id == "test-graph"
-    # Prüfen, ob style enthalten ist
     assert "height" in graph.children.style
 
 def test_download_button():
@@ -34,18 +30,15 @@ def test_legend_card():
     scenarios = ["Scenario1", "Scenario2"]
     card = Layout._legend_card(colors, scenarios)
     assert isinstance(card, dbc.Card)
-    # Prüfen, ob Children existieren
     assert len(card.children) == 1
     div = card.children[0]
     assert isinstance(div, html.Div)
-    # Prüfen, ob die Anzahl der Items stimmt
-    assert len(div.children) == 2  # zwei Szenarien
+    assert len(div.children) == 2
 
 def test_legend_card_world_map():
     card = Layout._legend_card_world_map()
     assert isinstance(card, dbc.Card)
     assert len(card.children) == 1
-    # Prüfen, ob die innere Struktur Div enthält
     inner_div = card.children[0]
     assert isinstance(inner_div, html.Div)
 
@@ -59,7 +52,6 @@ def test_ledgend_items():
         assert isinstance(div, html.Div)
         span = div.children[1]
         assert span.children == s
-        # Prüfen, ob Farbe korrekt gesetzt ist
         color_div = div.children[0]
         assert color_div.style["backgroundColor"] == colors[s]
 
@@ -90,17 +82,14 @@ def test_build_dropdown_existing_column(filter_layout):
     dropdown = dropdown_div.children
     assert isinstance(dropdown, dcc.Dropdown)
     assert dropdown.id == "test_region-dropdown"
-    # Prüfen, ob Optionen korrekt sind
     labels = [opt["label"] for opt in dropdown.options]
     assert "A" in labels and "B" in labels and "C" in labels
-    # Prüfen, ob Multi True
     assert dropdown.multi is True
 
 def test_build_dropdown_missing_column(filter_layout):
     config = {"column": "NonExistingCol", "placeholder": "Select X"}
     dropdown_div = filter_layout.build_dropdown("x", config)
     dropdown = dropdown_div.children
-    # Sollte Optionen aus den Spalten 6+ nehmen
     labels = [opt["label"] for opt in dropdown.options]
     expected = list(filter_layout.data.columns[6:])
     assert all(label in labels for label in expected)
