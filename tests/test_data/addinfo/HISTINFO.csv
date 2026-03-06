@@ -1,0 +1,3 @@
+RegionCode,CommodityCode,Period,year,domain,price,quantity,Scenario,Model
+R1,C1,2019,2019,Supply,9.0,90.0,S0,M0
+R2,C2,2020,2020,Supply,19.0,190.0,S0,M0
