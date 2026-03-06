@@ -5,7 +5,7 @@ import pickle
 import gzip
 from pathlib import Path
 from io import BytesIO
-from Toolbox.classes.import_data import import_pkl_data 
+from Toolbox.classes.InputManager import import_pkl_data 
 import Toolbox.parameters.paths as toolbox_paths
 import Toolbox.parameters.default_parameters as toolbox_parameters
 

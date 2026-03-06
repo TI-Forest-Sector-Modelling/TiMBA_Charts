@@ -456,6 +456,7 @@ class Plots:
         country_data = filtered_data.groupby("ISO3")["quantity"].sum().reset_index()
         country_data = country_data[country_data["quantity"] >= 0.001]
         country_data["quantity"] = country_data["quantity"] / 1000
+
         fig = px.choropleth(country_data, locations="ISO3", color="quantity",
                             hover_name="ISO3", color_continuous_scale="Greens")
         
@@ -465,7 +466,7 @@ class Plots:
                 "x": self.title_x,
                 "y": self.title_y,
                 "xanchor": "center",
-                "pad": {"b": self.pad_down}
+                #"pad": {"b": self.pad_down}
             },
             geo=dict(
                 showcoastlines=True, 
@@ -481,9 +482,11 @@ class Plots:
                 colorbar=dict(
                     title=dict(
                         text=f"Quantity<br>in million<br>{colorbar_label}",
-                        font=dict(size=12)
+                        font=dict(size=10)
                     ),
-                    tickformat=".2s"
+                    tickfont=dict(size=10),
+                    tickformat=".2s",
+                    thickness=10,
                 )
             )
         )

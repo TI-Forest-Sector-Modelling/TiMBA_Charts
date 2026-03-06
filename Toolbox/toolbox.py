@@ -84,6 +84,17 @@ class timba_dashboard:
         )
 
         data, country_data, commodity_data, hist_data = importer.main()
+        # data_small={}
+        # data_small[dp.overview_db] = data[dp.overview_db].head(20)
+        # data_small[dp.forest_db] = data[dp.forest_db].head(20)
+        # country_small = country_data.head(5)
+        # commodity_small = commodity_data.head(5)
+        # hist_small = hist_data.head(20)
+        # data_small[dp.overview_db].to_pickle("tests/test_data/data_overview.pkl")
+        # data_small[dp.forest_db].to_pickle("tests/test_data/data_forest.pkl")
+        # country_small.to_pickle("tests/test_data/country.pkl")
+        # commodity_small.to_pickle("tests/test_data/commodity.pkl")
+        # hist_small.to_pickle("tests/test_data/hist.pkl")
         
         process = DataProcessor(
             data=data,country_data=country_data,
@@ -113,34 +124,42 @@ class timba_dashboard:
         self.scenarios = sorted(self.data[dp.overview_db]["Scenario"].dropna().unique())
         colors = PlotUtils().get_scenario_colors(self.scenarios)
 
-        self.overview_db = OverviewDB(app=self.app,
-                                      data=self.data,
-                                      colors=colors
-                                      #print_settings=self.print_settings,
-                                      )
-        self.forest_db = ForestDB(app=self.app,
-                                  data=self.data[dp.forest_db],
-                                  colors=colors
-                                  #print_settings=self.print_settings,
-                                  )
-        self.price_db = PriceDB(app=self.app,
-                                data=self.data[dp.overview_db],
-                                colors=colors
-                                #print_settings=self.print_settings,
-                                )
-        self.bitrade_db = BiTradeDB(app=self.app,
-                                data=self.data[dp.overview_db],
-                                colors=colors
-                                #print_settings=self.print_settings,
-                                )
-        self.validation_db = ValidationDB(app=self.app, data=self.formip_data)
-        self.worldmap_db = WorldMapDB(app=self.app,
-                                      data=self.pivot_map_data,
-                                      df_stock=self.pivot_df_stock,
-                                      df_area=self.pivot_df_area,
-                                      )
+        self.overview_db = OverviewDB(
+            app=self.app,
+            data=self.data,
+            colors=colors
+            #print_settings=self.print_settings,
+        )
+        self.forest_db = ForestDB(
+            app=self.app,
+            data=self.data[dp.forest_db],
+            colors=colors
+            #print_settings=self.print_settings,
+        )
+        self.price_db = PriceDB(
+            app=self.app,
+            data=self.data[dp.overview_db],
+            colors=colors
+            #print_settings=self.print_settings,
+        )
+        self.bitrade_db = BiTradeDB(
+            app=self.app,
+            data=self.data[dp.overview_db],
+            colors=colors
+            #print_settings=self.print_settings,
+        )
+        self.validation_db = ValidationDB(
+            app=self.app, 
+            data=self.formip_data
+        )
+        self.worldmap_db = WorldMapDB(
+            app=self.app,
+            data=self.pivot_map_data,
+            df_stock=self.pivot_df_stock,
+            df_area=self.pivot_df_area,
+        )
 
-        self.app.layout = dbc.Card([
+        self.app.layout = html.Div([
             dcc.Location(id="url"),
             dbc.Navbar(
                 dbc.Container(
@@ -174,7 +193,7 @@ class timba_dashboard:
                 color=dp.background_color,
                 dark=False,
                 className="mb-0 border-1 rounded-2 shadow-sm",
-                style={"height": "140px"} 
+                style={"height": "135px"} 
             ),
             html.Div(id="page-content"),
         ])

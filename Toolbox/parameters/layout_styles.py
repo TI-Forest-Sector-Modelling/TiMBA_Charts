@@ -34,7 +34,7 @@ plot_card_3x2_background_main={
     "marginTop": "10px",
     "marginBottom": "10px",
     "flexGrow": "1",
-    "minHeight": "0",
+    "minHeight": "1000",
     "height": "100%"
 }
 
