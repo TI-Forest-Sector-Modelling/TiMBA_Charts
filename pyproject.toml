@@ -25,7 +25,6 @@ dependencies = [
     "pandas==1.5.3",
     "dash==3.0.0",
     "dash-bootstrap-components==2.0.0",
-    "seaborn==0.13.2"
 ]
 
 
