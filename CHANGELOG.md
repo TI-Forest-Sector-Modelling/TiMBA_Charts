@@ -1,5 +1,14 @@
 # Changelog
 
+## [v1.0.0] - 2026-03-09
+### Changed:
+- Temporarily commented out the print settings parameters in the CLI.
+
+### Fixed:
+- Bug is fixed about the download of default scenario data. The external data repository 
+(TiMBA_Additional_Information) is updated; data is now downloaded from the `main` branch.
+
+
 ## [v0.4.0] - 2026-03-09
 ### Added:
 - Added automated testing of all dashboards.

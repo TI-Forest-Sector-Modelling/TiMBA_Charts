@@ -7,7 +7,7 @@ include = ["Toolbox*"]
 
 [project]
 name = "TiMBA_Charts"
-version = "0.4.0"
+version = "1.0.0"
 description = """
 A toolbox for analysing forest sector model results.
 """
