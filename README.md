@@ -15,7 +15,7 @@ This package serves as a toolkit for analysing **TiMBA's** simulation results. T
 ## Cite the package
 We are happy that you consider to use TiMBA Charts for your research. When publishing your work in articles, working paper, presentations or elsewhere, please cite the package as:
 
-Morland, C., Tandetzki, J. and Honkomp, T. (2025) TiMBA Charts v.0.3.0
+Morland, C., Tandetzki, J. and Honkomp, T. (2025) TiMBA Charts v.0.4.0
 
 ## Install TiMBA Charts
 
@@ -205,7 +205,7 @@ This supports further analysis and documentation.
 - [Tomke Honkomp](https://www.thuenen.de/de/fachinstitute/waldwirtschaft/personal/wissenschaftliches-personal/tomke-honkomp-msc) [(ORCID 0000-0002-6719-0190)](https://orcid.org/0000-0002-6719-0190). 
 
 ## License and copyright note
-Copyright ©, 2025, Thuenen Institute, Christian Morland, Julia Tandetzki, 
+Copyright ©, 2026, Thuenen Institute, Christian Morland, Julia Tandetzki, 
 Tomke Honkomp, wf-timba@thuenen.de
 
 This program is free software: you can redistribute it and/or modify
