@@ -831,7 +831,7 @@ class Plots:
                 ticktext=years_map,
                 title="Year"
             ),
-            yaxis_title="in 1 000 m³ per ha",
+            yaxis_title="in m³ per ha",
             template=self.template,
             margin=dict(l=40, r=20, t=self.margin_top, b=40)
         )
