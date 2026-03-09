@@ -8,7 +8,7 @@ SCFOLDERPATH = Path("Toolbox") / Path("Input")
 # Input to adress data storage in GIT Repo
 GIT_USER = "TI-Forest-Sector-Modelling"
 GIT_REPO = "TiMBA_Additional_Information"
-GIT_BRANCH = "4-add-output-for-default_scenario"
+GIT_BRANCH = "main"
 SCINPUT_GITHUB_URL = "Output_Data/default_scenario"
 AIINPUT_GITHUB_URL = "Input_Data/default_scenario/02_Additional_Information"
 
