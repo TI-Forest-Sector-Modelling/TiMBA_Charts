@@ -2,9 +2,8 @@ import pytest
 import pandas as pd
 from dash import Dash
 import dash_bootstrap_components as dbc
-import dash
 
-from Toolbox.pages.bitrade_db import BiTradeDB
+from Toolbox.pages.forest_db import ForestDB
 from Toolbox.classes.utils import PlotUtils
 
 
@@ -13,14 +12,12 @@ from Toolbox.classes.utils import PlotUtils
 def sample_data():
     return pd.DataFrame({
         "Scenario": ["S1", "S2"],
-        "ISO3": ["R1", "R2"],
-        "Continent": ["EU", "AS"],
-        "domain": ["Import", "Export"],
-        "Commodity": ["Wood", "Wood"],
-        "Commodity_Group": ["Forest", "Forest"],
-        "quantity": [10, 20],
-        "Unit": ["t", "t"],
-        "Value": [100, 200],
+        "ISO3": ["DEU", "FRA"],
+        "Continent": ["Europe", "Europe"],
+        "ForArea": [100, 120],
+        "ForStock": [200, 250],
+        "supply_from_forest": [50, 60],
+        "Period": [1, 1],
         "year": [2020, 2020]
     })
 
@@ -33,20 +30,23 @@ def colors():
 @pytest.fixture
 def dashboard(sample_data, colors):
     app = Dash(__name__)
-    return BiTradeDB(app, sample_data, colors)
+    return ForestDB(app, sample_data, colors)
 
-# Layout
+# Layout tests
 def test_layout_structure(dashboard):
     layout = dashboard.app_layout
     assert isinstance(layout, dbc.Container)
     assert len(layout.children) >= 3
 
-    filter_card = layout.children[0]
-    assert hasattr(filter_card, "children")
-
     plot_container = layout.children[1]
     graph_cards = plot_container.children
-    assert len(graph_cards) == 6
+    assert len(graph_cards) == 8
+
+
+# Detect sceanrios
+def test_scenarios_detected(dashboard):
+    assert dashboard.scenarios == ["S1", "S2"]
+
 
 # Callbacks
 def test_callbacks_registered(dashboard):
@@ -55,24 +55,25 @@ def test_callbacks_registered(dashboard):
     assert len(app._callback_list) >= 2
 
 # Filters
-def test_filtering_logic(sample_data):
+def test_filter_data():
+
+    df = pd.DataFrame({
+        "Scenario": ["S1", "S2"],
+        "ISO3": ["DEU", "FRA"]
+    })
 
     filtered = PlotUtils.filter_data(
-        df=sample_data,
+        df=df,
         scenario=["S1"]
     )
+
     assert len(filtered) == 1
     assert filtered.iloc[0]["Scenario"] == "S1"
 
 # CSV download
-def test_download_logic(sample_data):
+def test_csv_generation(sample_data):
 
-    filtered = PlotUtils.filter_data(
-        df=sample_data,
-        scenario=["S1"]
-    )
-
-    csv = filtered.to_csv(index=False)
+    csv = sample_data.to_csv(index=False)
 
     assert "Scenario" in csv
     assert "S1" in csv
