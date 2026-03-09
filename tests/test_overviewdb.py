@@ -72,7 +72,7 @@ def test_callbacks_registered(dashboard):
     app = dashboard.app
     assert len(app._callback_list) >= 2
 
-# Filterlogik Overview
+# Filters
 def test_filter_data_overview(sample_data):
 
     df = sample_data[dp.overview_db]
