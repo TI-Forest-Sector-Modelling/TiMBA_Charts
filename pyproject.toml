@@ -5,9 +5,15 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 include = ["Toolbox*"]
 
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"Toolbox" = ["assets/*.css", "assets/*.js", "assets/*.png"]
+
 [project]
 name = "TiMBA_Charts"
-version = "1.0.0"
+version = "1.0.1"
 description = """
 A toolbox for analysing forest sector model results.
 """
