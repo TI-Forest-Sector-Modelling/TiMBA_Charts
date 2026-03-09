@@ -4,10 +4,8 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from Toolbox.classes.LayoutManager import Layout, FilterLayout
 
-# -----------------------
-# Layout Tests
-# -----------------------
 
+# Layout Tests
 def test_graph_card():
     graph = Layout._graph_card("test-graph")
     assert isinstance(graph, html.Div)
@@ -55,10 +53,8 @@ def test_ledgend_items():
         color_div = div.children[0]
         assert color_div.style["backgroundColor"] == colors[s]
 
-# -----------------------
-# FilterLayout Tests
-# -----------------------
 
+# Filter layout
 @pytest.fixture
 def sample_df():
     return pd.DataFrame({

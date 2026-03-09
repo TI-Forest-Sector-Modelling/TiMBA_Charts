@@ -5,10 +5,7 @@ import plotly.graph_objects as go
 from Toolbox.classes.PlotManager import Plots
 
 
-# -----------------------------
 # Fixtures
-# -----------------------------
-
 @pytest.fixture
 def sample_df():
     return pd.DataFrame({
@@ -36,20 +33,13 @@ def plots():
     return Plots()
 
 
-# -----------------------------
 # Generic Helper
-# -----------------------------
-
 def assert_basic_figure_properties(fig):
     assert isinstance(fig, go.Figure)
     assert len(fig.data) > 0
     assert fig.layout.template is not None
 
-
-# -----------------------------
 # Tests
-# -----------------------------
-
 def test_create_quantity_plot(sample_df, colors, plots):
     fig = plots.create_quantity_plot(sample_df, colors, "Test", "m³")
     assert_basic_figure_properties(fig)
