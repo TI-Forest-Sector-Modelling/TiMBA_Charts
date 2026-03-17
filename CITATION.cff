@@ -22,9 +22,9 @@ authors:
     orcid: 'https://orcid.org/0000-0002-6719-0190'
 identifiers:
   - type: doi
-    value: ''
-    description: ''
-repository-code: ''
+    value: '10.5281/zenodo.15631061'
+    description: 'DOI of the Zenodo archive'
+repository-code: 'https://github.com/TI-Forest-Sector-Modelling/TiMBA_Charts/tree/v1.0.1'
 abstract: |-
   This package can be used as a toolkit for analysing TiMBA results after simulation.
   The package provides a dashboard which let the user interact with the main TiMBA results. 
