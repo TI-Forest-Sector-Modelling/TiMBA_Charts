@@ -736,11 +736,12 @@ class Plots:
             stock = grouped['ForStock'][s]
             supply = grouped['supply_from_forest'][s]
 
-            nai_without_removals = stock.diff() / delta_years[s]
-            nai = nai_without_removals + (supply * under_to_over_bark)
+            nai_without_removals = stock.diff()# / delta_years[s]
+            supply_ob = (supply * under_to_over_bark)
+            nai = nai_without_removals + supply_ob / delta_years[s]
 
             if calc == "sustainable_supply":
-                value = (supply * under_to_over_bark) / nai.replace(0, np.nan)
+                value = supply_ob  / delta_years[s] / nai.replace(0, np.nan)
                 yaxis_title = "in %"
                 yaxis_tickformat = ".1%"
                 plot_title = f"Total Removals as a Share of NAI for<br>{title}"
@@ -854,10 +855,15 @@ class Plots:
             .unstack("Scenario")
         )
 
-        supply_range = grouped.fillna(0).values.flatten() * under_to_over_bark
+        years = (df.groupby(["Period"])["year"].mean())
+        delta_years = years.diff().replace(0, np.nan)
 
         for s in grouped.columns:
-            y_vals = grouped[s].reindex(periods, fill_value=0) * under_to_over_bark
+            y_vals = (
+                grouped[s].reindex(periods, fill_value=0) * 
+                under_to_over_bark /
+                delta_years
+            )
 
             fig.add_bar(
                 x=periods,
@@ -890,7 +896,7 @@ class Plots:
             yaxis_title="in million m³", 
             barmode="group", 
             template=self.template,
-            yaxis=dict(range=PlotUtils.dynamic_y_range(supply_range)),
+            yaxis=dict(range=PlotUtils.dynamic_y_range(y_vals)),
             margin=dict(l=40, r=20, t=self.margin_top, b=40),
         )
 
