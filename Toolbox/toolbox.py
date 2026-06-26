@@ -23,13 +23,14 @@ class timba_dashboard:
 
     def __init__(self,
                  FOLDER_PATH: Path = PACKAGEDIR,
+                 SCENARIO_PATH:Path = SCFOLDERPATH / SCINPUTPATH,
+                 ADDINFO_PATH: Path = SCFOLDERPATH / AIINPUTPATH,
                  num_files_to_read: int = 10,
                  print_settings: bool = False):
 
         self.num_files_to_read = num_files_to_read
-        self.SCENARIO_PATH = FOLDER_PATH / SCFOLDERPATH / SCINPUTPATH
-        self.ADDINFO_PATH = FOLDER_PATH / SCFOLDERPATH / AIINPUTPATH
-        self.FOLDER_PATH = FOLDER_PATH
+        self.SCENARIO_PATH = FOLDER_PATH / SCENARIO_PATH
+        self.ADDINFO_PATH = FOLDER_PATH / ADDINFO_PATH
         self.print_settings = print_settings
         self.app = None
         self.data = None
@@ -70,7 +71,7 @@ class timba_dashboard:
         warnings.simplefilter(action='ignore', category=FutureWarning)
 
         if not (self.SCENARIO_PATH.exists() and self.ADDINFO_PATH.exists()):
-            print(f"No data found at: {self.FOLDER_PATH}")
+            print(f"No data found at: {self.SCENARIO_PATH}")
             print("\nStart input data download:")
             download = download_input_data(SCENARIO_FOLDER_PATH=self.SCENARIO_PATH,
                                            ADDINFOPATH=self.ADDINFO_PATH)
