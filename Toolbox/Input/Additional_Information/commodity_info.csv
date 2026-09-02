@@ -1,0 +1,20 @@
+FAO-Code;Commodity;NameHist;CommodityCode;aCode;Commodity_Group;Unit
+1867;Industrial Roundwood NC;IndRoundNC;78;IRWNC;Roundwood;m�
+1633;Sawnwood NC;SawnwoodNC;79;SWC;Sawnwood;m�
+1864;Fuelwood;Fuelwood;80;FW;Roundwood;m�
+1866;Industrial Roundwood C;IndRoundC;81;IRW;Roundwood;m�
+1871;Other Industrial Roundwood;OthIndRound;82;OthIRW;Roundwood;m�
+1632;Sawnwood C;SawnwoodC;83;SWNC;Sawnwood;m�
+1640;Plywood;Plywood;84;PlyW;Wood-based Panels;m�
+1697;Particle Board;ParticleB;85;ParB;Wood-based Panels;m�
+1874;Fiberboard;FiberB;86;FibB;Wood-based Panels;m�
+1654;Mechanical Pulp;MechPlp;87;MecP;Pulps;t
+1656;Chemical Pulp;ChemPlp;88;CheP;Pulps;t
+1667;Dissolving Pulp;DisPlp;75;DisP;Pulps;t
+1668;Other Fiber Pulp;OthFbrPlp;89;OthFiP;Pulps;t
+1669;Waste Paper;WastePaper;90;WPA;Waste Paper;t
+1671;Newsprint;Newsprint;91;NwsPA;Paper and Paperboard;t
+1674;Printing and Writing Paper;PWPaper;92;PWPA;Paper and Paperboard;t
+1675;Other Paper and Board;OthPaper;93;OthPA;Paper and Paperboard;t
+9999;Cellulose Regenerates;Cellreg;76;Cellreg;Textiles Chemicals and Plastics;t
+9999;Cellulose Derivates;Cellderv;77;Cellderv;Textiles Chemicals and Plastics;t
