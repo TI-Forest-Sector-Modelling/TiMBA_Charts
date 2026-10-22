@@ -96,6 +96,9 @@ class timba_dashboard:
         # country_small.to_pickle("tests/test_data/country.pkl")
         # commodity_small.to_pickle("tests/test_data/commodity.pkl")
         # hist_small.to_pickle("tests/test_data/hist.pkl")
+
+        print("data[dp.bilateral_trade_db]")
+        print(data[dp.bilateral_trade_db])
         
         process = DataProcessor(
             data=data,country_data=country_data,

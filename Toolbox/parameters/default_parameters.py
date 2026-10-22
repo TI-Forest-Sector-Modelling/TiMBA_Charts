@@ -5,6 +5,7 @@ column_name_model = "Model"
 column_name_id = "ID"
 model_name = "TiMBA"
 overview_db = "data_periods"
+bilateral_trade_db = "bilateral_trade"
 forest_db = "Forest"
 forest_formip_db = "ForestForMip"
 

@@ -18,6 +18,8 @@ import urllib.request
 import Toolbox.parameters.paths as toolbox_paths
 import Toolbox.parameters.default_parameters as dp
 from Toolbox.parameters.defines_geo import CountryGroups
+import timba_trade.main as tm
+
 
 class import_pkl_data:
     def __init__(self,
@@ -61,6 +63,8 @@ class import_pkl_data:
                 with gzip.open(src_filepath,'rb') as f:
                     if type(f) == gzip.GzipFile:
                         data = pickle.load(f)
+                        data[dp.bilateral_trade_db] = self.bilateral_trade(data=data)
+                        print(data[dp.bilateral_trade_db])
                         data[dp.overview_db] = data[dp.overview_db][['RegionCode','CommodityCode','Period','year','domain','price','quantity']]
                 self.concat_scenarios(data=data, sc_name=scenario_name, data_prev=data_prev, ID=ID)
             except gzip.BadGzipFile:
@@ -74,6 +78,7 @@ class import_pkl_data:
 
             data_prev = data
             ID += 1
+        print(data_prev[dp.overview_db])
         data_prev[dp.overview_db] = self.downcasting(data_prev[dp.overview_db])
         return data_prev
 
@@ -203,6 +208,22 @@ class import_pkl_data:
                     data[key] = pd.concat([data_prev[key], data[key]], axis=0)
         except KeyError:
             pass
+
+    def bilateral_trade(self, data:dict)->dict:
+        try:
+            return data[dp.bilateral_trade_db]
+        except KeyError:
+            ttp = toolbox_paths.timba_trade_paths
+            ttp["BACI_DIR"] = self.ADDINFOPATH
+            ttp["LOG_DIR"] = self.ADDINFOPATH.parent.parent / Path(ttp["LOG_DIR"])
+            toolbox_paths.init_path(ttp["LOG_DIR"])
+
+            return tm.main(
+                timba_data=data[dp.overview_db], 
+                save_file=False,
+                path_dict=ttp,
+            )
+
     
     def main(self):
         data = self.pkl_import()
