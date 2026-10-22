@@ -233,11 +233,12 @@ class DataProcessor:
 
         commodity_map = self.commodity_data.set_index('CommodityCode')['Commodity']
         commodity_group_map = self.commodity_data.set_index('CommodityCode')['Commodity_Group']
-        print(commodity_map)
-        print(commodity_group_map)
         bt_df['Commodity'] = bt_df['Commodity_Code'].map(commodity_map)
         bt_df['Commodity_Group'] = bt_df['Commodity_Code'].map(commodity_group_map)
-        print(bt_df['Commodity_Group'])
+
+        bt_df.Exporter = bt_df.Exporter.astype("category")
+        bt_df.Importer = bt_df.Importer.astype("category")
+        bt_df.Scenario = bt_df.Scenario.astype("category")
 
         bt_df = bt_df[[
             "Exporter",

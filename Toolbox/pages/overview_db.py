@@ -152,7 +152,6 @@ class OverviewDB:
                     "trade"
                 )
             )
-            print(df_trade)
             y_label = PlotUtils.dynamic_y_label(df=df_trade)
 
             trade_title = PlotUtils.generate_title(

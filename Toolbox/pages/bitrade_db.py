@@ -114,10 +114,6 @@ class BiTradeDB:
             #-----------
             # subset for net export
             #-----------
-            print(PlotUtils().get_plot_filters(
-                    filter_values_dict, 
-                    "bilateral_trade"
-                ))
             df = PlotUtils.filter_data(
                 df=self.data.copy(),
                 **PlotUtils().get_plot_filters(
@@ -126,6 +122,15 @@ class BiTradeDB:
                 )
             )
             print(df)
+            
+
+            index = ["Exporter","Continent_Exporter","Commodity","Commodity_Group","Scenario","year"]
+
+            grouped = (
+                df.groupby(index, observed=True, dropna=False)["total_export"]
+                .mean()
+            ).reset_index()
+            print(grouped)
 
             title = PlotUtils.generate_title(
                 filter_dict=filter_values_dict,
@@ -133,30 +138,30 @@ class BiTradeDB:
 
             #y_label = PlotUtils.dynamic_y_label(df=df)
 
-            # q_import_fig = self.plots.create_trade_line_plot(
-            #     df=df,
-            #     trade_domain="Import",
-            #     unit="quantity",
-            #     colors=self.colors,
-            #     title=title,
-            #     y_label=y_label,
-            # )
-            # q_export_fig = self.plots.create_trade_line_plot(
-            #     df=df,
-            #     trade_domain="Export",
-            #     unit="quantity",
-            #     colors=self.colors,
-            #     title=title,
-            #     y_label=y_label,
-            # )
-            # q_net_export_fig = self.plots.create_trade_bar_plot(
-            #     df=df,
-            #     trade_domain="Net Exports",
-            #     unit="quantity",
-            #     colors=self.colors,
-            #     title=title,
-            #     y_label=y_label,
-            # )
+            q_import_fig = self.plots.create_trade_line_plot(
+                df=df,
+                trade_domain="Import",
+                unit="quantity",
+                colors=self.colors,
+                title=title,
+                y_label="",
+            )
+            q_export_fig = self.plots.create_trade_line_plot(
+                df=df,
+                trade_domain="Export",
+                unit="quantity",
+                colors=self.colors,
+                title=title,
+                y_label="",
+            )
+            q_net_export_fig = self.plots.create_trade_bar_plot(
+                df=df,
+                trade_domain="Net Exports",
+                unit="quantity",
+                colors=self.colors,
+                title=title,
+                y_label="",
+            )
             # v_import_fig = self.plots.create_trade_line_plot(
             #     df=df,
             #     trade_domain="Import",
@@ -183,9 +188,9 @@ class BiTradeDB:
             # )
 
             return (
-                # q_import_fig,
-                # q_export_fig,
-                # q_net_export_fig,
+                q_import_fig,
+                q_export_fig,
+                q_net_export_fig,
                 # v_import_fig,
                 # v_export_fig,
                 # v_net_export_fig,

@@ -63,8 +63,8 @@ class import_pkl_data:
                 with gzip.open(src_filepath,'rb') as f:
                     if type(f) == gzip.GzipFile:
                         data = pickle.load(f)
-                        data[dp.bilateral_trade_db] = self.bilateral_trade(data=data)
-                        data[dp.overview_db] = data[dp.overview_db][['RegionCode','CommodityCode','Period','year','domain','price','quantity']]
+                data[dp.bilateral_trade_db] = self.bilateral_trade(data=data, path=src_filepath)
+                data[dp.overview_db] = data[dp.overview_db][['RegionCode','CommodityCode','Period','year','domain','price','quantity']]
                 self.concat_scenarios(data=data, sc_name=scenario_name, data_prev=data_prev, ID=ID)
             except gzip.BadGzipFile:
                 pass
@@ -207,7 +207,7 @@ class import_pkl_data:
         except KeyError:
             pass
 
-    def bilateral_trade(self, data:dict)->dict:
+    def bilateral_trade(self, data:dict, path:Path)->dict:
         try:
             return data[dp.bilateral_trade_db]
         except KeyError:
@@ -216,11 +216,16 @@ class import_pkl_data:
             ttp["LOG_DIR"] = self.ADDINFOPATH.parent.parent / Path(ttp["LOG_DIR"])
             toolbox_paths.init_path(ttp["LOG_DIR"])
 
-            return tm.main(
+            data[dp.bilateral_trade_db] = tm.main(
                 timba_data=data[dp.overview_db], 
                 save_file=False,
                 path_dict=ttp,
             )
+
+            with gzip.open(path, "wb") as pkl_file:
+                pickle.dump(data, pkl_file)
+
+            return data[dp.bilateral_trade_db]
 
     
     def main(self):
