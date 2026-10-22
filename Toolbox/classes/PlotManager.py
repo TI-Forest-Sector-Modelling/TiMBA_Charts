@@ -5,6 +5,7 @@ import plotly.express as px
 import textwrap
 from Toolbox.classes.utils import PlotUtils
 from Toolbox.parameters.default_parameters import under_to_over_bark
+from Toolbox.classes.ring_plot_utils import RingPlotsUtils
 
 class Plots:
 
@@ -900,4 +901,108 @@ class Plots:
             margin=dict(l=40, r=20, t=self.margin_top, b=40),
         )
 
+        return fig
+
+    def create_trade_ring_plot(
+        self,
+        df: pd.DataFrame,
+        trade_domain: str,
+        unit: str,
+        scenario: str,
+        title: str,
+        y_label: str,
+        partner_col: str = "ISO3",
+        top_n: int = 5,
+        ring_unit: float | None = None,
+        center_label: str | None = None,
+        partner_colors: dict | None = None,
+        row_label: str = "Rest of World",
+        row_outermost: bool = True,
+        forecast_is_dark: bool = True,
+    ) -> go.Figure:
+        """
+        Ring plot of the trade partners over the years (one segment per year).
+
+        The call is similar to create_trade_bar_plot, but a ring plot shows ONE
+        scenario, so `scenario` is passed instead of the scenario `colors`.
+        The colours are assigned per partner (see RING_PALETTE).
+
+        How to read it
+        --------------
+        - One segment (equal angle) per year. The segment is divided into rings
+            of fixed thickness `ring_unit`, so the number of rings shows the total
+            trade of the year.
+        - Partners are filled into the rings from the inside to the outside:
+            the LARGEST partner is closest to the centre, the SMALLEST is on the
+            outside. A partner that needs more than one ring continues in the
+            next ring, so its share is the width of its elements.
+        - "Rest of world" (all partners outside the top N) is the outermost
+            element by default (`row_outermost`).
+        - Years up to the last "Historic Data" year use one tone of a partner's
+            colour, forecast years of `scenario` use the other tone.
+        - Separator lines appear only where two different partners touch.
+
+        Parameters
+        ----------
+        df               Trade data with the columns domain, Scenario, year,
+                            `partner_col` and `unit`.
+        trade_domain     Value of the "domain" column to plot (e.g. "Export").
+        unit             "Value" or "quantity" (same conversion as in the
+                            other trade plots).
+        scenario         Scenario that is shown for the forecast years.
+        title            Plot title (second line, like the other plots).
+        y_label          Unit name used for quantities, e.g. "m3".
+        partner_col      Column with the partner country.
+        top_n            Number of partners that get their own colour; all
+                            others are summed into `row_label`.
+        ring_unit        Value (after unit conversion) represented by one ring.
+                            None = chosen automatically, so that the largest year
+                            has about 15 rings.
+        center_label     Text in the centre hole, e.g. "DEU" (None = no text).
+        partner_colors   Optional {partner: (dark, light)} to override colours.
+        row_outermost    True: "rest of world" is always outermost.
+                            False: it is sorted by size like any other partner.
+        forecast_is_dark True: forecast = dark tone, history = light tone.
+        """
+        rpu = RingPlotsUtils()
+        df = df[df["domain"] == trade_domain]
+        if df.empty:
+            return rpu._ring_empty_figure(f"No data for {trade_domain}")
+
+        # Historic years come from "Historic Data", later years from `scenario`
+        hist = df[df["Scenario"] == "Historic Data"]
+        last_actual = int(hist["year"].max()) if not hist.empty else int(df["year"].min()) - 1
+        forecast = df[(df["Scenario"] == scenario) & (df["year"] > last_actual)]
+        data = pd.concat([hist, forecast])
+
+        if data.empty:
+            return rpu._ring_empty_figure(f"No data for {trade_domain} / {scenario}")
+
+        # Same unit conversion as in create_trade_line_plot / create_trade_bar_plot
+        if unit == "Value":
+            factor, unit_label = 1 / 1000000, "billion US$"
+        else:
+            factor, unit_label = 1 / 1000, "million " + y_label
+
+        data = data.groupby(["year", partner_col], as_index=False)[unit].sum()
+        data[unit] = data[unit] * factor
+
+        pivot, top = rpu._ring_aggregate_partners(data, "year", partner_col, unit, top_n, row_label)
+        cmap = rpu._ring_assign_colors(top, row_label, partner_colors)
+
+        if ring_unit is None:
+            ring_unit = rpu._ring_nice_unit(float(pivot.sum(axis=1).max()))
+
+        geo = rpu._ring_compute_geometry(pivot, top, last_actual, ring_unit, 2.0, row_label, row_outermost)
+
+        fig = go.Figure()
+        for trace in rpu._ring_area_traces(geo, top, row_label, cmap, unit_label, forecast_is_dark):
+            fig.add_trace(trace)
+        fig.add_trace(rpu._ring_separator_trace(geo, "white"))
+        fig.add_trace(rpu._ring_total_trace(geo))
+
+        rpu._ring_apply_layout(
+            fig, geo, ring_unit, unit_label, 0.12, center_label, 14,
+            f"{trade_domain} {unit} by partner for <br>{title}",
+        )
         return fig

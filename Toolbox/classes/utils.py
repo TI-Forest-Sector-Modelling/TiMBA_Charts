@@ -99,3 +99,5 @@ class PlotUtils:
     def dynamic_y_label(df):
         units = sorted(df["Unit"].dropna().unique())
         return f"{' and '.join(units)}"
+
+    
