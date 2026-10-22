@@ -206,3 +206,54 @@ class DataProcessor:
         pivot_df_area["Historic Data"] = 0
 
         return pivot_df_stock, pivot_df_area
+
+    def bilateral_trade_data_processing(self):
+        bt_df = self.data[dp.bilateral_trade_db]
+        bt_df = bt_df.dropna(subset=["Export_bilateral"]).reset_index(drop=True)
+
+        periods = self.data[dp.overview_db][["Period","year"]]
+        periods.drop_duplicates(inplace=True)
+        max_hist = periods.loc[periods["Period"] == 0, "year"].max()
+        periods=periods[periods.year>=max_hist]
+        periods_map = periods.set_index('Period')['year']
+        bt_df['year'] = bt_df['Period'].map(periods_map)
+
+        bt_df = bt_df.rename(columns={
+            'Reporter': 'Exporter', 
+            'Partner': 'Importer',
+            'X_q_o': 'total_export', 
+            'M_q_p': 'total_import',
+            'Export_bilateral': "trade_flow",  
+            'Commodity': "Commodity_Code",        
+        })
+
+        continent_map = self.country_data.set_index('ISO3')['Continent']
+        bt_df['Continent_Exporter'] = bt_df['Exporter'].map(continent_map)
+        bt_df['Continent_Importer'] = bt_df['Importer'].map(continent_map)
+
+        commodity_map = self.commodity_data.set_index('CommodityCode')['Commodity']
+        commodity_group_map = self.commodity_data.set_index('CommodityCode')['Commodity_Group']
+        print(commodity_map)
+        print(commodity_group_map)
+        bt_df['Commodity'] = bt_df['Commodity_Code'].map(commodity_map)
+        bt_df['Commodity_Group'] = bt_df['Commodity_Code'].map(commodity_group_map)
+        print(bt_df['Commodity_Group'])
+
+        bt_df = bt_df[[
+            "Exporter",
+            "Continent_Exporter",
+            "Importer", 
+            "Continent_Importer",
+            "Commodity", 
+            "Commodity_Group",
+            "Scenario", 
+            "year", 
+            "total_export", 
+            "total_import", 
+            "trade_flow", 
+        ]]
+
+        return bt_df
+
+
+

@@ -26,10 +26,14 @@ class PlotUtils:
         if len(values) == 0:
             return None
         return [values.min() * lower_factor, values.max() * upper_factor]
-    
+
     @staticmethod
     def filter_data(df:pd.DataFrame = None,
                     region=None, 
+                    exporter=None,
+                    exporter_continent=None,
+                    importer=None,
+                    importer_continent=None,
                     continent=None, 
                     domain=None, 
                     commodity=None, 
@@ -45,6 +49,10 @@ class PlotUtils:
             "Commodity_Group": commodity_group,
             "Scenario": scenario,
             "year": year,
+            "Exporter": exporter,
+            "Continent_Exporter": exporter_continent,
+            "Importer": importer,
+            "Continent_Importer": importer_continent,
         }
 
         for col, values in filters.items():

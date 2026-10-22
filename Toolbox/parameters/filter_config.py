@@ -92,7 +92,42 @@ TRADE_DB_FILTERS = {
     },
 }
 
+BILATERAL_TRADE_DB_FILTERS = {
+    "exporter": {
+        "column": "Exporter",
+        "placeholder": "Select exporter country..."
+    },
+    "exporter_continent": {
+        "column": "Continent_Exporter",
+        "placeholder": "Select exporter continent..."
+    },
+    "importer": {
+        "column": "Importer",
+        "placeholder": "Select importer country..."
+    },
+    "importer_continent": {
+        "column": "Continent_Importer",
+        "placeholder": "Select importer continent..."
+    },
+    "commodity": {
+        "column": "Commodity",
+        "placeholder": "Select Commodity..."
+    },
+    "commodity_group": {
+        "column": "Commodity_Group",
+        "placeholder": "Select Commodity Group..."
+    },
+}
+
 PLOT_FILTERS = {
+    "bilateral_trade": [
+        "exporter",
+        "exporter_continent",
+        "importer",
+        "importer_continent",
+        "commodity",
+        "commodity_group"
+    ],
     "trade": [
         "scenario",
         "continent",

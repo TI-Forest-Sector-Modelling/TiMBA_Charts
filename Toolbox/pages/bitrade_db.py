@@ -6,7 +6,7 @@ import pandas as pd
 from Toolbox.classes.utils import PlotUtils
 from Toolbox.classes.PlotManager import Plots
 from Toolbox.classes.LayoutManager import Layout, FilterLayout
-from Toolbox.parameters.filter_config import TRADE_DB_FILTERS
+from Toolbox.parameters.filter_config import BILATERAL_TRADE_DB_FILTERS
 import Toolbox.parameters.layout_styles as ls
 from datetime import datetime
 
@@ -20,7 +20,7 @@ class BiTradeDB:
         self.app = app
         self.db_prefix = "tdb"
         self.data = data
-        self.filters = TRADE_DB_FILTERS
+        self.filters = BILATERAL_TRADE_DB_FILTERS
         self.plots = Plots()
         self.layout = Layout()
         self.filter_builder = FilterLayout(self.data, prefix=self.db_prefix)
@@ -59,7 +59,7 @@ class BiTradeDB:
                 # Card behind all plots
                 # ==========================================================
                 html.Div(
-                    style=ls.plot_card_3x2_background_simple,
+                    style=ls.plot_card_4x2_background_simple,
                     children=[
                         #-----------
                         # Cards for the specific plots
@@ -67,10 +67,12 @@ class BiTradeDB:
 
                         self.layout._graph_card("tbd_import_q"),
                         self.layout._graph_card("tbd_export_q"),
-                        self.layout._graph_card("tbd_net_export_q"),
+                        self.layout._graph_card("tbd_rad_tile_1"),
+                        self.layout._graph_card("tbd_rad_tile_2"),
                         self.layout._graph_card("tbd_import_v"),
                         self.layout._graph_card("tbd_export_v"),
-                        self.layout._graph_card("tbd_net_export_v"),
+                        self.layout._graph_card("tbd_rad_tile_3"),
+                        self.layout._graph_card("tbd_rad_tile_4"),
 
                     ]
                 ),
@@ -97,10 +99,12 @@ class BiTradeDB:
         @self.app.callback(
             Output("tbd_import_q", "figure"),
             Output("tbd_export_q", "figure"),
-            Output("tbd_net_export_q", "figure"),
+            Output("tbd_rad_tile_1", "figure"),
+            Output("tbd_rad_tile_2", "figure"),
             Output("tbd_import_v", "figure"),
             Output("tbd_export_v", "figure"),
-            Output("tbd_net_export_v", "figure"),
+            Output("tbd_rad_tile_3", "figure"),
+            Output("tbd_rad_tile_4", "figure"),
             *filter_inputs,
         )
         def update_plots(*filter_values):
@@ -110,70 +114,84 @@ class BiTradeDB:
             #-----------
             # subset for net export
             #-----------
+            print(PlotUtils().get_plot_filters(
+                    filter_values_dict, 
+                    "bilateral_trade"
+                ))
             df = PlotUtils.filter_data(
                 df=self.data.copy(),
                 **PlotUtils().get_plot_filters(
                     filter_values_dict, 
-                    "trade"
+                    "bilateral_trade"
                 )
             )
+            print(df)
 
             title = PlotUtils.generate_title(
                 filter_dict=filter_values_dict,
             )
 
-            y_label = PlotUtils.dynamic_y_label(df=df)
+            #y_label = PlotUtils.dynamic_y_label(df=df)
 
-            q_import_fig = self.plots.create_trade_line_plot(
-                df=df,
-                trade_domain="Import",
-                unit="quantity",
-                colors=self.colors,
-                title=title,
-                y_label=y_label,
-            )
-            q_export_fig = self.plots.create_trade_line_plot(
-                df=df,
-                trade_domain="Export",
-                unit="quantity",
-                colors=self.colors,
-                title=title,
-                y_label=y_label,
-            )
-            q_net_export_fig = self.plots.create_trade_bar_plot(
-                df=df,
-                trade_domain="Net Exports",
-                unit="quantity",
-                colors=self.colors,
-                title=title,
-                y_label=y_label,
-            )
-            v_import_fig = self.plots.create_trade_line_plot(
-                df=df,
-                trade_domain="Import",
-                unit="Value",
-                colors=self.colors,
-                title=title,
-                y_label=y_label,
-            )
-            v_export_fig = self.plots.create_trade_line_plot(
-                df=df,
-                trade_domain="Export",
-                unit="Value",
-                colors=self.colors,
-                title=title,
-                y_label=y_label,
-            )
-            v_net_export_fig = self.plots.create_trade_bar_plot(
-                df=df,
-                trade_domain="Net Exports",
-                unit="Value",
-                colors=self.colors,
-                title=title,
-                y_label=y_label,
-            )
+            # q_import_fig = self.plots.create_trade_line_plot(
+            #     df=df,
+            #     trade_domain="Import",
+            #     unit="quantity",
+            #     colors=self.colors,
+            #     title=title,
+            #     y_label=y_label,
+            # )
+            # q_export_fig = self.plots.create_trade_line_plot(
+            #     df=df,
+            #     trade_domain="Export",
+            #     unit="quantity",
+            #     colors=self.colors,
+            #     title=title,
+            #     y_label=y_label,
+            # )
+            # q_net_export_fig = self.plots.create_trade_bar_plot(
+            #     df=df,
+            #     trade_domain="Net Exports",
+            #     unit="quantity",
+            #     colors=self.colors,
+            #     title=title,
+            #     y_label=y_label,
+            # )
+            # v_import_fig = self.plots.create_trade_line_plot(
+            #     df=df,
+            #     trade_domain="Import",
+            #     unit="Value",
+            #     colors=self.colors,
+            #     title=title,
+            #     y_label=y_label,
+            # )
+            # v_export_fig = self.plots.create_trade_line_plot(
+            #     df=df,
+            #     trade_domain="Export",
+            #     unit="Value",
+            #     colors=self.colors,
+            #     title=title,
+            #     y_label=y_label,
+            # )
+            # v_net_export_fig = self.plots.create_trade_bar_plot(
+            #     df=df,
+            #     trade_domain="Net Exports",
+            #     unit="Value",
+            #     colors=self.colors,
+            #     title=title,
+            #     y_label=y_label,
+            # )
 
-            return q_import_fig,q_export_fig,q_net_export_fig,v_import_fig,v_export_fig,v_net_export_fig
+            return (
+                # q_import_fig,
+                # q_export_fig,
+                # q_net_export_fig,
+                # v_import_fig,
+                # v_export_fig,
+                # v_net_export_fig,
+                # v_export_fig,
+                # v_net_export_fig
+            )
 
         # ---------------------------
         # Download CSV

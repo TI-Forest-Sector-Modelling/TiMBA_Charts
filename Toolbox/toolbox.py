@@ -96,9 +96,6 @@ class timba_dashboard:
         # country_small.to_pickle("tests/test_data/country.pkl")
         # commodity_small.to_pickle("tests/test_data/commodity.pkl")
         # hist_small.to_pickle("tests/test_data/hist.pkl")
-
-        print("data[dp.bilateral_trade_db]")
-        print(data[dp.bilateral_trade_db])
         
         process = DataProcessor(
             data=data,country_data=country_data,
@@ -109,6 +106,7 @@ class timba_dashboard:
         self.data = process.combined_data()
         self.pivot_map_data = process.pivot_map_data()
         self.pivot_df_stock, self.pivot_df_area = process.pivot_map_forest_data()
+        self.data[dp.bilateral_trade_db]=process.bilateral_trade_data_processing()
         # self.data[dp.overview_db].to_pickle("data_overview.pkl")
         # self.data[dp.forest_db].to_pickle("data_forest.pkl")
         # self.pivot_map_data.to_pickle("pivot_map_data.pkl")
@@ -148,7 +146,7 @@ class timba_dashboard:
         )
         self.bitrade_db = BiTradeDB(
             app=self.app,
-            data=self.data[dp.overview_db],
+            data=self.data[dp.bilateral_trade_db],
             colors=colors
             #print_settings=self.print_settings,
         )

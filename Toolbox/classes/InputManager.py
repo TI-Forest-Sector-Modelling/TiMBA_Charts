@@ -64,7 +64,6 @@ class import_pkl_data:
                     if type(f) == gzip.GzipFile:
                         data = pickle.load(f)
                         data[dp.bilateral_trade_db] = self.bilateral_trade(data=data)
-                        print(data[dp.bilateral_trade_db])
                         data[dp.overview_db] = data[dp.overview_db][['RegionCode','CommodityCode','Period','year','domain','price','quantity']]
                 self.concat_scenarios(data=data, sc_name=scenario_name, data_prev=data_prev, ID=ID)
             except gzip.BadGzipFile:
@@ -78,7 +77,6 @@ class import_pkl_data:
 
             data_prev = data
             ID += 1
-        print(data_prev[dp.overview_db])
         data_prev[dp.overview_db] = self.downcasting(data_prev[dp.overview_db])
         return data_prev
 
