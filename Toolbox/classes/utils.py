@@ -4,6 +4,7 @@ import numpy as np
 from dash.dependencies import Input
 from dash import dcc, html
 from Toolbox.parameters.filter_config import PLOT_FILTERS
+import plotly.graph_objects as go
 
 class PlotUtils:
     
@@ -107,5 +108,25 @@ class PlotUtils:
     def dynamic_y_label(df):
         units = sorted(df["Unit"].dropna().unique())
         return f"{' and '.join(units)}"
+
+    import plotly.graph_objects as go
+
+    @staticmethod
+    def placeholder_figure(text="Coming soon"):
+        fig = go.Figure()
+        fig.add_annotation(
+            text=text,
+            xref="paper", yref="paper",
+            x=0.5, y=0.5,
+            showarrow=False,
+            font=dict(size=18, color="gray"),
+        )
+        fig.update_layout(
+            xaxis=dict(visible=False),
+            yaxis=dict(visible=False),
+            plot_bgcolor="white",
+            paper_bgcolor="white",
+        )
+        return fig
 
     

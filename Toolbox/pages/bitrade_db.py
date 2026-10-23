@@ -121,43 +121,97 @@ class BiTradeDB:
                     "bilateral_trade"
                 )
             )
-            print(df)
-            
+              
+            #filter export data
+            exp_filter_dict = filter_values_dict.copy()
+            del_imp = ["importer", "importer_continent"]
+            for key in list(del_imp):
+                exp_filter_dict.pop(key, None)
 
-            index = ["Exporter","Continent_Exporter","Commodity","Commodity_Group","Scenario","year"]
+            exp_df = self.data.copy()
+            exp_df = PlotUtils.filter_data(
+                df=exp_df,
+                **PlotUtils().get_plot_filters(
+                    exp_filter_dict, 
+                    "bilateral_trade"
+                )
+            )
+            export_index = ["Exporter","Continent_Exporter","Commodity","Commodity_Group","Scenario","year"]
+            export_q = (
+                exp_df.groupby(export_index, observed=True, dropna=False).agg({
+                    "total_export": "mean",
+                    "total_nettrade": "mean",
+                }).reset_index()
+            )
+            print("After filter export_q")
+            print(export_q)
 
-            grouped = (
-                df.groupby(index, observed=True, dropna=False)["total_export"]
-                .mean()
-            ).reset_index()
-            print(grouped)
+            #filter import data
+            imp_filter_dict = filter_values_dict.copy()
+            del_exp = ["exporter", "exporter_continent"]
+            for key in list(del_exp):
+                imp_filter_dict.pop(key, None)
+
+            imp_df = self.data.copy()
+            imp_df = PlotUtils.filter_data(
+                df=imp_df,
+                **PlotUtils().get_plot_filters(
+                    imp_filter_dict, 
+                    "bilateral_trade"
+                )
+            )
+            import_index = ["Importer","Continent_Importer","Commodity","Commodity_Group","Scenario","year"]
+            import_q = (
+                imp_df.groupby(import_index, observed=True, dropna=False).agg({
+                    "total_import": "mean",
+                    "total_nettrade": "mean",
+                }).reset_index()
+            )
+            print("After filter import_q")
+            print(import_q)
 
             title = PlotUtils.generate_title(
                 filter_dict=filter_values_dict,
             )
 
+            exp_title = PlotUtils.generate_title(
+                filter_dict=exp_filter_dict,
+            )
+
+            imp_title = PlotUtils.generate_title(
+                filter_dict=imp_filter_dict,
+            )
+
             #y_label = PlotUtils.dynamic_y_label(df=df)
 
-            q_import_fig = self.plots.create_trade_line_plot(
-                df=df,
-                trade_domain="Import",
-                unit="quantity",
-                colors=self.colors,
-                title=title,
-                y_label="",
-            )
             q_export_fig = self.plots.create_trade_line_plot(
-                df=df,
-                trade_domain="Export",
-                unit="quantity",
+                df=export_q,
+                trade_domain="total_export",
+                colors=self.colors,
+                title=exp_title,
+                y_label="",
+            )
+            q_import_fig = self.plots.create_trade_line_plot(
+                df=import_q,
+                trade_domain="total_import",
+                colors=self.colors,
+                title=imp_title,
+                y_label="",
+            )
+
+            q_net_export_fig = self.plots.create_trade_bar_plot(
+                df=export_q,
+                trade_domain="total_nettrade",
+                unit="total_nettrade",
                 colors=self.colors,
                 title=title,
                 y_label="",
             )
-            q_net_export_fig = self.plots.create_trade_bar_plot(
-                df=df,
-                trade_domain="Net Exports",
-                unit="quantity",
+
+            q_net_import_fig = self.plots.create_trade_bar_plot(
+                df=import_q,
+                trade_domain="total_nettrade",
+                unit="total_nettrade",
                 colors=self.colors,
                 title=title,
                 y_label="",
@@ -187,15 +241,17 @@ class BiTradeDB:
             #     y_label=y_label,
             # )
 
+            placeholder = PlotUtils.placeholder_figure("Plot in progress")
+
             return (
-                q_import_fig,
-                q_export_fig,
-                q_net_export_fig,
-                # v_import_fig,
-                # v_export_fig,
-                # v_net_export_fig,
-                # v_export_fig,
-                # v_net_export_fig
+                q_export_fig,     # tbd_export_q
+                q_import_fig,     # tbd_import_q
+                placeholder,      # tbd_rad_tile_1
+                placeholder,      # tbd_rad_tile_2
+                q_net_export_fig,      # tbd_import_v
+                q_net_import_fig,      # tbd_export_v
+                placeholder,      # tbd_rad_tile_3
+                placeholder,      # tbd_rad_tile_4
             )
 
         # ---------------------------

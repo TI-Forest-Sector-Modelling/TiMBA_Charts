@@ -328,18 +328,17 @@ class Plots:
             self, 
             df: pd.DataFrame,
             trade_domain: str,
-            unit: str,
             colors: dict,
             title: str,
             y_label:str
         ) -> go.Figure:
 
-        df = df[df["domain"] == trade_domain]
+        # df = df[df["domain"] == trade_domain]
 
         fig = go.Figure()
 
         grouped = (
-            df.groupby(["Scenario", "year"])[unit]
+            df.groupby(["Scenario", "year"])[trade_domain]
             .sum()
             .unstack("Scenario")
             .sort_index()
@@ -349,9 +348,9 @@ class Plots:
         for s in grouped.columns:
             y=grouped[s] / 1000
             
-            if unit=="Value":
-                y_label="billion US$"
-                y=grouped[s] / 1000000
+            # if unit=="Value":
+            #     y_label="billion US$"
+            #     y=grouped[s] / 1000000
 
             fig.add_scatter(
                 x=grouped.index,
@@ -361,9 +360,12 @@ class Plots:
                 line=dict(width=2, color=colors.get(s)),
             )
 
+        if title==None:
+            title="Global"
+
         fig.update_layout(
             title={
-                "text": f"{trade_domain} {unit} for <br>{title}",
+                "text": f"Aggregated {trade_domain.split('_')[1]} quantity for <br>{title}",
                 "x": self.title_x,
                 "y": self.title_y,
                 "xanchor": "center",
@@ -389,14 +391,24 @@ class Plots:
             y_label: str,
         ) -> go.Figure:
 
-        df = df[df["domain"] == trade_domain]
+        try:
+            df = df[df["domain"] == trade_domain]
+        except KeyError:
+            pass
 
-        periods = sorted(df["Period"].unique())
+        try:
+            df["Period"]
+            time_var="Period"
+        except KeyError:
+            time_var="year"
+        
+        periods = sorted(df["year"].unique())
+
         fig = go.Figure()
 
         grouped = (
             df[df["Scenario"] != "Historic Data"]
-            .groupby(["Scenario", "Period"])[unit]
+            .groupby(["Scenario", time_var])[unit]
             .sum()
             .unstack("Scenario")
             .reindex(periods)
@@ -417,11 +429,14 @@ class Plots:
                 marker_color=colors.get(s)
             )
 
-        years_map = (
-            df.groupby("Period")["year"]
-            .max()
-            .reindex(periods)
-        )
+        if time_var=="Period":
+            years_map = (
+                df.groupby("Period")["year"]
+                .max()
+                .reindex(periods)
+            )
+        else:
+            years_map=periods
 
         fig.update_layout(
             title={

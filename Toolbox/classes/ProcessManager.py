@@ -211,13 +211,6 @@ class DataProcessor:
         bt_df = self.data[dp.bilateral_trade_db]
         bt_df = bt_df.dropna(subset=["Export_bilateral"]).reset_index(drop=True)
 
-        periods = self.data[dp.overview_db][["Period","year"]]
-        periods.drop_duplicates(inplace=True)
-        max_hist = periods.loc[periods["Period"] == 0, "year"].max()
-        periods=periods[periods.year>=max_hist]
-        periods_map = periods.set_index('Period')['year']
-        bt_df['year'] = bt_df['Period'].map(periods_map)
-
         bt_df = bt_df.rename(columns={
             'Reporter': 'Exporter', 
             'Partner': 'Importer',
@@ -226,6 +219,28 @@ class DataProcessor:
             'Export_bilateral': "trade_flow",  
             'Commodity': "Commodity_Code",        
         })
+
+        print(bt_df)
+
+        #create reverse trade flow
+        keys = ["Exporter", "Importer", "Commodity_Code", "Period", "Scenario"]
+
+        reverse_map = bt_df.set_index(
+            ["Importer", "Exporter", "Commodity_Code", "Period", "Scenario"]
+        )["trade_flow"]
+
+        bt_df["rev_trade_flow"] = pd.MultiIndex.from_frame(
+            bt_df[keys]
+        ).map(reverse_map)
+        
+        print(bt_df)
+
+        periods = self.data[dp.overview_db][["Period","year"]]
+        periods.drop_duplicates(inplace=True)
+        max_hist = periods.loc[periods["Period"] == 0, "year"].max()
+        periods=periods[periods.year>=max_hist]
+        periods_map = periods.set_index('Period')['year']
+        bt_df['year'] = bt_df['Period'].map(periods_map)
 
         continent_map = self.country_data.set_index('ISO3')['Continent']
         bt_df['Continent_Exporter'] = bt_df['Exporter'].map(continent_map)
@@ -240,6 +255,8 @@ class DataProcessor:
         bt_df.Importer = bt_df.Importer.astype("category")
         bt_df.Scenario = bt_df.Scenario.astype("category")
 
+        bt_df["total_nettrade"] = bt_df["trade_flow"] - bt_df["rev_trade_flow"]
+
         bt_df = bt_df[[
             "Exporter",
             "Continent_Exporter",
@@ -251,9 +268,9 @@ class DataProcessor:
             "year", 
             "total_export", 
             "total_import", 
-            "trade_flow", 
+            "trade_flow",
+            "total_nettrade", 
         ]]
-
         return bt_df
 
 
