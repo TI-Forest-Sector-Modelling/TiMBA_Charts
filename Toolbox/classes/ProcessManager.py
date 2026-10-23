@@ -220,8 +220,6 @@ class DataProcessor:
             'Commodity': "Commodity_Code",        
         })
 
-        print(bt_df)
-
         #create reverse trade flow
         keys = ["Exporter", "Importer", "Commodity_Code", "Period", "Scenario"]
 
@@ -232,8 +230,6 @@ class DataProcessor:
         bt_df["rev_trade_flow"] = pd.MultiIndex.from_frame(
             bt_df[keys]
         ).map(reverse_map)
-        
-        print(bt_df)
 
         periods = self.data[dp.overview_db][["Period","year"]]
         periods.drop_duplicates(inplace=True)

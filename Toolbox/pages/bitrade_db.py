@@ -140,11 +140,9 @@ class BiTradeDB:
             export_q = (
                 exp_df.groupby(export_index, observed=True, dropna=False).agg({
                     "total_export": "mean",
-                    "total_nettrade": "mean",
+                    "total_nettrade": "sum",
                 }).reset_index()
             )
-            print("After filter export_q")
-            print(export_q)
 
             #filter import data
             imp_filter_dict = filter_values_dict.copy()
@@ -164,11 +162,9 @@ class BiTradeDB:
             import_q = (
                 imp_df.groupby(import_index, observed=True, dropna=False).agg({
                     "total_import": "mean",
-                    "total_nettrade": "mean",
+                    "total_nettrade": "sum",
                 }).reset_index()
             )
-            print("After filter import_q")
-            print(import_q)
 
             title = PlotUtils.generate_title(
                 filter_dict=filter_values_dict,
