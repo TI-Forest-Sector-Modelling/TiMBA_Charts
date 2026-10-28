@@ -265,6 +265,7 @@ class DataProcessor:
             "total_export", 
             "total_import", 
             "trade_flow",
+            "rev_trade_flow",
             "total_nettrade", 
         ]]
         return bt_df

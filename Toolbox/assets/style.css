@@ -61,3 +61,50 @@
     z-index: 2;
 }
 
+.rad-arrow {
+    position: absolute;
+    bottom: 12px;
+    z-index: 10;
+
+    width: 36px;
+    height: 36px;
+
+    border: 1px solid #9C5D0F;
+    border-radius: 50%;
+    background-color: #9C5D0F;
+    color: white;
+
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rad-arrow-left {
+    left: 12px;
+}
+
+.rad-arrow-right {
+    right: 12px;
+}
+
+.rad-arrow:hover {
+    background-color: #7A481D;
+}
+
+.rad-scenario-label {
+    position: absolute;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    font-size: 14px;
+    font-weight: 600;
+    color: #5C3718;
+
+    white-space: nowrap;
+    text-align: center;
+}

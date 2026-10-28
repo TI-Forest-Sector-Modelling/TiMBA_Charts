@@ -4,27 +4,21 @@ import math
 from collections import defaultdict
 from dataclasses import dataclass
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
-import textwrap
-from Toolbox.classes.utils import PlotUtils
-from Toolbox.parameters.default_parameters import under_to_over_bark
 
-# Ring plot: colour pair per partner (dark tone, light tone).
-# Which tone is used for historic vs. forecast years is set by `forecast_is_dark`.
 RING_PALETTE = [
-    ("#3283D3", "#7FBCF8FF"),  # blue
-    ("#C94E25", "#F59A7B"),  # coral
-    ("#1CB657", "#5FE4B8"),  # teal
-    ("#9C5D0FB9", "#E9A63A"),  # amber
-    ("#D33B6E", "#F3759F"),  # pink
-    ("#695FDA", "#8982F5"),  # violet
-    ("#4A8F12", "#A5DB5A"),  # green
-    ("#C73636", "#FA6A6A"),  # red
+    "#9C5D0FB9",
+    "#E8D7B5", #"#9C5D0FB9",
+    "#DDB77D",
+    "#CD9655",
+    "#B97932",
+    #"#9C5D0F",
+    "#7A481D",
+    "#5C3718",
 ]
-RING_ROW_COLORS = ("#6E6D68", "#D3D1C7")  # grey, used for "rest of world"
+RING_ROW_COLOR = "#4D2D0763"  # grey, used for "rest of world"
 _RING_EPS = 1e-9
 
 
@@ -34,7 +28,7 @@ class _RingGeometry:
 
     years: list            # sorted years, one per segment
     centers: list          # centre angle (degrees) of each segment
-    cells: dict            # (partner, is_forecast) -> dict of lists for Barpolar
+    cells: dict            # partner -> dict of lists for Barpolar
     sep_theta: list        # separator lines: angles (None = line break)
     sep_r: list            # separator lines: radii  (None = line break)
     total_r: list          # radius where the total label of each year is placed
@@ -43,18 +37,27 @@ class _RingGeometry:
 
 
 class RingPlotsUtils:
+    """
+    Helper functions for the ring plot (Radial Unit Chart).
 
-    def __init__(self, template="plotly_white"):
+    Input is a pivot table: index = year, columns = partners (incl. one
+    "rest of world" column), values = trade value. See Plots.create_trade_ring_plot.
+    """
+
+    def __init__(self, template="plotly_white", pad_down=0, margin_top=0, title_x=0.5, title_y=0.975):
         self.template = template
-        self.pad_down = 150
-        self.margin_top = 60
-        self.title_x = 0.5
-        self.title_y = 0.925   
+        self.pad_down = pad_down
+        self.margin_top = margin_top
+        self.title_x = title_x
+        self.title_y = title_y
 
+    # ------------------------------------------------------------------ #
+    # Data preparation
+    # ------------------------------------------------------------------ #
     @staticmethod
     def _ring_nice_unit(max_total: float, target_rings: int = 15) -> float:
         """Round value per ring (1, 2, 5, 10, ... x 10^n) so that the largest year has about `target_rings` rings."""
-        if max_total <= 0:
+        if not max_total or max_total <= 0 or np.isnan(max_total):
             return 1.0
         raw = max_total / target_rings
         mag = 10 ** math.floor(math.log10(raw))
@@ -64,36 +67,53 @@ class RingPlotsUtils:
         return 10 * mag
 
     @staticmethod
-    def _ring_aggregate_partners(df, year_col, partner_col, value_col, top_n, row_label):
+    def _ring_prepare_pivot(pivot, top, row_label):
         """
-        Keep the `top_n` partners (by total value over all years) and sum all
-        other partners into one `row_label` ("rest of world") entry.
+        Clean the pivot table and make `top` and the columns consistent.
+
+        - NaN -> 0, years sorted.
+        - top=None: all columns except `row_label` are top partners.
+        - Columns that are neither in `top` nor `row_label` are summed into
+          `row_label`.
+        - `top` is always sorted by the total over all years, largest first,
+          whatever order was passed in. The colours (see _ring_assign_colors)
+          and the legend follow this order: the partner with the largest trade
+          gets the first colour, the smallest top partner the last one.
 
         Returns
         -------
-        pivot : DataFrame, index = year, columns = partner, values = value
-        top   : list of the top-N partner names, largest first
+        pivot : DataFrame, index = year, columns = top partners (+ row_label)
+        top   : list of top partners, largest total first
         """
-        d = df[[year_col, partner_col, value_col]].copy()
-        d.columns = ["y", "p", "v"]
+        pivot = pivot.copy().fillna(0.0).sort_index()
 
-        totals = d.groupby("p").v.sum().sort_values(ascending=False)
-        top = list(totals.index[:top_n])
+        if top is None:
+            top = [c for c in pivot.columns if c != row_label]
+        else:
+            top = [p for p in top if p in pivot.columns and p != row_label]
 
-        d["p"] = d.p.where(d.p.isin(top), row_label)
-        d = d.groupby(["y", "p"], as_index=False).v.sum()
-        pivot = d.pivot(index="y", columns="p", values="v").fillna(0.0).sort_index()
+        # rank by total over all years: largest first (stable for ties)
+        top = sorted(top, key=lambda p: -pivot[p].sum())
+
+        others = [c for c in pivot.columns if c not in top and c != row_label]
+        if others:
+            pivot[row_label] = pivot.get(row_label, 0.0) + pivot[others].sum(axis=1)
+            pivot = pivot.drop(columns=others)
+
         return pivot, top
 
     @staticmethod
     def _ring_assign_colors(top, row_label, partner_colors=None):
-        """Fixed colour pair (dark, light) per partner; grey for rest of world."""
+        """One fixed colour per partner; grey for rest of world. `partner_colors` overrides single partners."""
         cmap = {p: RING_PALETTE[i % len(RING_PALETTE)] for i, p in enumerate(top)}
-        cmap[row_label] = RING_ROW_COLORS
+        cmap[row_label] = RING_ROW_COLOR
         if partner_colors:
             cmap.update(partner_colors)
         return cmap
 
+    # ------------------------------------------------------------------ #
+    # Geometry
+    # ------------------------------------------------------------------ #
     @staticmethod
     def _ring_fill_order(pivot, year, top, row_label, row_outermost):
         """
@@ -132,7 +152,7 @@ class RingPlotsUtils:
             ring += 1
 
     @staticmethod
-    def _ring_layout_year(pivot, year, order, a0, span, unit, is_forecast, cells, sep_theta, sep_r):
+    def _ring_layout_year(pivot, year, order, a0, span, unit, cells, sep_theta, sep_r):
         """
         Create all ring cells of one year and the radial separators between
         different partners within a ring. Appends to `cells`, `sep_theta`
@@ -151,8 +171,8 @@ class RingPlotsUtils:
             if v <= 0:
                 continue
 
-            for ring, f0, f1 in Plots._ring_pieces(cum, cum + v, unit):
-                c = cells[(p, is_forecast)]
+            for ring, f0, f1 in RingPlotsUtils._ring_pieces(cum, cum + v, unit):
+                c = cells[p]
                 c["theta"].append(a0 + span * (f0 + f1) / 2)  # centre angle of the cell
                 c["width"].append(span * (f1 - f0))           # angular width of the cell
                 c["base"].append(ring * unit)                 # inner radius
@@ -194,7 +214,7 @@ class RingPlotsUtils:
         return theta, radius
 
     @staticmethod
-    def _ring_compute_geometry(pivot, top, last_actual, unit, gap_deg, row_label, row_outermost):
+    def _ring_compute_geometry(pivot, top, unit, gap_deg, row_label, row_outermost):
         """Run the geometry steps for all years and collect the results."""
         years = list(pivot.index)
         w = 360.0 / len(years)   # angle per year
@@ -209,12 +229,12 @@ class RingPlotsUtils:
             a0 = i * w + gap_deg / 2
             centers.append(a0 + span / 2)
 
-            order = Plots._ring_fill_order(pivot, year, top, row_label, row_outermost)
-            by_ring, total = Plots._ring_layout_year(
-                pivot, year, order, a0, span, unit, year > last_actual, cells, sep_theta, sep_r
+            order = RingPlotsUtils._ring_fill_order(pivot, year, top, row_label, row_outermost)
+            by_ring, total = RingPlotsUtils._ring_layout_year(
+                pivot, year, order, a0, span, unit, cells, sep_theta, sep_r
             )
 
-            arc_t, arc_r = Plots._ring_arc_separators(by_ring, a0, span, unit)
+            arc_t, arc_r = RingPlotsUtils._ring_arc_separators(by_ring, a0, span, unit)
             sep_theta += arc_t
             sep_r += arc_r
 
@@ -225,39 +245,32 @@ class RingPlotsUtils:
 
         return _RingGeometry(years, centers, cells, sep_theta, sep_r, total_r, total_text, max_ring)
 
+    # ------------------------------------------------------------------ #
+    # Plotly traces
+    # ------------------------------------------------------------------ #
     @staticmethod
-    def _ring_area_traces(geo, top, row_label, cmap, unit_label, forecast_is_dark):
-        """One Barpolar trace per partner and period (historic / forecast)."""
+    def _ring_area_traces(geo, top, row_label, cmap, unit_label):
+        """One Barpolar trace per partner (one colour, one legend entry)."""
         traces = []
-        legend_done = set()
-
         for p in [*top, row_label]:
-            for is_forecast in (False, True):
-                c = geo.cells.get((p, is_forecast))
-                if not c:
-                    continue
+            c = geo.cells.get(p)
+            if not c:
+                continue
 
-                dark, light = cmap[p]
-                use_dark = is_forecast if forecast_is_dark else not is_forecast
-                color = dark if use_dark else light
-
-                traces.append(
-                    go.Barpolar(
-                        theta=c["theta"], width=c["width"], base=c["base"], r=c["r"],
-                        name=p, legendgroup=p,
-                        # one legend entry per partner (the historic trace)
-                        showlegend=p not in legend_done and not is_forecast,
-                        # outline in the fill colour closes hairline gaps between cells
-                        marker=dict(color=color, line=dict(color=color, width=0.6)),
-                        customdata=c["cd"],
-                        hovertemplate=(
-                            "%{customdata[0]}<br>%{customdata[1]}: "
-                            "%{customdata[2]:,.2f} " + unit_label + "<extra></extra>"
-                        ),
-                    )
+            color = cmap[p]
+            traces.append(
+                go.Barpolar(
+                    theta=c["theta"], width=c["width"], base=c["base"], r=c["r"],
+                    name=p, legendgroup=p, showlegend=True,
+                    # outline in the fill colour closes hairline gaps between cells
+                    marker=dict(color=color, line=dict(color=color, width=0.6)),
+                    customdata=c["cd"],
+                    hovertemplate=(
+                        "%{customdata[0]}<br>%{customdata[1]}: "
+                        "%{customdata[2]:,.2f} " + unit_label + "<extra></extra>"
+                    ),
                 )
-                if not is_forecast:
-                    legend_done.add(p)
+            )
         return traces
 
     @staticmethod
@@ -277,10 +290,31 @@ class RingPlotsUtils:
             textfont=dict(size=11), hoverinfo="skip", showlegend=False,
         )
 
-    def _ring_apply_layout(self, fig, geo, unit, unit_label, hole, center_label, center_font_size, title_text):
-        """Title, axes, legend and the optional label in the centre hole."""
-        r_max = (geo.max_ring + 1.6) * unit  # head room for the total labels
-        grid_step = unit * 5                 # one grid line every 5 rings
+    # ------------------------------------------------------------------ #
+    # Layout
+    # ------------------------------------------------------------------ #
+    def _ring_apply_layout(self, fig, geo, unit, unit_label, hole, center_label, center_font_size, title_text,
+                           year_offset=1.55):
+        """
+        Title, axes, legend and the optional label in the centre hole.
+
+        year_offset: distance of the year labels from the outermost ring, in
+        rings. Larger values move the years further out (and the rings get
+        smaller, because the plot area then covers a larger radius).
+        """
+        r_rings = (geo.max_ring + 1.6) * unit       # head room for the total labels
+        r_max = r_rings + year_offset * unit        # plus space for the year labels
+        grid_step = unit * 5                        # one grid line every 5 rings
+
+        # Year labels as text (the built-in tick labels cannot be moved)
+        fig.add_trace(go.Scatterpolar(
+            theta=geo.centers,
+            r=[r_max - 0.5 * unit] * len(geo.years),
+            mode="text",
+            text=[str(y) for y in geo.years],
+            textfont=dict(size=12),
+            hoverinfo="skip", showlegend=False,
+        ))
 
         fig.update_layout(
             title={
@@ -291,27 +325,28 @@ class RingPlotsUtils:
                 "pad": {"b": self.pad_down}
             },
             template=self.template,
-            margin=dict(l=40, r=20, t=self.margin_top, b=40),
-            legend=dict(orientation="h", y=-0.05, x=0.5, xanchor="center"),
+            margin=dict(l=2, r=0, t=self.margin_top, b=15),
+            legend=dict(orientation="v", y=0.5, x=-0.05, xanchor="center"),
             polar=dict(
                 bgcolor="rgba(0,0,0,0)",
                 hole=hole,
                 barmode="overlay",
                 radialaxis=dict(
                     range=[0, r_max],
-                    tickvals=list(np.arange(grid_step, r_max, grid_step)),
+                    tickvals=list(np.arange(grid_step, r_rings, grid_step)),
                     title=dict(text=unit_label, font=dict(size=10)),
                     tickfont=dict(size=10),
                     showline=False,
                     gridcolor="rgba(128,128,128,0.3)",
                     angle=90,
+                    showticklabels=False
                 ),
                 angularaxis=dict(
                     rotation=90,            # first segment starts at 12 o'clock
                     direction="clockwise",
                     tickmode="array",
                     tickvals=geo.centers,
-                    ticktext=[str(y) for y in geo.years],
+                    showticklabels=False,   # years are drawn as text above
                     showgrid=False,
                     showline=False,
                     ticks="",
@@ -338,6 +373,6 @@ class RingPlotsUtils:
             template=self.template,
             xaxis=dict(visible=False),
             yaxis=dict(visible=False),
-            margin=dict(l=40, r=20, t=self.margin_top, b=40),
+            margin=dict(l=20, r=10, t=self.margin_top, b=80),
         )
         return fig
