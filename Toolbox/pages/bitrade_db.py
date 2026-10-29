@@ -94,6 +94,32 @@ class BiTradeDB:
                                     n_clicks=0,
                                     className="rad-arrow rad-arrow-right",
                                 ),
+                                dbc.RadioItems(
+                                            id="tbd_trade_type",
+                                            options=[
+                                                {"label": "Export", "value": "Export"},
+                                                {"label": "Import", "value": "Import"},
+                                            ],
+                                            value="Export",
+                                            inline=True,
+                                            className="trade-toggle",
+                                            inputClassName="btn-check",
+                                            labelClassName="btn btn-outline-secondary",
+                                            labelCheckedClassName="btn trade-toggle-active",
+                                ),
+                                dbc.RadioItems(
+                                            id="tbd_country_type",
+                                            options=[
+                                                {"label": "Countries", "value": "Countries"},
+                                                {"label": "Continents", "value": "Continents"},
+                                            ],
+                                            value="Countries",
+                                            inline=True,
+                                            className="country-toggle",
+                                            inputClassName="btn-check",
+                                            labelClassName="btn btn-outline-secondary",
+                                            labelCheckedClassName="btn country-toggle-active",
+                                ),
                             ],
                             style={
                                 **ls.main_plot_card,
@@ -137,13 +163,17 @@ class BiTradeDB:
             Output("tbd_rad_next", "style"),
             Input("tbd_rad_prev", "n_clicks"),
             Input("tbd_rad_next", "n_clicks"),
+            Input("tbd_trade_type", "value"),
+            Input("tbd_country_type", "value"),
             *filter_inputs,
             State("tbd_scenario_index", "data"),
         )
 
-        def update_plots(prev_clicks, next_clicks, *args):
+        def update_plots(prev_clicks, next_clicks, trade_type, country_type, *args):
             filter_values = args[:-1]
             scenario_id = args[-1] or 0
+            print(trade_type)
+            print(country_type)
 
             print(f"{self.db_prefix}_dashboard")
             filter_values_dict = dict(zip(self.filters.keys(), filter_values))
@@ -303,7 +333,7 @@ class BiTradeDB:
                     alt_label="...",
                 )
 
-                center_label = f"{exporter}<br> to {importer}"
+                center_label = f"{exporter}<br> to <br>{importer}"
                     
 
                 pivot_export_country_sc1, top_export_country_sc1 = _top_countries(

@@ -44,7 +44,7 @@ class RingPlotsUtils:
     "rest of world" column), values = trade value. See Plots.create_trade_ring_plot.
     """
 
-    def __init__(self, template="plotly_white", pad_down=0, margin_top=0, title_x=0.5, title_y=0.975):
+    def __init__(self, template="plotly_white", pad_down=150, margin_top=60, title_x=0.5, title_y=0.96):
         self.template = template
         self.pad_down = pad_down
         self.margin_top = margin_top
@@ -294,7 +294,7 @@ class RingPlotsUtils:
     # Layout
     # ------------------------------------------------------------------ #
     def _ring_apply_layout(self, fig, geo, unit, unit_label, hole, center_label, center_font_size, title_text,
-                           year_offset=1.55):
+                           year_offset=1.5):
         """
         Title, axes, legend and the optional label in the centre hole.
 
@@ -324,8 +324,9 @@ class RingPlotsUtils:
                 "xanchor": "center",
                 "pad": {"b": self.pad_down}
             },
+            autosize = True,
             template=self.template,
-            margin=dict(l=2, r=0, t=self.margin_top, b=15),
+            margin=dict(l=2, r=0, t=self.margin_top, b=25),
             legend=dict(orientation="v", y=0.5, x=-0.05, xanchor="center"),
             polar=dict(
                 bgcolor="rgba(0,0,0,0)",

@@ -108,3 +108,97 @@
     white-space: nowrap;
     text-align: center;
 }
+
+.trade-toggle,
+.country-toggle {
+    display: inline-flex;
+    flex-direction: row;
+    gap: 0 !important;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+}
+
+.trade-toggle .form-check,
+.country-toggle .form-check {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.trade-toggle label.btn,
+.country-toggle label.btn {
+    display: block;
+    box-sizing: border-box;
+
+    margin: 0 !important;
+    padding: 5px 10px !important;
+
+    font-family: inherit;
+    font-size: 11px !important;
+    font-weight: 400;
+    line-height: 1.2 !important;
+    white-space: nowrap;
+
+    color: #9C5D0F !important;
+    background-color: #FFFFFF !important;
+    border: 1px solid #9C5D0F !important;
+
+    cursor: pointer;
+    box-shadow: none !important;
+    transition: background-color 0.15s ease,
+                color 0.15s ease;
+}
+
+.trade-toggle label.btn:last-of-type,
+.country-toggle label.btn:last-of-type {
+    margin-left: -1px !important;
+}
+
+.trade-toggle label.btn:first-of-type,
+.country-toggle label.btn:first-of-type {
+    border-radius: 4px 0 0 4px !important;
+}
+
+.trade-toggle label.btn:last-of-type,
+.country-toggle label.btn:last-of-type {
+    border-radius: 0 4px 4px 0 !important;
+}
+
+.trade-toggle label.btn.trade-toggle-active,
+.country-toggle label.btn.country-toggle-active {
+    color: #FFFFFF !important;
+    background-color: #9C5D0F !important;
+    border-color: #9C5D0F !important;
+}
+
+.trade-toggle label.btn:not(.trade-toggle-active):hover,
+.country-toggle label.btn:not(.country-toggle-active):hover {
+    background-color: #F5EBDD !important;
+    color: #9C5D0F !important;
+}
+
+.trade-toggle label.btn:focus,
+.country-toggle label.btn:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.trade-toggle {
+    position: absolute;
+    top: 15px;
+    left: 25px;
+}
+
+.country-toggle {
+    position: absolute;
+    top: 45px;
+    left: 25px;
+}
+
+.trade-toggle label.btn,
+.country-toggle label.btn {
+    width: 75px !important;
+    min-width: 75px !important;
+    max-width: 75px !important;
+    text-align: center !important;
+}
