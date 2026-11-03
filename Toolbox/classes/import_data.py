@@ -10,7 +10,7 @@ import Toolbox.parameters.paths as toolbox_paths
 import Toolbox.parameters.default_parameters as toolbox_parameters
 
 class import_pkl_data:
-    def __init__(self, num_files_to_read:int=10,
+    def __init__(self, num_files_to_read:int=25,
                  SCENARIOPATH:Path= toolbox_paths.SCINPUTPATH,
                  ADDINFOPATH:Path= toolbox_paths.AIINPUTPATH):
         self.num_files_to_read = num_files_to_read

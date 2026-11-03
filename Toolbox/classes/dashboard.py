@@ -21,19 +21,31 @@ class DashboardPlotter:
         self.start = self.data['year'].min()
         self.end = self.data['year'].max()
         self.color_list = [
-            '#2A4D69',  # Dunkelblau
-            '#4B8BBE',  # Hellblau
-            '#D35400',  # Dunkelorange
-            '#AAB7B8',  # Grau
-            '#9B59B6',  # Lila
-            '#2980B9',  # Blau
-            '#27AE60',  # Grün
-            '#6C757D',  # Dunkelgrau
-            '#F1C40F',  # Senfgelb
-            '#E67E22',  # Orange  
-            "#14B150",
-            "#270A3A",
-            "#662308",
+            "#2A4D69",  # Dunkelblau
+            "#E67E22",  # Orange
+            "#4B8BBE",  # Hellblau
+            "#C0392B",  # Ziegelrot
+            "#1ABC9C",  # Türkis
+            "#F1C40F",  # Senfgelb
+            "#2980B9",  # Mittelblau
+            "#F1948A",  # Koralle
+            "#34495E",  # Schieferblau
+            "#F39C12",  # Goldorange
+            "#16A085",  # Petrol
+            "#E74C3C",  # Rot
+            "#58D68D",  # Mintgrün
+            "#8E44AD",  # Purpur
+            "#D35400",  # Dunkelorange
+            "#AAB7B8",  # Grau
+            "#662308",  # Dunkelbraun
+            "#BDC3C7",  # Hellgrau
+            "#270A3A",  # Dunkellila
+            "#5D6D7E",  # Stahlgrau
+            "#F5B041",  # Bernstein
+            "#27AE60",  # Grün
+            "#9B59B6",  # Violett
+            "#6C757D",  # Dunkelgrau
+            "#14B150"   # Smaragdgrün#
         ]
         self.create_layout()
         self.create_callbacks()
@@ -223,7 +235,9 @@ class DashboardPlotter:
         for i, scenario in enumerate(grouped_data_quantity['Scenario'].unique()):
             subset = grouped_data_quantity[grouped_data_quantity['Scenario'] == scenario]
             color = self.color_list[i % len(self.color_list)]
-            dash = 'solid' if scenario in ['Historic Data'] else 'dash'
+            dash = 'solid' if scenario in ['Historic Data', 'DataContainer_Sc_20250804_Updated_World_2019_SSP5v2', 
+                                           'DataContainer_Sc_20250804_Updated_World_2019_SSP1v2', 'DataContainer_Sc_20250804_Updated_World_2019_SSP2v2' , 
+                                           'DataContainer_Sc_20250804_Updated_World_2019_SSP3v2', 'DataContainer_Sc_20250804_Updated_World_2019_SSP4v2'] else 'dash'
             fig_quantity.add_trace(go.Scatter(x=subset['year'], y=subset['quantity'], mode='lines',
                                               name=f'{scenario}', line=dict(color=color, dash=dash)))
         title_quantity = self.generate_title(region, continent, domain, commodity, commodity_group)
