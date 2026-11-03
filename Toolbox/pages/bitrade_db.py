@@ -313,7 +313,7 @@ class BiTradeDB:
                 if len(df[country_column].unique()) <= 3:
                     return ", ".join(df[country_column].unique())
                 elif len(df[continent_column].unique()) <= 3:
-                    return "_".join(df[continent_column].unique())
+                    return ", ".join(df[continent_column].unique())
                 else:
                     return alt_label
                 
@@ -334,17 +334,37 @@ class BiTradeDB:
                 )
 
                 center_label = f"{exporter}<br> to <br>{importer}"
-                    
+
+                if trade_type=="Export":
+                    title_fragment = " to partner "
+                    ColumnElement = "Importer"
+                else:
+                    title_fragment = " from partner "
+                    ColumnElement = "Exporter"
+
+                if country_type =="Continent":
+                    CountryColumn = "Continent_" + ColumnElement
+                else:
+                    CountryColumn = ColumnElement
 
                 pivot_export_country_sc1, top_export_country_sc1 = _top_countries(
                     df=df_ring_sc1,
                     YearColumn="year",
-                    CountryColumn="Importer",
+                    CountryColumn=CountryColumn,
                     ValueColumn="trade_flow",
                 )
+               
+                ring_title_commodity = _check_center_label(
+                    country_column="Commodity",
+                    continent_column="Commodity_Group",
+                    alt_label="all commodities",
+                )
+
+                title = trade_type + title_fragment + country_type + " for " + ring_title_commodity
 
                 fig_rad_tile = Plots().create_trade_ring_plot(
                     pivot=pivot_export_country_sc1, 
+                    title=title,
                     top=top_export_country_sc1, 
                     center_label=center_label
                 )

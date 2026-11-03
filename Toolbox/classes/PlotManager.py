@@ -961,6 +961,6 @@ class Plots:
             hole=0.25,
             center_label=center_label,
             center_font_size=14,
-            title_text=f"{trade_domain} by partner for <br>{title}",
+            title_text=title,
         )
         return fig

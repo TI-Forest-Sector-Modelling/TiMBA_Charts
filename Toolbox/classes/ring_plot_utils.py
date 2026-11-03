@@ -44,7 +44,7 @@ class RingPlotsUtils:
     "rest of world" column), values = trade value. See Plots.create_trade_ring_plot.
     """
 
-    def __init__(self, template="plotly_white", pad_down=150, margin_top=60, title_x=0.5, title_y=0.96):
+    def __init__(self, template="plotly_white", pad_down=50, margin_top=10, title_x=0.5, title_y=0.99):
         self.template = template
         self.pad_down = pad_down
         self.margin_top = margin_top
