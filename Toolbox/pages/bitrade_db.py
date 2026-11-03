@@ -292,8 +292,18 @@ class BiTradeDB:
                 )["helper"]
 
                 d["helper"] = d[YearColumn].astype(str) + d[CountryColumn].astype(str)
-                d.loc[~d["helper"].isin(top_map), CountryColumn] = "RoW"
-                
+                try:
+                    d.loc[~d["helper"].isin(top_map), CountryColumn] = "RoW"
+                    print(d)
+                except TypeError:
+                    print("typeerror")
+                    df[CountryColumn] = (
+                        df[CountryColumn]
+                        .cat.add_categories(['RoW'])
+                        .fillna('RoW')
+                    )
+                    print(d)
+
                 top = d[CountryColumn].unique()
                 top = top[top!="RoW"]
 
@@ -342,10 +352,12 @@ class BiTradeDB:
                     title_fragment = " from partner "
                     ColumnElement = "Exporter"
 
-                if country_type =="Continent":
+                if country_type =="Continents":
                     CountryColumn = "Continent_" + ColumnElement
                 else:
                     CountryColumn = ColumnElement
+
+                print(CountryColumn)
 
                 pivot_export_country_sc1, top_export_country_sc1 = _top_countries(
                     df=df_ring_sc1,
@@ -353,6 +365,8 @@ class BiTradeDB:
                     CountryColumn=CountryColumn,
                     ValueColumn="trade_flow",
                 )
+
+                print(pivot_export_country_sc1)
                
                 ring_title_commodity = _check_center_label(
                     country_column="Commodity",
