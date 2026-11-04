@@ -40,6 +40,9 @@ class BiTradeDB:
         filters = self.filter_builder.build_all(self.filters)
         button = self.layout.download_button(f"{self.db_prefix}_download-btn")
 
+        plot_card_bilateral_trade = ls.plot_card_3x2_background_main
+        plot_card_bilateral_trade["gridTemplateColumns"] = "1fr 1.45fr 1fr"
+
         return dbc.Container(
             fluid=True,
             style=ls.outer_card_under_header,
@@ -66,7 +69,7 @@ class BiTradeDB:
                 # Card behind all plots
                 # ==========================================================
                 html.Div(
-                    style=ls.plot_card_3x2_background_main,
+                    style=plot_card_bilateral_trade,
                     children=[
                         #-----------
                         # Cards for the specific plots
