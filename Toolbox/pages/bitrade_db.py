@@ -16,11 +16,13 @@ class BiTradeDB:
      
     def __init__(self, 
                  app, 
-                 data: pd.DataFrame,
+                 bilateral_data: pd.DataFrame,
+                 aggregated_data: pd.DataFrame,
                  colors):
         self.app = app
         self.db_prefix = "tdb"
-        self.data = data
+        self.data = bilateral_data
+        self.aggregated_data = aggregated_data
         self.filters = BILATERAL_TRADE_DB_FILTERS
         self.plots = Plots()
         self.layout = Layout()
@@ -171,13 +173,14 @@ class BiTradeDB:
 
         def update_plots(prev_clicks, next_clicks, trade_type, country_type, *args):
             filter_values = args[:-1]
-            scenario_id = args[-1] or 0
+            sc_id = args[-1] or 0
             print(trade_type)
             print(country_type)
 
             print(f"{self.db_prefix}_dashboard")
             filter_values_dict = dict(zip(self.filters.keys(), filter_values))
             print(filter_values_dict)
+
             #-----------
             # subset for net export
             #-----------
@@ -188,30 +191,12 @@ class BiTradeDB:
                     "bilateral_trade"
                 )
             )
-            
-            scen_list = sorted(df["Scenario"].dropna().unique())
-            n_scenarios = len(scen_list)
 
+            #-------------
+            # Scenario subset by button in radial plot 
+            #-------------
             triggered_id = ctx.triggered_id
-
-            if n_scenarios > 0:
-                if triggered_id == "tbd_rad_prev":
-                    scenario_id = max(0, scenario_id - 1)
-
-                elif triggered_id == "tbd_rad_next":
-                    scenario_id = min(n_scenarios - 1, scenario_id + 1)
-            else:
-                scenario_id = 0
-
-            prev_style = {
-                "display": "none" if scenario_id <= 0 else "block"
-            }
-
-            next_style = {
-                "display": "none"
-                if n_scenarios == 0 or scenario_id >= n_scenarios - 1
-                else "block"
-            }
+            sc_id, prev_sc, next_sc = PlotUtils().scen_subset_by_button(df=df,triggered_id=triggered_id)
 
             # ---------------------------------------------------------
             #filter export data
@@ -328,8 +313,8 @@ class BiTradeDB:
                     return alt_label
                 
             try:
-                df_ring_sc1 = df[df["Scenario"]==df["Scenario"].unique()[scenario_id]]
-                scenario = df["Scenario"].unique()[scenario_id]
+                df_ring_sc1 = df[df["Scenario"]==df["Scenario"].unique()[sc_id]]
+                scenario = df["Scenario"].unique()[sc_id]
 
                 exporter=_check_center_label(
                     country_column="Exporter",
@@ -401,7 +386,7 @@ class BiTradeDB:
                 y_label="",
             )
 
-            q_net_export_fig = self.plots.create_trade_bar_plot(
+            q_net_export_fig = self.plots.create_trade_bar_plot_new(
                 df=export_q,
                 trade_domain="total_nettrade",
                 unit="total_nettrade",
@@ -410,7 +395,7 @@ class BiTradeDB:
                 y_label="",
             )
 
-            q_net_import_fig = self.plots.create_trade_bar_plot(
+            q_net_import_fig = self.plots.create_trade_bar_plot_new(
                 df=import_q,
                 trade_domain="total_nettrade",
                 unit="total_nettrade",
@@ -419,16 +404,42 @@ class BiTradeDB:
                 y_label="",
             )
 
+            #--------------------------------------------------------------------------------
+            # subset for net export
+            #--------------------------------------------------------------------------------
+            df_trade = PlotUtils.filter_data(
+                df=self.data.copy(),
+                **PlotUtils().get_plot_filters(
+                    filter_values_dict, 
+                    "trade"
+                )
+            )
+            y_label = PlotUtils.dynamic_y_label(df=df_trade)
+
+            trade_title = PlotUtils.generate_title(
+                filter_dict=filter_values_dict,
+                ignore_keys=["domain"],
+            )
+            # create net export plot
+            q_net_export_fig = self.plots.create_trade_bar_plot(
+                df_trade,
+                "Net Exports",
+                "quantity",
+                colors=self.colors,
+                title=trade_title,
+                y_label=y_label,
+            )
+
             return (
                 fig_agg_export,
                 fig_rad_tile,
                 fig_agg_import,
                 q_net_export_fig,
                 q_net_import_fig, 
-                scenario_id,
+                sc_id,
                 str(scenario) if scenario is not None else "No scenario found",
-                prev_style,
-                next_style,
+                prev_sc,
+                next_sc,
             )
 
         # ---------------------------

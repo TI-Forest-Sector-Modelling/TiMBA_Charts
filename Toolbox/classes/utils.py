@@ -129,4 +129,29 @@ class PlotUtils:
         )
         return fig
 
+    @staticmethod
+    def scen_subset_by_button(df:pd.DataFrame, triggered_id:int):
+        scen_list = sorted(df["Scenario"].dropna().unique())
+        n_scenarios = len(scen_list)             
+
+        if n_scenarios > 0:
+            if triggered_id == "tbd_rad_prev":
+                scenario_id = max(0, scenario_id - 1)
+
+            elif triggered_id == "tbd_rad_next":
+                scenario_id = min(n_scenarios - 1, scenario_id + 1)
+        else:
+            scenario_id = 0
+
+        prev_style = {
+            "display": "none" if scenario_id <= 0 else "block"
+        }
+
+        next_style = {
+            "display": "none"
+            if n_scenarios == 0 or scenario_id >= n_scenarios - 1
+            else "block"
+        }
+        return scenario_id, prev_style, next_style
+
     

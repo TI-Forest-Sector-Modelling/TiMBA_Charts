@@ -381,7 +381,7 @@ class Plots:
 
         return fig
     
-    def create_trade_bar_plot(
+    def create_trade_bar_plot_new(
             self,
             df: pd.DataFrame,
             trade_domain: str,
@@ -964,3 +964,72 @@ class Plots:
             title_text=title,
         )
         return fig
+
+    def create_trade_bar_plot(
+            self,
+            df: pd.DataFrame,
+            trade_domain: str,
+            unit: str,
+            colors: dict,
+            title: str,
+            y_label: str,
+        ) -> go.Figure:
+
+        df = df[df["domain"] == trade_domain]
+
+        periods = sorted(df["Period"].unique())
+        fig = go.Figure()
+
+        grouped = (
+            df[df["Scenario"] != "Historic Data"]
+            .groupby(["Scenario", "Period"])[unit]
+            .sum()
+            .unstack("Scenario")
+            .reindex(periods)
+        )
+
+        y_label="million " + y_label
+        for s in grouped.columns:
+            y=grouped[s] / 1000
+            
+            if unit=="Value":
+                y_label="billion US$"
+                y=grouped[s] / 1000000
+
+            fig.add_bar(
+                x=periods,
+                y=y,
+                name=s,
+                marker_color=colors.get(s)
+            )
+
+        years_map = (
+            df.groupby("Period")["year"]
+            .max()
+            .reindex(periods)
+        )
+
+        fig.update_layout(
+            title={
+                "text": f"{trade_domain} for<br>{title}",
+                "x": self.title_x,
+                "y": self.title_y,
+                "xanchor": "center",
+                "pad": {"b": self.pad_down}
+            },
+            xaxis=dict(
+                tickmode="array",
+                tickvals=periods,
+                ticktext=years_map,
+                title="Year"
+            ),
+            yaxis_title=f"{trade_domain} in {y_label}",
+            barmode="group",
+            template="plotly_white",
+            margin=dict(l=40, r=20, t=self.margin_top, b=40),
+            hovermode="x unified",
+            showlegend=False,
+        )
+
+        return fig
+    

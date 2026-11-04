@@ -146,8 +146,9 @@ class timba_dashboard:
         )
         self.bitrade_db = BiTradeDB(
             app=self.app,
-            data=self.data[dp.bilateral_trade_db],
-            colors=colors
+            bilateral_data=self.data[dp.bilateral_trade_db],
+            aggregated_data=self.data[dp.overview_db],
+            colors=colors,
             #print_settings=self.print_settings,
         )
         self.validation_db = ValidationDB(
