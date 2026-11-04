@@ -196,7 +196,11 @@ class BiTradeDB:
             # Scenario subset by button in radial plot 
             #-------------
             triggered_id = ctx.triggered_id
-            sc_id, prev_sc, next_sc = PlotUtils().scen_subset_by_button(df=df,triggered_id=triggered_id)
+            sc_id, prev_sc, next_sc = PlotUtils().scen_subset_by_button(
+                df=df,
+                triggered_id=triggered_id,
+                scenario_id=sc_id,
+            )
 
             # ---------------------------------------------------------
             #filter export data
@@ -407,35 +411,35 @@ class BiTradeDB:
             #--------------------------------------------------------------------------------
             # subset for net export
             #--------------------------------------------------------------------------------
-            df_trade = PlotUtils.filter_data(
-                df=self.data.copy(),
-                **PlotUtils().get_plot_filters(
-                    filter_values_dict, 
-                    "trade"
-                )
-            )
-            y_label = PlotUtils.dynamic_y_label(df=df_trade)
+            # df_trade = PlotUtils.filter_data(
+            #     df=self.data.copy(),
+            #     **PlotUtils().get_plot_filters(
+            #         filter_values_dict, 
+            #         "trade"
+            #     )
+            # )
+            # y_label = PlotUtils.dynamic_y_label(df=df_trade)
 
-            trade_title = PlotUtils.generate_title(
-                filter_dict=filter_values_dict,
-                ignore_keys=["domain"],
-            )
-            # create net export plot
-            q_net_export_fig = self.plots.create_trade_bar_plot(
-                df_trade,
-                "Net Exports",
-                "quantity",
-                colors=self.colors,
-                title=trade_title,
-                y_label=y_label,
-            )
+            # trade_title = PlotUtils.generate_title(
+            #     filter_dict=filter_values_dict,
+            #     ignore_keys=["domain"],
+            # )
+            # # create net export plot
+            # q_net_export_fig = self.plots.create_trade_bar_plot(
+            #     df_trade,
+            #     "Net Exports",
+            #     "quantity",
+            #     colors=self.colors,
+            #     title=trade_title,
+            #     y_label=y_label,
+            # )
 
             return (
                 fig_agg_export,
                 fig_rad_tile,
                 fig_agg_import,
-                q_net_export_fig,
-                q_net_import_fig, 
+                PlotUtils().placeholder_figure(text="Rework Net trade plot"),
+                PlotUtils().placeholder_figure(text="Rework Net trade plot"), 
                 sc_id,
                 str(scenario) if scenario is not None else "No scenario found",
                 prev_sc,

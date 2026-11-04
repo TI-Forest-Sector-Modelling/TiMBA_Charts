@@ -130,7 +130,11 @@ class PlotUtils:
         return fig
 
     @staticmethod
-    def scen_subset_by_button(df:pd.DataFrame, triggered_id:int):
+    def scen_subset_by_button(
+        df:pd.DataFrame, 
+        triggered_id:int,
+        scenario_id: int,
+    ):
         scen_list = sorted(df["Scenario"].dropna().unique())
         n_scenarios = len(scen_list)             
 
